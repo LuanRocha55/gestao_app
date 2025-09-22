@@ -179,11 +179,15 @@ document.addEventListener('DOMContentLoaded', () => {
             </li>`;
         }).join('');
 
-        const filesHtml = (service.files || []).map(file => `
-            <li class="file-item">
-                <a href="${file.url}" target="_blank" rel="noopener noreferrer">${file.name}</a>
-            </li>
-        `).join('');
+        const filesHtml = (service.files || []).map(file => {
+            // Se for um arquivo local, adiciona o atributo 'download'
+            const downloadAttr = file.isLocal ? `download="${file.name}"` : '';
+            return `
+                <li class="file-item">
+                    <a href="${file.url}" target="_blank" rel="noopener noreferrer" ${downloadAttr}>${file.name}</a>
+                </li>
+            `;
+        }).join('');
 
         taskDetailView.innerHTML = `
             <div class="detail-header">
@@ -209,11 +213,18 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="detail-section">
                 <h3>Materiais e Arquivos</h3>
                 <ul class="file-list">${filesHtml || '<p>Nenhum arquivo adicionado.</p>'}</ul>
-                <form id="add-file-form">
-                    <input type="text" id="file-name" placeholder="Nome do arquivo" required>
-                    <input type="url" id="file-url" placeholder="URL do arquivo" required>
-                    <button type="submit" class="btn-primary">Adicionar</button>
-                </form>
+                <div class="file-upload-actions">
+                    <form id="add-file-form">
+                        <input type="text" id="file-name" placeholder="Nome do link" required>
+                        <input type="url" id="file-url" placeholder="URL do link" required>
+                        <button type="submit" class="btn-primary">Adicionar Link</button>
+                    </form>
+                    <div class="upload-separator">ou</div>
+                    <div class="upload-button-wrapper">
+                        <input type="file" id="local-file-input" class="hidden">
+                        <label for="local-file-input" class="btn-secondary">Enviar arquivo</label>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -228,6 +239,27 @@ document.addEventListener('DOMContentLoaded', () => {
             
             saveServices();
             renderTaskDetail(service); // Re-renderiza a view de detalhes para mostrar o novo arquivo
+        });
+
+        // Adiciona listener para o input de arquivo local
+        document.getElementById('local-file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const dataUrl = event.target.result;
+                if (!service.files) service.files = [];
+                
+                service.files.push({
+                    name: file.name,
+                    url: dataUrl,
+                    isLocal: true // Marca como arquivo local
+                });
+                saveServices();
+                renderTaskDetail(service);
+            };
+            reader.readAsDataURL(file);
         });
 
         // Adiciona listener para os checkboxes na página de detalhes
