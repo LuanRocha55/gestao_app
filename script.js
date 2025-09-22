@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtn = document.querySelector('.close-btn');
     const addServiceForm = document.getElementById('add-service-form');
     const searchInput = document.getElementById('search-input');
+    const taskDetailView = document.getElementById('task-detail-view');
     const addStepBtn = document.getElementById('add-step-btn');
     const stepsContainer = document.getElementById('steps-container');
 
@@ -46,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Dados de exemplo se não houver nada salvo
             services = [
                 {
-                    id: 1, name: 'Desenvolvimento do Novo App', responsible: 'luan.rocha@email.com', category: 'Desenvolvimento',
+                    id: 1, name: 'Desenvolvimento do Novo App', responsible: 'luan.rocha@email.com', category: 'Desenvolvimento', files: [],
                     steps: [
                         { name: 'Planejamento e Escopo', completed: true, assignedTo: 'luan.rocha@email.com' },
                         { name: 'Design da UI/UX', completed: true, assignedTo: 'emanuela.araujo@email.com' },
@@ -55,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ]
                 },
                 {
-                    id: 2, name: 'Campanha de Marketing', responsible: 'sergio.sertorio@email.com', category: 'Marketing',
+                    id: 2, name: 'Campanha de Marketing', responsible: 'sergio.sertorio@email.com', category: 'Marketing', files: [],
                     steps: [
                         { name: 'Definir público-alvo', completed: true, assignedTo: 'sergio.sertorio@email.com' },
                         { name: 'Criar criativos', completed: true, assignedTo: 'janaina.muniz@email.com' },
@@ -120,13 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const responsibleName = teamMemberMap.get(service.responsible) || service.responsible;
                 const responsibleHtml = isValidEmail(service.responsible)
-                    ? `<a href="mailto:${service.responsible}">${responsibleName}</a>`
+                    ? `<a href="mailto:${service.responsible}" onclick="event.stopPropagation()">${responsibleName}</a>`
                     : responsibleName;
 
                 const stepsHtml = service.steps.map((step, index) => {
                     const assigneeName = teamMemberMap.get(step.assignedTo) || step.assignedTo;
                     const assigneeHtml = isValidEmail(step.assignedTo)
-                        ? `<a href="mailto:${step.assignedTo}">${assigneeName}</a>`
+                        ? `<a href="mailto:${step.assignedTo}" onclick="event.stopPropagation()">${assigneeName}</a>`
                         : assigneeName;
                     const assigneeSpan = step.assignedTo ? `<span class="step-assignee">(${assigneeHtml})</span>` : '';
 
@@ -138,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 card.innerHTML = `
                     <div class="card-header">
-                        <h2>${service.name}</h2>
+                        <h2><a href="#/task/${service.id}">${service.name}</a></h2>
                         <button class="btn-icon btn-edit" title="Editar Serviço" data-service-id="${service.id}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg></button>
                     </div>
                     <p class="responsible">Responsável: ${responsibleHtml}</p>
@@ -155,6 +156,96 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 serviceContainer.appendChild(card);
             });
+        });
+    }
+
+    // --- Funções da Página de Detalhes ---
+    function renderTaskDetail(service) {
+        const responsibleName = teamMemberMap.get(service.responsible) || service.responsible;
+        const completedSteps = service.steps.filter(step => step.completed).length;
+        const totalSteps = service.steps.length;
+        const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+
+        const stepsHtml = service.steps.map((step, index) => {
+            const assigneeName = teamMemberMap.get(step.assignedTo) || step.assignedTo;
+            const assigneeHtml = isValidEmail(step.assignedTo)
+                ? `<a href="mailto:${step.assignedTo}" onclick="event.stopPropagation()">${assigneeName}</a>`
+                : assigneeName;
+            const assigneeSpan = step.assignedTo ? `<span class="step-assignee">(${assigneeHtml})</span>` : '';
+
+            return `<li class="step-item">
+                <input type="checkbox" id="detail-step-${service.id}-${index}" data-step-index="${index}" ${step.completed ? 'checked' : ''}>
+                <label for="detail-step-${service.id}-${index}">${step.name} ${assigneeSpan}</label>
+            </li>`;
+        }).join('');
+
+        const filesHtml = (service.files || []).map(file => `
+            <li class="file-item">
+                <a href="${file.url}" target="_blank" rel="noopener noreferrer">${file.name}</a>
+            </li>
+        `).join('');
+
+        taskDetailView.innerHTML = `
+            <div class="detail-header">
+                <h2>${service.name}</h2>
+                <a href="#" class="btn-secondary">Voltar para a lista</a>
+            </div>
+            <div class="detail-section">
+                <h3>Informações Gerais</h3>
+                <p><strong>Categoria:</strong> ${service.category || 'Não definida'}</p>
+                <p><strong>Responsável Geral:</strong> ${responsibleName}</p>
+            </div>
+            <div class="detail-section">
+                <h3>Status do Projeto</h3>
+                <div class="progress-info">
+                    <span>Progresso</span>
+                    <span class="progress-text">${completedSteps} / ${totalSteps}</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${progressPercentage}%;"></div>
+                </div>
+                <ul class="steps-list">${stepsHtml}</ul>
+            </div>
+            <div class="detail-section">
+                <h3>Materiais e Arquivos</h3>
+                <ul class="file-list">${filesHtml || '<p>Nenhum arquivo adicionado.</p>'}</ul>
+                <form id="add-file-form">
+                    <input type="text" id="file-name" placeholder="Nome do arquivo" required>
+                    <input type="url" id="file-url" placeholder="URL do arquivo" required>
+                    <button type="submit" class="btn-primary">Adicionar</button>
+                </form>
+            </div>
+        `;
+
+        // Adiciona o listener para o formulário de arquivos
+        document.getElementById('add-file-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('file-name');
+            const urlInput = document.getElementById('file-url');
+            
+            if (!service.files) service.files = [];
+            service.files.push({ name: nameInput.value, url: urlInput.value });
+            
+            saveServices();
+            renderTaskDetail(service); // Re-renderiza a view de detalhes para mostrar o novo arquivo
+        });
+
+        // Adiciona listener para os checkboxes na página de detalhes
+        taskDetailView.querySelector('.steps-list').addEventListener('change', (e) => {
+            if (e.target.matches('input[type="checkbox"]')) {
+                const stepIndex = parseInt(e.target.dataset.stepIndex, 10);
+                if (service && service.steps[stepIndex] !== undefined) {
+                    service.steps[stepIndex].completed = e.target.checked;
+                    saveServices();
+                    // Atualiza a barra de progresso e o texto
+                    const newCompleted = service.steps.filter(s => s.completed).length;
+                    const newTotal = service.steps.length;
+                    const newPercentage = newTotal > 0 ? (newCompleted / newTotal) * 100 : 0;
+                    
+                    taskDetailView.querySelector('.progress-text').textContent = `${newCompleted} / ${newTotal}`;
+                    taskDetailView.querySelector('.progress-bar').style.width = `${newPercentage}%`;
+                }
+            }
         });
     }
 
@@ -361,6 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: event.target.serviceName.value,
                 responsible: addServiceForm.querySelector('#responsible-name').value,
                 category: event.target.serviceCategory.value,
+                files: [], // Garante que novos serviços tenham a propriedade files
                 // Para novos serviços, todas as etapas começam como não concluídas
                 steps: steps.map(step => ({ ...step, completed: false }))
             };
@@ -376,12 +468,40 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // --- Inicialização ---
-    loadServices();
-    // Verifica se há um tema salvo no localStorage
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    applyTheme(savedTheme);
-    
-    // Renderiza os serviços na tela
-    renderServices();
+    // --- Roteamento e Inicialização ---
+    function handleRouteChange() {
+        const hash = window.location.hash;
+
+        if (hash.startsWith('#/task/')) {
+            const serviceId = parseInt(hash.substring(7), 10);
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                // Mostra a view de detalhes
+                serviceContainer.classList.add('hidden');
+                taskDetailView.classList.remove('hidden');
+                document.body.classList.add('detail-view-active');
+                renderTaskDetail(service);
+            } else {
+                // Se a tarefa não for encontrada, volta para a home
+                window.location.hash = '';
+            }
+        } else {
+            // Mostra a view principal
+            serviceContainer.classList.remove('hidden');
+            taskDetailView.classList.add('hidden');
+            document.body.classList.remove('detail-view-active');
+            renderServices();
+        }
+    }
+
+    function initializeApp() {
+        loadServices();
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+        
+        window.addEventListener('hashchange', handleRouteChange);
+        handleRouteChange(); // Lida com a rota inicial no carregamento da página
+    }
+
+    initializeApp();
 });
