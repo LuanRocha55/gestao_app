@@ -18,6 +18,7 @@
     <header>
         <div class="header-content">
             <h1>Painel de Gestão</h1>
+            <input type="search" id="search-input" placeholder="Pesquisar serviços...">
             <button id="add-service-btn" class="btn-primary">+ Adicionar Serviço</button>
         </div>
         <div class="theme-switcher-container">
@@ -41,18 +42,26 @@
             <form id="add-service-form">
                 <div class="form-group">
                     <label for="service-name">Nome do Serviço</label>
-                    <input type="text" id="service-name" name="serviceName" placeholder="Ex: Desenvolvimento do App" required>
+                    <input type="text" id="service-name" name="serviceName" placeholder="Ex: Desenvolvimento do App" required />
                 </div>
                 <div class="form-group">
-                    <label for="responsible-name">Responsável</label>
-                    <input type="text" id="responsible-name" name="responsibleName" placeholder="Ex: Ana Silva" required>
+                    <label for="responsible-name">Responsável (E-mail)</label>
+                    <select id="responsible-name" name="responsibleName" required>
+                        <!-- Opções de membros da equipe serão inseridas aqui pelo JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="service-category">Categoria</label>
+                    <input type="text" id="service-category" name="serviceCategory" placeholder="Ex: Desenvolvimento, Marketing">
                 </div>
                 <div class="form-group">
                     <label>Etapas da Tarefa</label>
                     <div id="steps-container">
                         <div class="step-input-row">
-                            <input type="text" name="stepName" placeholder="Nome da etapa" required>
-                            <input type="text" name="stepAssignee" placeholder="Responsável pela etapa">
+                            <input type="text" name="stepName" placeholder="Nome da etapa" required />
+                            <select name="stepAssignee">
+                                <!-- Opções de membros da equipe serão inseridas aqui pelo JS -->
+                            </select>
                         </div>
                     </div>
                     <button type="button" id="add-step-btn" class="btn-secondary">Adicionar Etapa</button>
