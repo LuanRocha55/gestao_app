@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Gestão</title>
+
+    <!-- Importando a fonte Montserrat do Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Link para a folha de estilos -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <h1>Painel de Gestão</h1>
+            <button id="add-service-btn" class="btn-primary">+ Adicionar Serviço</button>
+        </div>
+        <div class="theme-switcher-container">
+            <span>Modo Escuro</span>
+            <label class="theme-switcher">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </header>
+
+    <main id="service-container">
+        <!-- Os cartões de serviço serão inseridos aqui pelo JavaScript -->
+    </main>
+
+    <!-- Modal para Adicionar Serviço -->
+    <div id="add-service-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Adicionar Novo Serviço</h2>
+            <form id="add-service-form">
+                <div class="form-group">
+                    <label for="service-name">Nome do Serviço</label>
+                    <input type="text" id="service-name" name="serviceName" placeholder="Ex: Desenvolvimento do App" required>
+                </div>
+                <div class="form-group">
+                    <label for="responsible-name">Responsável</label>
+                    <input type="text" id="responsible-name" name="responsibleName" placeholder="Ex: Ana Silva" required>
+                </div>
+                <div class="form-group">
+                    <label>Etapas da Tarefa</label>
+                    <div id="steps-container">
+                        <div class="step-input-row">
+                            <input type="text" name="stepName" placeholder="Nome da etapa" required>
+                            <input type="text" name="stepAssignee" placeholder="Responsável pela etapa">
+                        </div>
+                    </div>
+                    <button type="button" id="add-step-btn" class="btn-secondary">Adicionar Etapa</button>
+                </div>
+                <button type="submit" class="btn-primary">Criar Serviço</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Link para o script JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
