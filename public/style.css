@@ -100,25 +100,6 @@ header h1 a:hover {
     border-color: var(--accent-color);
 }
 
-/* --- Estilo Específico para o Botão Adicionar no Cabeçalho --- */
-#add-service-btn {
-    background-color: #ffffff;
-    color: var(--primary-color);
-    flex-shrink: 0; /* Impede que o botão encolha */
-}
-
-#add-service-btn:hover {
-    background-color: #f0f0f0;
-    transform: translateY(-2px);
-}
-
-.header-content a.btn-secondary {
-    color: #ffffff;
-    border-color: #ffffff;
-    text-decoration: none;
-    padding: 8px 15px;
-}
-
 /* --- Botão de Troca de Tema --- */
 .theme-switcher-container {
     display: flex;
@@ -305,25 +286,6 @@ body.dark-theme .auth-error {
     color: #ffc2c2;
 }
 
-body.dark-theme .auth-success {
-    background-color: #1a5d1a;
-    color: #c2ffc2;
-}
-
-/* --- MUDANÇA: Estilos de Botões para o Modo Escuro --- */
-body.dark-theme .btn-primary {
-    background-color: var(--accent-color);
-    color: var(--primary-color); /* Texto escuro para contraste */
-}
-
-body.dark-theme .btn-primary:hover {
-    background-color: #aee1fa; /* Um pouco mais claro no hover */
-}
-
-body.dark-theme .btn-secondary {
-    color: var(--accent-color);
-    border-color: var(--accent-color);
-}
 /* --- Conteúdo Principal e Cartões de Serviço --- */
 .profile-picture-section {
     display: flex;
@@ -382,6 +344,11 @@ body.dark-theme .btn-secondary {
 .preset-avatars-container img:hover {
     border-color: var(--accent-color);
     transform: scale(1.1);
+}
+.auth-success { color: #270; background-color: #DFF2BF; border-radius: 5px; padding: 10px; margin-bottom: 15px; text-align: center; }
+body.dark-theme .auth-success {
+    background-color: #1a5d1a;
+    color: #c2ffc2;
 }
 .auth-success { color: #270; background-color: #DFF2BF; border-radius: 5px; padding: 10px; margin-bottom: 15px; text-align: center; }
 main {
@@ -525,7 +492,7 @@ main > .category-title:first-of-type {
     transition: width 0.5s ease-in-out, background-color 0.3s ease;
 }
 
-/* --- Botão Primário --- */
+/* --- MUDANÇA: Estilos de Botões Globais --- */
 .btn-primary {
     background-color: var(--primary-color);
     color: #ffffff;
@@ -544,12 +511,7 @@ main > .category-title:first-of-type {
     transform: translateY(-2px);
 }
 
-body.dark-theme .btn-primary:hover {
-    background-color: #004080;
-}
-
-/* --- Botão Secundário (para o modal) --- */
-.btn-secondary {
+ .btn-secondary {
     background-color: transparent;
     color: var(--primary-color);
     border: 2px solid var(--primary-color);
@@ -561,10 +523,44 @@ body.dark-theme .btn-primary:hover {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* MUDANÇA: Aplica a largura total apenas para botões secundários dentro de formulários */
-.form-group .btn-secondary {
-    width: 100%;
-    margin-top: 10px;
+/* Botão de ação especial no cabeçalho */
+.btn-header-action {
+    background-color: #ffffff;
+    color: var(--primary-color);
+    flex-shrink: 0; /* Impede que o botão encolha */
+}
+
+.btn-header-action:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+/* Link secundário no cabeçalho (ex: Solicitações) */
+.header-content a.btn-secondary {
+    color: #ffffff;
+    border-color: #ffffff;
+    text-decoration: none;
+    padding: 8px 15px;
+}
+
+/* --- MUDANÇA: Estilos de Botões para o Modo Escuro --- */
+body.dark-theme .btn-primary {
+    background-color: var(--accent-color);
+    color: var(--primary-color); /* Texto escuro para contraste */
+}
+
+body.dark-theme .btn-primary:hover {
+    background-color: #aee1fa; /* Um pouco mais claro no hover */
+}
+
+body.dark-theme .btn-secondary {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+/* MUDANÇA: Regra de hover específica para o botão de ação no header em modo escuro */
+body.dark-theme .btn-header-action:hover {
+    background-color: #d4f0fc; /* Azul ainda mais claro para o hover */
 }
 
 /* --- Estilos do Modal --- */
@@ -651,6 +647,12 @@ body.dark-theme .btn-primary:hover {
     background-position: right 1rem center;
     background-size: 1em;
     padding-right: 2.5rem; /* Garante que o texto não fique embaixo da seta */
+}
+
+/* MUDANÇA: Aplica a largura total apenas para botões secundários dentro de formulários */
+.form-group .btn-secondary {
+    width: 100%;
+    margin-top: 10px;
 }
 
 .step-input-row {
