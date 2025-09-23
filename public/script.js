@@ -141,15 +141,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (unsubscribeFromServices) {
       unsubscribeFromServices();
     }
-
-    // --- MUDANÇA: Query agora busca serviços onde o usuário é membro ---
-    const allServicesQuery = query(
-      servicesCollection,
-      orderBy("createdAt", "desc")
-    );
-
+  
+    let servicesQuery;
+    // MUDANÇA: A query agora depende da role do usuário
+    if (user.profile.role === 'admin') {
+      // Admins podem ver todos os serviços
+      console.log("Query de Admin: buscando todos os serviços.");
+      servicesQuery = query(servicesCollection, orderBy("createdAt", "desc"));
+    } else {
+      // Usuários normais só veem serviços dos quais são membros
+      console.log("Query de Usuário: buscando serviços onde o usuário é membro.");
+      servicesQuery = query(
+        servicesCollection,
+        where("members", "array-contains", user.uid),
+        orderBy("createdAt", "desc")
+      );
+    }
+  
     unsubscribeFromServices = onSnapshot(
-      allServicesQuery,
+      servicesQuery,
       async (querySnapshot) => {
         // MUDANÇA: Lógica aprimorada para lidar com dados de exemplo
         const userDocRef = doc(db, "users", user.uid);
@@ -159,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (querySnapshot.empty && !hasSeenExamples) {
           console.log(
             "Nenhuma tarefa encontrada. Adicionando dados de exemplo..."
-          );
+          ); 
           await addExampleData(user); // Adiciona os dados
           await setDoc(userDocRef, { hasSeenExamples: true }, { merge: true }); // Marca que o usuário já viu os exemplos
           // A função onSnapshot será chamada novamente com os novos dados, então não precisamos fazer mais nada aqui.
@@ -228,6 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
           },
         ],
         ownerId: user.uid, // O criador original
+        members: [user.uid], // MUDANÇA: Adiciona o array de membros
       },
       {
         name: "Campanha de Exemplo",
@@ -253,6 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
           },
         ],
         ownerId: user.uid,
+        members: [user.uid], // MUDANÇA: Adiciona o array de membros
       },
     ];
 
@@ -267,12 +279,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- MUDANÇA: Funções para gerenciar a lista de usuários ---
   async function updateUserInFirestore(user) {
     const userDocRef = doc(db, "users", user.uid);
+    const userDocSnap = await getDoc(userDocRef);
+  
     const userData = {
       uid: user.uid,
       displayName: user.displayName,
       email: user.email,
       photoURL: user.photoURL,
     };
+  
+    // MUDANÇA: Se o usuário não existe no Firestore, atribui a role padrão 'user'
+    if (!userDocSnap.exists()) {
+      userData.role = 'user'; // Papel padrão para novos usuários
+    }
+  
     // Usa set com merge:true para criar ou atualizar o usuário sem sobrescrever campos existentes (como 'role')
     await setDoc(userDocRef, userData, { merge: true });
   }
@@ -288,9 +308,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- MUDANÇA: Funções para a página de solicitações ---
   function renderRequestsPage() {
+    // MUDANÇA: O título da página agora é dinâmico com base na role
+    const pageTitle = currentUser.profile.role === 'admin'
+        ? "Gerenciar Solicitações"
+        : "Minhas Solicitações";
+
     requestsView.innerHTML = `
             <div class="detail-header">
-                <h2>Gerenciar Solicitações</h2>
+                <h2>${pageTitle}</h2>
                 <a href="#" class="btn-secondary">Voltar para a lista</a>
             </div>
             <div id="requests-list-container"></div>
@@ -308,7 +333,21 @@ document.addEventListener("DOMContentLoaded", () => {
       unsubscribeFromRequests();
     }
 
-    const q = query(requestsCollection, orderBy("createdAt", "desc"));
+    // MUDANÇA: A query agora depende da role do usuário
+    let q;
+    if (currentUser.profile.role === 'admin') {
+        // Admin vê todas as solicitações
+        console.log("Query de Admin: buscando todas as solicitações.");
+        q = query(requestsCollection, orderBy("createdAt", "desc"));
+    } else {
+        // Usuário convencional vê apenas as suas próprias solicitações
+        console.log("Query de Usuário: buscando apenas as solicitações do próprio usuário.");
+        q = query(
+            requestsCollection,
+            where("requesterId", "==", currentUser.uid),
+            orderBy("createdAt", "desc")
+        );
+    }
 
     // MUDANÇA: Armazena a função de unsubscribe
     unsubscribeFromRequests = onSnapshot(q, (querySnapshot) => {
@@ -488,11 +527,21 @@ document.addEventListener("DOMContentLoaded", () => {
           }</a></h2>
                         <div class="card-actions">_
                             <button class="btn-icon btn-edit" title="Editar Tarefa" data-service-id="${
-                              service.id
-                            }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg></button>
+                              service.id // MUDANÇA: Lógica de visibilidade baseada na role
+                            }" style="display: ${
+            currentUser.profile.role === "admin" ||
+            service.ownerId === currentUser.uid
+              ? "inline-block"
+              : "none"
+          };"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg></button>
                             <button class="btn-icon btn-delete" title="Deletar Tarefa" data-service-id="${
-                              service.id
-                            }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
+                              service.id // MUDANÇA: Lógica de visibilidade baseada na role
+                            }" style="display: ${
+            currentUser.profile.role === "admin" ||
+            service.ownerId === currentUser.uid
+              ? "inline-block"
+              : "none"
+          };"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
                         </div>
                     </div>
                     <p class="responsible">Responsável: ${responsibleName}</p>
@@ -841,6 +890,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteBtn = e.target.closest(".btn-delete");
     if (deleteBtn) {
       const serviceId = deleteBtn.dataset.serviceId;
+      const service = services.find(s => s.id === serviceId);
+
+      // MUDANÇA: Verificação de permissão antes de deletar
+      if (currentUser.profile.role !== 'admin' && service.ownerId !== currentUser.uid) {
+        alert("Você não tem permissão para deletar esta tarefa.");
+        return;
+      }
+
       if (confirm("Tem certeza que deseja deletar esta tarefa?")) {
         showLoading();
         try {
@@ -887,6 +944,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const serviceId = editBtn.dataset.serviceId;
       const serviceToEdit = services.find((s) => s.id === serviceId);
       if (serviceToEdit) {
+        // MUDANÇA: Verificação de permissão antes de editar
+        if (currentUser.profile.role !== 'admin' && serviceToEdit.ownerId !== currentUser.uid) {
+          alert("Você não tem permissão para editar esta tarefa.");
+          return;
+        }
+
         openEditModal(serviceToEdit);
       }
     }
@@ -1163,8 +1226,17 @@ document.addEventListener("DOMContentLoaded", () => {
       currentUser = user;
       console.log("Usuário logado:", currentUser.uid);
 
-      // Garante que o perfil do usuário no Firestore está atualizado com nome, email, etc.
+      // Garante que o perfil do usuário no Firestore está atualizado e atribui uma role se for novo.
       await updateUserInFirestore(user);
+
+      // MUDANÇA: Busca o perfil completo do usuário, incluindo a role, e anexa ao objeto currentUser.
+      const userProfileDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userProfileDoc.exists()) {
+          console.error("Perfil do usuário não encontrado no Firestore após a atualização. Deslogando.");
+          signOut(auth);
+          return;
+      }
+      currentUser.profile = userProfileDoc.data();
 
       // MUDANÇA: Carrega a lista de membros da equipe para usar na aplicação
       await loadTeamMembers();
@@ -1173,10 +1245,16 @@ document.addEventListener("DOMContentLoaded", () => {
       userNameEl.textContent = currentUser.displayName || currentUser.email;
       userPhotoEl.src = currentUser.photoURL || "./assets/default-avatar.png"; // Use um avatar padrão se não houver foto
 
-      // MUDANÇA: Mostra todos os botões de ação para qualquer usuário logado
+      // MUDANÇA: Controle de visibilidade de elementos com base na role do usuário
       addServiceBtn.classList.remove("hidden");
+      // MUDANÇA: O link de solicitações agora é visível para todos, com texto dinâmico.
       requestsLink.classList.remove("hidden");
       makeRequestBtn.classList.remove("hidden");
+      if (currentUser.profile.role === 'admin') {
+        requestsLink.textContent = "Gerenciar Solicitações";
+      } else {
+        requestsLink.textContent = "Minhas Solicitações";
+      }
 
       loginContainer.classList.add("hidden");
       appHeader.classList.remove("hidden");
@@ -1478,12 +1556,19 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     });
 
+    // MUDANÇA: Cria um array de 'members' para controle de acesso
+    const memberIds = new Set([responsibleId, currentUser.uid]); // Adiciona responsável e dono (quem está criando)
+    steps.forEach(step => {
+      if (step.assigneeId) memberIds.add(step.assigneeId);
+    });
+
     const serviceData = {
       name: serviceName,
       responsible: responsibleId,
       category: category,
       steps: steps,
       ownerId: currentUser.uid,
+      members: Array.from(memberIds), // Converte o Set para Array
       files: [], // Manter os arquivos existentes ao editar (lógica futura)
       // O createdAt não é atualizado na edição
     };
@@ -1493,7 +1578,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentEditServiceId) {
         // --- MODO EDIÇÃO ---
         const serviceRef = doc(db, "services", currentEditServiceId);
-        // Não sobrescrevemos a data de criação
+        // Não sobrescrevemos a data de criação ou os arquivos existentes
         const { createdAt, files, ...updateData } = serviceData;
         await updateDoc(serviceRef, updateData);
         alert("Tarefa atualizada com sucesso!");
