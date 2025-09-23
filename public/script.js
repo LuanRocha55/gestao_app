@@ -1212,20 +1212,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const provider = new GoogleAuthProvider();
     try {
       showLoading();
-      await signInWithPopup(auth, provider);
-      // O onAuthStateChanged cuidará de atualizar a UI
+      await signInWithPopup(auth, provider); // Aguarda o popup ser fechado
+      // O onAuthStateChanged cuidará de atualizar a UI, mas podemos esconder o loading aqui.
+      hideLoading();
     } catch (error) {
       hideLoading();
       console.error("Erro no login com Google:", error);
       // MUDANÇA: Mensagem de erro mais específica
-      if (error.code === 'auth/operation-not-allowed') {
+      if (error.code === 'auth/account-exists-with-different-credential') {
+          loginErrorEl.textContent = "Já existe uma conta com este e-mail. Tente fazer login com o método original.";
+      } else if (error.code === 'auth/popup-blocked-by-browser') {
+          loginErrorEl.textContent = "O pop-up de login foi bloqueado pelo navegador. Por favor, habilite os pop-ups para este site.";
+      } else if (error.code === 'auth/operation-not-allowed') {
           loginErrorEl.textContent = "Login com Google não está habilitado no Firebase. Verifique as configurações.";
       } else if (error.code === 'auth/unauthorized-domain') {
           loginErrorEl.textContent = "Este domínio não está autorizado para login. Use um servidor local (Live Server).";
       } else if (error.code === 'auth/popup-closed-by-user') {
           loginErrorEl.textContent = "A janela de login foi fechada antes da conclusão.";
       } else {
-          loginErrorEl.textContent = "Falha ao autenticar com o Google.";
+          loginErrorEl.textContent = "Falha ao autenticar com o Google. Verifique sua conexão.";
       }
       loginErrorEl.classList.remove("hidden");
     }
