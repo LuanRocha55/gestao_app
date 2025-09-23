@@ -16,26 +16,85 @@
 <body>
 
     <header>
-        <div class="header-content">
-            <h1>Painel de Gestão</h1>
-            <input type="search" id="search-input" placeholder="Pesquisar serviços...">
-            <button id="add-service-btn" class="btn-primary">+ Adicionar Serviço</button>
+        <div id="app-header" class="header-content hidden">
+            <h1><a href="#">Painel de Gestão</a></h1>
+            <input type="search" id="search-input" placeholder="Pesquisar...">
+            <button id="add-service-btn" class="btn-primary hidden">+ Adicionar Serviço</button>
+            <button id="make-request-btn" class="btn-primary hidden">Fazer Solicitação</button>
         </div>
-        <div class="theme-switcher-container">
-            <span>Modo Escuro</span>
-            <label class="theme-switcher">
-                <input type="checkbox" id="theme-toggle">
-                <span class="slider"></span>
-            </label>
+        <div class="header-controls">
+            <div id="user-profile" class="user-profile-container hidden">
+                <img id="user-photo" src="" alt="Foto do usuário">
+                <a href="#/profile" class="user-profile-link">
+                    <span id="user-name"></span>
+                </a>
+                <a href="#/requests" id="requests-link" class="btn-secondary hidden">Solicitações</a>
+                <button id="logout-btn" class="btn-secondary">Sair</button>
+            </div>
+            <div class="theme-switcher-container">
+                <span>Modo Escuro</span>
+                <label class="theme-switcher">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
     </header>
 
-    <main id="service-container">
+    <!-- Tela de Login -->
+    <div id="login-container">
+        <!-- Formulário de Login -->
+        <div id="login-box" class="auth-box">
+            <h1>Bem-vindo de volta!</h1>
+            <p>Faça login para acessar seu painel.</p>
+            <form id="email-login-form">
+                <div class="form-group">
+                    <input type="email" id="login-email" placeholder="Seu e-mail" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="login-password" placeholder="Sua senha" required>
+                </div>
+                <p id="login-error" class="auth-error hidden"></p>
+                <button type="submit" class="btn-primary">Entrar</button>
+            </form>
+            <div class="auth-separator"><span>ou</span></div>
+            <button id="google-login-btn" class="btn-google">
+                <svg viewBox="0 0 24 24"><path d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12.5C5,8.75 8.36,5.73 12.19,5.73C15.19,5.73 17.5,6.78 17.5,6.78L19.27,5C19.27,5 16.54,3 12.19,3C6.42,3 2.03,7.8 2.03,12.5C2.03,17.2 6.42,22 12.19,22C17.96,22 21.54,18.33 21.54,12.81C21.54,11.9 21.45,11.5 21.35,11.1Z"></path></svg>
+                Entrar com Google
+            </button>
+            <p class="auth-toggle">Não tem uma conta? <a href="#" id="toggle-to-register">Registre-se</a></p>
+        </div>
+        <!-- Formulário de Registro -->
+        <div id="register-box" class="auth-box hidden">
+            <h1>Crie sua Conta</h1>
+            <p>É rápido e fácil.</p>
+            <form id="register-form">
+                <input type="text" id="register-name" placeholder="Seu nome completo" required>
+                <input type="email" id="register-email" placeholder="Seu e-mail" required>
+                <input type="password" id="register-password" placeholder="Crie uma senha" required>
+                <p id="register-error" class="auth-error hidden"></p>
+                <button type="submit" class="btn-primary">Registrar</button>
+            </form>
+            <p class="auth-toggle">Já tem uma conta? <a href="#" id="toggle-to-login">Faça login</a></p>
+        </div>
+    </div>
+
+    <main id="service-container" class="hidden">
         <!-- Os cartões de serviço serão inseridos aqui pelo JavaScript -->
     </main>
 
     <!-- Nova seção para a página de detalhes da tarefa -->
     <section id="task-detail-view" class="hidden">
+        <!-- O conteúdo será inserido aqui pelo JavaScript -->
+    </section>
+
+    <!-- Nova seção para a página de Solicitações -->
+    <section id="requests-view" class="hidden">
+        <!-- O conteúdo será inserido aqui pelo JavaScript -->
+    </section>
+
+    <!-- Nova seção para a página de Perfil -->
+    <section id="profile-view" class="hidden">
         <!-- O conteúdo será inserido aqui pelo JavaScript -->
     </section>
 
@@ -46,12 +105,12 @@
             <h2>Adicionar Novo Serviço</h2>
             <form id="add-service-form">
                 <div class="form-group">
-                    <label for="service-name">Nome do Serviço</label>
-                    <input type="text" id="service-name" name="serviceName" placeholder="Ex: Desenvolvimento do App" required />
+                    <label for="serviceName">Nome do Serviço</label>
+                    <input type="text" id="serviceName" name="serviceName" placeholder="Ex: Desenvolvimento do App" required />
                 </div>
                 <div class="form-group">
-                    <label for="responsible-name">Responsável (E-mail)</label>
-                    <select id="responsible-name" name="responsibleName" required>
+                    <label for="responsibleName">Responsável</label>
+                    <select id="responsibleName" name="responsibleName" required>
                         <!-- Opções de membros da equipe serão inseridas aqui pelo JS -->
                     </select>
                 </div>
@@ -64,9 +123,6 @@
                     <div id="steps-container">
                         <div class="step-input-row">
                             <input type="text" name="stepName" placeholder="Nome da etapa" required />
-                            <select name="stepAssignee">
-                                <!-- Opções de membros da equipe serão inseridas aqui pelo JS -->
-                            </select>
                         </div>
                     </div>
                     <button type="button" id="add-step-btn" class="btn-secondary">Adicionar Etapa</button>
@@ -76,7 +132,25 @@
         </div>
     </div>
 
+    <!-- Modal para Fazer Solicitação -->
+    <div id="make-request-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Fazer uma Solicitação</h2>
+            <form id="make-request-form">
+                <div class="form-group">
+                    <label for="request-title">Título da Solicitação</label>
+                    <input type="text" id="request-title" name="requestTitle" placeholder="Ex: Criar novo material de marketing" required />
+                </div>
+                <div class="form-group">
+                    <label for="request-description">Descrição</label>
+                    <textarea id="request-description" name="requestDescription" rows="4" placeholder="Descreva o que precisa ser feito..." required></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Enviar Solicitação</button>
+            </form>
+        </div>
+    </div>
     <!-- Link para o script JavaScript -->
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>

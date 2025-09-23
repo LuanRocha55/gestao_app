@@ -19,6 +19,7 @@ body.dark-theme {
     --text-color: #f0f0f0;
     --card-bg: #1e1e1e;
     --accent-color: #87CEFA; /* Azul claro para destaque no tema escuro */
+    --progress-bar-bg: #333; /* Cinza escuro para bordas e fundos de progresso */
     --shadow-color: rgba(0, 0, 0, 0.4);
 }
 
@@ -54,16 +55,30 @@ header {
     min-width: 0; /* Previne que o flex item cause overflow */
 }
 
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
 header h1 {
     color: #ffffff;
     font-weight: 700;
     transition: color 0.3s ease;
 }
 
+header h1 a {
+    color: inherit;
+    text-decoration: none;
+    cursor: default;
+}
+
+header h1 a:hover {
+    text-decoration: none; /* Garante que não haja sublinhado no hover */
+}
+
 /* --- Barra de Pesquisa --- */
 #search-input {
     width: 350px; /* Define um tamanho padrão e previsível */
-    margin: 0 20px;
     padding: 10px 15px;
     border-radius: 5px;
     border: 1px solid transparent;
@@ -94,6 +109,13 @@ header h1 {
 #add-service-btn:hover {
     background-color: #f0f0f0;
     transform: translateY(-2px);
+}
+
+.header-content a.btn-secondary {
+    color: #ffffff;
+    border-color: #ffffff;
+    text-decoration: none;
+    padding: 8px 15px;
 }
 
 /* --- Botão de Troca de Tema --- */
@@ -150,7 +172,217 @@ input:checked + .slider:before {
     transform: translateX(24px);
 }
 
+/* --- Perfil do Usuário no Cabeçalho --- */
+.user-profile-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+}
+
+.user-profile-container img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.user-profile-container span {
+    font-weight: 600;
+}
+
+.user-profile-container .btn-secondary {
+    color: #ffffff;
+    border-color: #ffffff;
+    margin-top: 0;
+    padding: 5px 10px;
+    width: auto;
+}
+
+/* --- Link do Perfil do Usuário --- */
+.user-profile-link {
+    color: #ffffff;
+    text-decoration: none;
+    transition: text-decoration 0.2s;
+}
+
+.user-profile-link:hover {
+    text-decoration: underline;
+}
+
+/* --- Tela de Login --- */
+#login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 80px); /* Garante que o conteúdo seja centralizado verticalmente */
+    text-align: center;
+}
+
+.auth-box {
+    background-color: var(--card-bg);
+    padding: 40px 50px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px var(--shadow-color);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.auth-box h1 {
+    color: var(--accent-color);
+    margin-bottom: 10px;
+}
+
+.auth-box p {
+    margin-bottom: 30px;
+    font-size: 1.1em;
+    opacity: 0.8;
+}
+
+.auth-box form input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--progress-bar-bg);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1em;
+}
+
+.auth-separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: var(--text-color);
+    opacity: 0.6;
+}
+
+.auth-separator::before,
+.auth-separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--progress-bar-bg);
+}
+
+.auth-separator:not(:empty)::before {
+    margin-right: .25em;
+}
+
+.auth-separator:not(:empty)::after {
+    margin-left: .25em;
+}
+
+.btn-google {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px;
+    background-color: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.btn-google:hover { background-color: #357ae8; }
+.btn-google svg { width: 18px; height: 18px; fill: white; }
+.auth-toggle { margin-top: 25px; }
+.auth-toggle a { color: var(--accent-color); text-decoration: none; font-weight: 600; }
+.auth-error { color: #D8000C; background-color: #FFD2D2; border-radius: 5px; padding: 10px; margin-bottom: 15px; }
+
+/* --- MUDANÇA: Estilos de Alerta para o Modo Escuro --- */
+body.dark-theme .auth-error {
+    background-color: #5d1a1a;
+    color: #ffc2c2;
+}
+
+body.dark-theme .auth-success {
+    background-color: #1a5d1a;
+    color: #c2ffc2;
+}
+
+/* --- MUDANÇA: Estilos de Botões para o Modo Escuro --- */
+body.dark-theme .btn-primary {
+    background-color: var(--accent-color);
+    color: var(--primary-color); /* Texto escuro para contraste */
+}
+
+body.dark-theme .btn-primary:hover {
+    background-color: #aee1fa; /* Um pouco mais claro no hover */
+}
+
+body.dark-theme .btn-secondary {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
 /* --- Conteúdo Principal e Cartões de Serviço --- */
+.profile-picture-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.profile-picture-wrapper {
+    position: relative;
+    cursor: pointer;
+}
+
+.profile-picture-wrapper img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--card-bg);
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.profile-picture-wrapper:hover::after {
+    content: '✎';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+}
+.preset-avatars-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.preset-avatars-container img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.preset-avatars-container img:hover {
+    border-color: var(--accent-color);
+    transform: scale(1.1);
+}
+.auth-success { color: #270; background-color: #DFF2BF; border-radius: 5px; padding: 10px; margin-bottom: 15px; text-align: center; }
 main {
     padding: 40px;
     display: grid;
@@ -213,6 +445,13 @@ main > .category-title:first-of-type {
     align-items: flex-start;
     margin-bottom: 10px;
 }
+.card-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0; /* Impede que os botões encolham */
+    position: relative;
+    top: -2px;
+}
 
 .btn-icon {
     background: none;
@@ -223,9 +462,6 @@ main > .category-title:first-of-type {
     color: var(--text-color);
     opacity: 0.6;
     transition: opacity 0.2s ease, color 0.3s ease;
-    /* Alinha o ícone com o título */
-    position: relative;
-    top: -2px;
 }
 
 .service-card .responsible {
@@ -241,6 +477,15 @@ main > .category-title:first-of-type {
 }
 
 .btn-icon:hover {
+    opacity: 1;
+}
+
+.btn-icon.btn-delete {
+    color: #E53935; /* Vermelho para deletar */
+}
+
+.btn-icon.btn-delete:hover {
+    color: #C62828; /* Vermelho mais escuro no hover */
     opacity: 1;
 }
 
@@ -386,6 +631,11 @@ body.dark-theme .btn-primary:hover {
     font-size: 1em;
 }
 
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
 .form-group select {
     appearance: none;
     -webkit-appearance: none;
@@ -405,6 +655,38 @@ body.dark-theme .btn-primary:hover {
 
 .step-input-row input[name="stepName"] {
     flex-grow: 1;
+}
+
+.step-input-row .btn-icon {
+    flex-shrink: 0; /* Impede que o botão encolha */
+}
+
+/* --- MUDANÇA: Estilos para grupos de etapas no modal --- */
+.step-group-modal {
+    background-color: var(--bg-color);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid var(--progress-bar-bg);
+}
+
+.step-group-modal .form-group {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.substeps-container-modal {
+    padding-left: 20px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed var(--progress-bar-bg);
+}
+
+.substep-input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
 }
 
 /* Animações do Modal */
@@ -529,6 +811,11 @@ body.dark-theme .btn-primary:hover {
     display: none !important;
 }
 
+/* Esconde o header principal quando o usuário não está logado */
+body:not(.detail-view-active) #app-header.hidden {
+    display: none;
+}
+
 /* Oculta elementos do header quando na visão de detalhe */
 body.detail-view-active .header-content {
     justify-content: center;
@@ -538,9 +825,15 @@ body.detail-view-active #add-service-btn {
     display: none;
 }
 
-#task-detail-view {
+/* MUDANÇA: Aplica o mesmo layout para a view de detalhes e de perfil */
+#task-detail-view, #profile-view {
     padding: 40px;
     max-width: 900px;
+    margin: 0 auto;
+}
+
+#requests-view {
+    padding: 40px;
     margin: 0 auto;
 }
 
@@ -571,6 +864,56 @@ body.detail-view-active #add-service-btn {
     margin-bottom: 20px;
     border-bottom: 1px solid var(--progress-bar-bg);
     padding-bottom: 10px;
+}
+
+.steps-list-detailed {
+    list-style: none;
+}
+
+.step-group {
+    margin-bottom: 25px;
+    padding: 20px;
+    background-color: var(--bg-color);
+    border-radius: 8px;
+}
+
+.step-group-title {
+    font-weight: 700;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    /* cursor: pointer; O cursor agora é aplicado apenas no nome da etapa */
+    position: relative;
+    padding-left: 25px;
+    user-select: none; /* Impede a seleção de texto ao clicar */
+    transition: color 0.2s;
+}
+
+.step-group-title:hover {
+    color: var(--accent-color);
+}
+
+.step-group-title .step-name-toggle {
+    cursor: pointer;
+}
+
+.step-group-title::before {
+    content: '▼';
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease-in-out;
+    font-size: 0.8em;
+    color: var(--accent-color);
+}
+
+.step-group-title.collapsed::before {
+    transform: translateY(-50%) rotate(-90deg);
+}
+
+.subtask-list {
+    list-style: none;
+    padding-left: 10px;
 }
 
 .file-list {
@@ -642,4 +985,113 @@ body.detail-view-active #add-service-btn {
     width: auto; /* Garante que o botão se ajuste ao conteúdo */
     margin-top: 0; /* Remove a margem desnecessária */
     padding: 12px 20px; /* Ajusta o padding para ficar consistente com o botão de link */
+}
+
+/* --- Estilos da Seção de Comentários --- */
+.comments-list {
+    list-style: none;
+    margin-top: 20px;
+}
+
+.comment-item {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.comment-avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.comment-content {
+    flex-grow: 1;
+}
+
+.comment-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.comment-author {
+    font-weight: 700;
+}
+
+.comment-timestamp {
+    font-size: 0.8em;
+    opacity: 0.6;
+}
+
+.comment-text {
+    line-height: 1.5;
+}
+
+#comment-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--progress-bar-bg);
+}
+
+#comment-input {
+    flex-grow: 1;
+    padding: 12px;
+    border: 1px solid var(--progress-bar-bg);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* --- Estilos da Página de Solicitações --- */
+.request-card {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 15px var(--shadow-color);
+    margin-bottom: 20px;
+    border-left: 5px solid; /* Será definido pelo status */
+}
+
+.request-card[data-status="pending"] { border-left-color: #FFB300; } /* Ambar */
+.request-card[data-status="approved"] { border-left-color: #43A047; } /* Verde */
+.request-card[data-status="rejected"] { border-left-color: #E53935; } /* Vermelho */
+
+.request-card h3 {
+    margin-bottom: 10px;
+}
+
+.request-meta {
+    font-size: 0.9em;
+    opacity: 0.7;
+    margin-bottom: 15px;
+}
+
+.request-meta span {
+    font-weight: 600;
+}
+
+.request-description {
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.request-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.request-actions .btn-approve {
+    background-color: #43A047;
+    border-color: #43A047;
+}
+
+.request-actions .btn-reject {
+    background-color: #E53935;
+    border-color: #E53935;
 }
