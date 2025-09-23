@@ -61,8 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const userProfile = document.getElementById("user-profile");
   const userNameEl = document.getElementById("user-name");
   const userPhotoEl = document.getElementById("user-photo");
-  const requestsLink = document.getElementById("requests-link");
   const serviceContainer = document.getElementById("service-container");
+  const homeView = document.getElementById("home-view"); // MUDANÇA: View da Home
   const themeToggle = document.getElementById("theme-toggle");
   const addServiceBtn = document.getElementById("add-service-btn");
   const modal = document.getElementById("add-service-modal");
@@ -72,10 +72,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const taskDetailView = document.getElementById("task-detail-view");
   const profileView = document.getElementById("profile-view");
   const requestsView = document.getElementById("requests-view");
+  const userManagementView = document.getElementById("user-management-view");
   const addStepBtn = document.getElementById("add-step-btn");
   const stepsContainer = document.getElementById("steps-container");
   const makeRequestModal = document.getElementById("make-request-modal");
   const makeRequestForm = document.getElementById("make-request-form");
+  const submitRequestBtn = document.getElementById("submit-request-btn"); // MUDANÇA: Botão de envio da solicitação
   const loadingOverlay = document.getElementById("loading-overlay");
   const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
   const headerMenuItems = document.getElementById("header-menu-items");
@@ -316,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
     requestsView.innerHTML = `
             <div class="detail-header">
                 <h2>${pageTitle}</h2>
-                <a href="#" class="btn-secondary">Voltar para a lista</a>
+                <a href="#/" class="btn-secondary">Voltar</a>
             </div>
             <div id="requests-list-container"></div>
         `;
@@ -399,11 +401,12 @@ document.addEventListener("DOMContentLoaded", () => {
                                   request.requesterName
                                 }</span> em ${date}
                             </div>
-                            <div class="request-description">${
-                              request.description
-                            }</div>
+                            <div class="request-description">${DOMPurify.sanitize(
+                              request.description // MUDANÇA: Sanitiza o HTML ao renderizar
+                            )}</div>
                             ${
-                              request.status === "pending"
+                              // MUDANÇA: Botões de ação só aparecem para admins em solicitações pendentes
+                              currentUser.profile.role === "admin" && request.status === "pending"
                                 ? `<div class="request-actions">
                                     <button class="btn-primary btn-approve">Aprovar</button>
                                     <button class="btn-primary btn-reject">Rejeitar</button>
@@ -415,6 +418,107 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
+  }
+
+  // --- MUDANÇA: Função para renderizar a página inicial (dashboard) ---
+  function renderHomePage() {
+    let adminButton = '';
+    if (currentUser.profile.role === 'admin') {
+      adminButton = `
+        <a href="#/users" class="dashboard-button">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3C14.21 3 16 4.79 16 7S14.21 11 12 11 8 9.21 8 7 9.79 3 12 3M16 13.54C16 14.6 15.72 17.07 13.81 19.83L12 22L10.19 19.83C8.28 17.07 8 14.6 8 13.54C8 13.54 10 13 12 13S16 13.54 16 13.54M18.5 13C19.9 13 21 14.12 21 15.5V19H23V15.5C23 13 21.5 11.5 19.5 11.5C19.29 11.5 19.08 11.54 18.88 11.61C18.5 11.05 18 10.58 17.41 10.2L19.5 8.11L18.08 6.69L16 8.79L15.28 8.08C14.24 7.4 13.12 7 12 7C10.88 7 9.76 7.4 8.72 8.08L8 8.79L5.92 6.69L4.5 8.11L6.59 10.2C6 10.58 5.5 11.05 5.12 11.61C4.92 11.54 4.71 11.5 4.5 11.5C2.5 11.5 1 13 1 15.5V19H3V15.5C3 14.12 4.1 13 5.5 13C5.87 13 6.2 13.1 6.5 13.25V13.54C6.5 15.11 7.03 17.94 9.24 20.81L12 24L14.76 20.81C16.97 17.94 17.5 15.11 17.5 13.54V13.25C17.8 13.1 18.13 13 18.5 13Z"/></svg>
+          <span>Gerenciar Usuários</span>
+        </a>
+      `;
+    }
+
+    homeView.innerHTML = `
+      <div class="detail-header">
+        <h2>Bem-vindo(a), ${currentUser.displayName}!</h2>
+      </div>
+      <div class="dashboard-container">
+        <a href="#/tasks" class="dashboard-button">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 5V19H21V5H3M7 7H17V9H7V7M7 11H11V13H7V11M7 15H11V17H7V15Z"/></svg>
+          <span>Ver Tarefas</span>
+        </a>
+        <a href="#/requests" class="dashboard-button">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2M20 16H5.2L4 17.2V4H20V16Z"/></svg>
+          <span>${currentUser.profile.role === 'admin' ? 'Gerenciar Solicitações' : 'Minhas Solicitações'}</span>
+        </a>
+        ${adminButton}
+      </div>
+    `;
+  }
+
+  // --- MUDANÇA: Funções para a página de gerenciamento de usuários ---
+  function renderUserManagementPage() {
+    userManagementView.innerHTML = `
+      <div class="detail-header">
+          <h2>Gerenciar Usuários</h2>
+          <a href="#/" class="btn-secondary">Voltar</a>
+      </div>
+      <div id="user-list-container"></div>
+    `;
+    renderUserList();
+  }
+
+  async function renderUserList() {
+    const listContainer = document.getElementById("user-list-container");
+    if (!listContainer) return;
+
+    showLoading();
+    try {
+      const querySnapshot = await getDocs(query(usersCollection, orderBy("displayName")));
+      if (querySnapshot.empty) {
+        listContainer.innerHTML = "<p>Nenhum usuário encontrado.</p>";
+        return;
+      }
+
+      const userCardsHtml = querySnapshot.docs.map(doc => {
+        const user = doc.data();
+        const isCurrentUser = user.uid === currentUser.uid;
+
+        return `
+          <div class="user-management-card">
+            <img src="${user.photoURL || './assets/default-avatar.png'}" alt="Avatar de ${user.displayName}">
+            <div class="user-info">
+              <h3>${user.displayName || 'Nome não definido'}</h3>
+              <p>${user.email}</p>
+            </div>
+            <div class="role-management">
+              <label for="role-select-${user.uid}">Papel</label>
+              <select id="role-select-${user.uid}" class="role-selector" data-user-id="${user.uid}" ${isCurrentUser ? 'disabled' : ''}>
+                <option value="user" ${user.role === 'user' ? 'selected' : ''}>Usuário</option>
+                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+              </select>
+              ${isCurrentUser ? '<small>Você não pode alterar seu próprio papel.</small>' : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      listContainer.innerHTML = userCardsHtml;
+
+    } catch (error) {
+      console.error("Erro ao carregar lista de usuários:", error);
+      listContainer.innerHTML = "<p class='auth-error'>Falha ao carregar a lista de usuários.</p>";
+    } finally {
+      hideLoading();
+    }
+  }
+
+  async function updateUserRole(userId, newRole) {
+    showLoading();
+    try {
+      const userRef = doc(db, "users", userId);
+      await updateDoc(userRef, { role: newRole });
+      alert("Papel do usuário atualizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar papel:", error);
+      alert("Falha ao atualizar o papel do usuário.");
+    } finally {
+      hideLoading();
+    }
   }
   // --- MUDANÇA: Função para calcular progresso com base nas sub-tarefas ---
   function calculateOverallProgress(service) {
@@ -633,7 +737,7 @@ document.addEventListener("DOMContentLoaded", () => {
     taskDetailView.innerHTML = `
             <div class="detail-header">
                 <h2>${service.name}</h2>
-                <a href="#" class="btn-secondary">Voltar para a lista</a>
+                <a href="#/tasks" class="btn-secondary">Voltar para a lista</a>
             </div>
             <div class="detail-section">
                 <h3>Informações Gerais</h3>
@@ -714,7 +818,7 @@ document.addEventListener("DOMContentLoaded", () => {
     profileView.innerHTML = `
             <div class="detail-header">
                 <h2>Meu Perfil</h2>
-                <a href="#" class="btn-secondary">Voltar para a lista</a>
+                <a href="#/" class="btn-secondary">Voltar</a>
             </div>
             <div class="detail-section">
                 <h3>Informações da Conta</h3>
@@ -796,7 +900,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                 }</span>
                                 <span class="comment-timestamp">${timestamp}</span>
                             </div>
-                            <p class="comment-text">${comment.text}</p>
+                            <p class="comment-text">${DOMPurify.sanitize(
+                              comment.text // MUDANÇA: Sanitiza o texto do comentário ao renderizar
+                            )}</p>
                         </div>
                     </li>
                 `;
@@ -814,10 +920,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const hash = window.location.hash;
 
     // Define qual view está ativa com base na URL
+    const isHome = hash === "" || hash === "#/";
     const isTaskDetail = hash.startsWith("#/task/");
+    const isTasks = hash.startsWith("#/tasks");
     const isProfile = hash.startsWith("#/profile");
     const isRequests = hash.startsWith("#/requests");
-    const isMainView = !isTaskDetail && !isProfile && !isRequests;
+    const isUserManagement = hash.startsWith("#/users");
 
     // MUDANÇA: Limpa o listener de comentários se não estiver na página de detalhes
     if (!isTaskDetail && unsubscribeFromComments) {
@@ -826,13 +934,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Esconde/mostra os containers corretos
-    serviceContainer.classList.toggle("hidden", !isMainView);
+    homeView.classList.toggle("hidden", !isHome);
+    serviceContainer.classList.toggle("hidden", !isTasks);
     taskDetailView.classList.toggle("hidden", !isTaskDetail);
     profileView.classList.toggle("hidden", !isProfile);
     requestsView.classList.toggle("hidden", !isRequests);
+    userManagementView.classList.toggle("hidden", !isUserManagement);
 
     // Adiciona uma classe ao body para estilizar o header de forma diferente
-    document.body.classList.toggle("detail-view-active", !isMainView);
+    document.body.classList.toggle("detail-view-active", !isHome && !isTasks);
+
+    // MUDANÇA: Controla a visibilidade dos botões contextuais do header
+    searchInput.classList.toggle("hidden", !isTasks);
+    addServiceBtn.classList.toggle("hidden", !isTasks);
 
     // Carrega o conteúdo da view ativa
     if (isTaskDetail) {
@@ -855,15 +969,24 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         // Se a tarefa não for encontrada, volta para a lista principal
         console.warn(`Tarefa com ID ${taskId} não encontrada.`);
-        window.location.hash = "";
+        window.location.hash = "#/tasks";
       }
     } else if (isProfile) {
       renderProfilePage();
     } else if (isRequests) {
       renderRequestsPage();
-    } else {
-      // A view padrão é a lista de serviços
+    } else if (isUserManagement) {
+      // MUDANÇA: Rota de gerenciamento de usuários
+      if (currentUser.profile.role !== 'admin') {
+        alert("Acesso negado. Apenas administradores podem acessar esta página.");
+        window.location.hash = "#/";
+        return;
+      }
+      renderUserManagementPage();
+    } else if (isTasks) {
       renderServices();
+    } else { // isHome
+      renderHomePage();
     }
   }
 
@@ -871,11 +994,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Ouve cliques em todo o documento para lidar com elementos criados dinamicamente
   document.addEventListener("click", async (e) => {
     // Botão "Voltar para a lista" nas páginas de detalhe/perfil
-    if (e.target.matches(".detail-header .btn-secondary")) {
-      e.preventDefault();
-      window.location.hash = ""; // Navega para a página principal
-    }
-
     // Título de um grupo de etapas (para expandir/recolher)
     if (e.target.classList.contains("step-name-toggle")) {
       const titleElement = e.target.parentElement;
@@ -998,7 +1116,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 subtasks: [{ name: requestData.description, completed: false }],
               },
             ],
-            ownerId: currentUser.uid, // Quem aprovou é o "dono"
+            ownerId: currentUser.uid, // Quem aprovou é o "dono" (admin)
+            // MUDANÇA: Adiciona o array de membros para que o solicitante possa ver a tarefa
+            members: [currentUser.uid, requestData.requesterId],
             files: [],
             createdAt: serverTimestamp(),
           };
@@ -1011,7 +1131,7 @@ document.addEventListener("DOMContentLoaded", () => {
           await batch.commit();
 
           alert("Solicitação aprovada e convertida em uma nova tarefa!");
-          window.location.hash = ""; // Navega para a página principal
+          window.location.hash = "#/tasks"; // Navega para a lista de tarefas
         }
       } catch (error) {
         console.error("Erro ao aprovar solicitação:", error);
@@ -1149,7 +1269,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // MUDANÇA: Gerenciador de 'submit' para formulários dinâmicos
   document.addEventListener("submit", async (e) => {
-    // Formulário de Comentários
     if (e.target.id === "comment-form") {
       e.preventDefault();
       const input = e.target.querySelector("#comment-input");
@@ -1246,20 +1365,11 @@ document.addEventListener("DOMContentLoaded", () => {
       userPhotoEl.src = currentUser.photoURL || "./assets/default-avatar.png"; // Use um avatar padrão se não houver foto
 
       // MUDANÇA: Controle de visibilidade de elementos com base na role do usuário
-      addServiceBtn.classList.remove("hidden");
-      // MUDANÇA: O link de solicitações agora é visível para todos, com texto dinâmico.
-      requestsLink.classList.remove("hidden");
       makeRequestBtn.classList.remove("hidden");
-      if (currentUser.profile.role === 'admin') {
-        requestsLink.textContent = "Gerenciar Solicitações";
-      } else {
-        requestsLink.textContent = "Minhas Solicitações";
-      }
 
       loginContainer.classList.add("hidden");
       appHeader.classList.remove("hidden");
       userProfile.classList.remove("hidden");
-      serviceContainer.classList.remove("hidden");
 
       // Começa a ouvir por atualizações nos serviços do usuário em tempo real
       listenForServices(user);
@@ -1268,7 +1378,7 @@ document.addEventListener("DOMContentLoaded", () => {
       handleRouteChange(); // MUDANÇA: Chamada inicial ao roteador
       window.addEventListener("hashchange", handleRouteChange); // MUDANÇA: Ouve por mudanças na URL
 
-      // MUDANÇA: Adiciona o listener para a barra de pesquisa
+      // MUDANÇA: Adiciona o listener para a barra de pesquisa (a visibilidade é controlada pelo roteador)
       searchInput.addEventListener("input", renderServices);
     } else {
       // --- O USUÁRIO ESTÁ DESLOGADO ---
@@ -1306,9 +1416,11 @@ document.addEventListener("DOMContentLoaded", () => {
       appHeader.classList.add("hidden");
       userProfile.classList.add("hidden");
       serviceContainer.classList.add("hidden");
+      homeView.classList.add("hidden");
       taskDetailView.classList.add("hidden");
       profileView.classList.add("hidden");
       requestsView.classList.add("hidden");
+      userManagementView.classList.add("hidden");
 
       // Garante que o layout volte ao normal
       document.body.classList.remove("detail-view-active");
@@ -1469,6 +1581,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Abrir modal de "Fazer Solicitação"
   makeRequestBtn.addEventListener("click", () => {
     makeRequestForm.reset();
+
+    // MUDANÇA: Desabilita o botão de envio até que o editor esteja pronto.
+    submitRequestBtn.disabled = true;
+    submitRequestBtn.textContent = "Carregando Editor...";
+
     // MUDANÇA: Inicializa o editor de texto rico (TinyMCE)
     tinymce.init({
       selector: "#request-description",
@@ -1477,6 +1594,13 @@ document.addEventListener("DOMContentLoaded", () => {
         "undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image emoticons searchreplace",
       height: 250,
       menubar: false,
+      // MUDANÇA: Habilita o botão de envio apenas quando o editor estiver totalmente carregado.
+      setup: function (editor) {
+        editor.on('init', function () {
+          submitRequestBtn.disabled = false;
+          submitRequestBtn.textContent = "Enviar Solicitação";
+        });
+      },
       // Adapta o tema do editor ao tema do app
       skin: document.body.classList.contains("dark-theme")
         ? "oxide-dark"
@@ -1606,12 +1730,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Enviar formulário de "Fazer Solicitação"
-  makeRequestForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  // MUDANÇA FINAL: Lógica de envio de solicitação agora usa um listener de CLIQUE direto e robusto.
+  submitRequestBtn.addEventListener('click', async () => {
     const title = makeRequestForm["request-title"].value;
-    // MUDANÇA: Pega o conteúdo HTML do editor TinyMCE
-    const description = tinymce.get("request-description").getContent();
+
+    // Verificação crucial: garante que o editor existe antes de tentar usá-lo.
+    const editor = tinymce.get('request-description');
+    if (!editor) {
+      alert("O editor de texto ainda não está pronto. Por favor, aguarde um momento e tente novamente.");
+      return;
+    }
+
+    const rawDescription = editor.getContent();
+    const description = DOMPurify.sanitize(rawDescription);
+
+    if (!title || !description) {
+      alert("Por favor, preencha o título e a descrição da solicitação.");
+      return;
+    }
 
     showLoading();
     try {
@@ -1620,12 +1756,11 @@ document.addEventListener("DOMContentLoaded", () => {
         description,
         requesterId: currentUser.uid,
         requesterName: currentUser.displayName || currentUser.email,
-        status: "pending", // 'pending', 'approved', 'rejected'
+        status: "pending",
         createdAt: serverTimestamp(),
       });
       makeRequestModal.style.display = "none";
-      // MUDANÇA: Garante que o editor seja removido após o envio
-      tinymce.get("request-description").remove();
+      editor.remove(); // Remove a instância do editor para limpar a memória.
       alert("Solicitação enviada com sucesso!");
     } catch (error) {
       console.error("Erro ao enviar solicitação:", error);
@@ -1634,7 +1769,6 @@ document.addEventListener("DOMContentLoaded", () => {
       hideLoading();
     }
   });
-
   // --- MUDANÇA: Funções auxiliares para criar elementos do formulário ---
 
   // Cria uma linha de input para uma sub-etapa

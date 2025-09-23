@@ -17,14 +17,13 @@
 
     <header>
         <div id="app-header" class="header-content hidden">
-            <h1><a href="#">Painel de Gestão</a></h1>
+            <h1><a href="#/">Painel de Gestão</a></h1>
 
             <!-- MUDANÇA: Container que agrupa todos os itens que serão movidos no mobile -->
             <div id="header-menu-items">
                 <input type="search" id="search-input" placeholder="Pesquisar...">
                 <button id="add-service-btn" class="btn-primary btn-header-action hidden">+ Adicionar Tarefa</button>
-                <button id="make-request-btn" class="btn-primary btn-header-action hidden">Fazer Solicitação</button> 
-                <a href="#/requests" id="requests-link" class="btn-secondary hidden"></a> <!-- MUDANÇA: Texto removido -->
+                <button id="make-request-btn" class="btn-primary btn-header-action hidden">Fazer Solicitação</button>
                 <div id="user-profile" class="user-profile-container hidden">
                     <img id="user-photo" src="" alt="Foto do usuário">
                     <a href="#/profile" class="user-profile-link">
@@ -85,6 +84,11 @@
         </div>
     </div>
 
+    <!-- MUDANÇA: Nova seção para a página Inicial (Dashboard) -->
+    <section id="home-view" class="hidden">
+        <!-- O conteúdo será inserido aqui pelo JavaScript -->
+    </section>
+
     <main id="service-container" class="hidden">
         <!-- Os cartões de tarefa serão inseridos aqui pelo JavaScript -->
     </main>
@@ -101,6 +105,11 @@
 
     <!-- Nova seção para a página de Perfil -->
     <section id="profile-view" class="hidden">
+        <!-- O conteúdo será inserido aqui pelo JavaScript -->
+    </section>
+
+    <!-- Nova seção para a página de Gerenciamento de Usuários -->
+    <section id="user-management-view" class="hidden">
         <!-- O conteúdo será inserido aqui pelo JavaScript -->
     </section>
 
@@ -152,7 +161,7 @@
                     <label for="request-description">Descrição</label>
                     <textarea id="request-description" name="requestDescription" rows="4" placeholder="Descreva o que precisa ser feito..." required></textarea>
                 </div>
-                <button type="submit" class="btn-primary">Enviar Solicitação</button>
+                <button type="button" id="submit-request-btn" class="btn-primary">Enviar Solicitação</button>
             </form>
         </div>
     </div>
@@ -165,6 +174,8 @@
     <script src="https://cdn.tiny.cloud/1/74nysouvgm4sqv5kenk16yxeay8pi4d5elwcawsdk54j4nzt/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
     <!-- MUDANÇA: Adiciona a biblioteca SortableJS para a funcionalidade de arrastar e soltar -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- MUDANÇA: Adiciona a biblioteca DOMPurify para sanitizar HTML e prevenir XSS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha512-uhzhZJS2D2qa+UBVcD2v2r9O9c52h0s2s32l00K9KjP2zG0fLS0iE9d3hVj230K2vTDj+IeQ2hGg29yO/H2lA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <!-- Link para o script JavaScript -->
     <script type="module" src="script.js"></script>
 </body>
