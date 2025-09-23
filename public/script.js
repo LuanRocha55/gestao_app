@@ -106,6 +106,22 @@ document.addEventListener("DOMContentLoaded", () => {
     return email && emailRegex.test(String(email).toLowerCase());
   }
 
+  // MUDANÇA: Funções para normalizar e capitalizar strings
+  function normalizeString(str) {
+    if (!str) return "";
+    return str
+      .toString()
+      .toLowerCase()
+      .trim()
+      .normalize("NFD") // Decompõe caracteres acentuados (ex: 'á' -> 'a' + ´)
+      .replace(/[\u0300-\u036f]/g, ""); // Remove os acentos
+  }
+
+  function capitalize(str) {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
   // MUDANÇA: Funções para controlar o indicador de carregamento
   function showLoading() {
     if (loadingOverlay) {
@@ -142,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (querySnapshot.empty && !hasSeenExamples) {
           console.log(
-            "Nenhum serviço encontrado. Adicionando dados de exemplo..."
+            "Nenhuma tarefa encontrada. Adicionando dados de exemplo..."
           );
           await addExampleData(user); // Adiciona os dados
           await setDoc(userDocRef, { hasSeenExamples: true }, { merge: true }); // Marca que o usuário já viu os exemplos
@@ -344,9 +360,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                   request.requesterName
                                 }</span> em ${date}
                             </div>
-                            <p class="request-description">${
+                            <div class="request-description">${
                               request.description
-                            }</p>
+                            }</div>
                             ${
                               request.status === "pending"
                                 ? `<div class="request-actions">
@@ -399,16 +415,17 @@ document.addEventListener("DOMContentLoaded", () => {
     serviceContainer.innerHTML = ""; // Limpa o container antes de renderizar
 
     if (servicesToRender.length === 0 && searchTerm) {
-      serviceContainer.innerHTML = `<p class="no-results">Nenhum serviço encontrado para "${searchInput.value}".</p>`;
+      serviceContainer.innerHTML = `<p class="no-results">Nenhuma tarefa encontrada para "${searchInput.value}".</p>`;
       return;
     }
     // 1. Agrupar serviços por categoria
     const groupedServices = servicesToRender.reduce((acc, service) => {
-      const category = service.category || "Outros"; // Agrupa em 'Outros' se não tiver categoria
-      if (!acc[category]) {
-        acc[category] = [];
+      // MUDANÇA: Normaliza a categoria para agrupar 'Exemplo' e 'exemplo' juntos
+      const normalizedCategory = normalizeString(service.category) || "outros";
+      if (!acc[normalizedCategory]) {
+        acc[normalizedCategory] = [];
       }
-      acc[category].push(service);
+      acc[normalizedCategory].push(service);
       return acc;
     }, {});
 
@@ -419,15 +436,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // 2. Renderizar por grupo
     Object.keys(groupedServices)
       .sort()
-      .forEach((category) => {
+      .forEach((normalizedCategory) => {
         // Cria e adiciona o título da categoria
         const titleEl = document.createElement("h3");
         titleEl.className = "category-title";
-        titleEl.textContent = category;
+        titleEl.textContent = capitalize(normalizedCategory); // Exibe o nome capitalizado
         mainFragment.appendChild(titleEl);
 
         // Renderiza os cards dentro da categoria
-        groupedServices[category].forEach((service) => {
+        groupedServices[normalizedCategory].forEach((service) => {
           // MUDANÇA: O progresso agora é baseado nas sub-tarefas
           const progress = calculateOverallProgress(service);
 
@@ -445,13 +462,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 step.subtasks.length > 0 &&
                 step.subtasks.every((st) => st.completed);
 
+              // MUDANÇA: Pega o nome do responsável pela etapa para exibir no card
+              const assigneeName = step.assigneeId
+                ? teamMemberMap.get(step.assigneeId)
+                : null;
+              const assigneeHtml = assigneeName
+                ? ` <span class="step-assignee">(${assigneeName})</span>`
+                : "";
+
               return `<li class="step-item"> 
                         <input type="checkbox" id="step-${
                           service.id
                         }-${index}" data-step-index="${index}" ${
                 isStepCompleted ? "checked" : ""
               }>
-                        <label for="step-${service.id}-${index}">${step.name}</label>
+                        <label for="step-${service.id}-${index}">${step.name}${assigneeHtml}</label>
                     </li>`;
             })
             .join("");
@@ -461,11 +486,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         <h2><a href="#/task/${service.id}">${
             service.name
           }</a></h2>
-                        <div class="card-actions">
-                            <button class="btn-icon btn-edit" title="Editar Serviço" data-service-id="${
+                        <div class="card-actions">_
+                            <button class="btn-icon btn-edit" title="Editar Tarefa" data-service-id="${
                               service.id
                             }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg></button>
-                            <button class="btn-icon btn-delete" title="Deletar Serviço" data-service-id="${
+                            <button class="btn-icon btn-delete" title="Deletar Tarefa" data-service-id="${
                               service.id
                             }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
                         </div>
@@ -504,13 +529,14 @@ document.addEventListener("DOMContentLoaded", () => {
       .map((step, stepIndex) => {
         const subtasksHtml = (step.subtasks || [])
           .map(
-            (subtask, subtaskIndex) => `
+            (subtask, subtaskIndex) =>
+              `
                 <li class="step-item">
                     <input type="checkbox" id="subtask-${
                       service.id
                     }-${stepIndex}-${subtaskIndex}" data-step-index="${stepIndex}" data-subtask-index="${subtaskIndex}" ${
-              subtask.completed ? "checked" : ""
-            }>
+                subtask.completed ? "checked" : ""
+              }>
                     <label for="subtask-${
                       service.id
                     }-${stepIndex}-${subtaskIndex}">${subtask.name}</label>
@@ -519,6 +545,11 @@ document.addEventListener("DOMContentLoaded", () => {
           )
           .join("");
 
+        // MUDANÇA: Pega o nome do responsável pela etapa
+        const assigneeName = step.assigneeId
+          ? teamMemberMap.get(step.assigneeId)
+          : null;
+
         // MUDANÇA: Verifica se a etapa deve começar recolhida ou não
         const startCollapsed = !openSteps.includes(stepIndex);
 
@@ -526,7 +557,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <li class="step-group" data-step-index="${stepIndex}">
                     <h4 class="step-group-title ${
                       startCollapsed ? "collapsed" : ""
-                    }"><span class="step-name-toggle">${step.name}</span></h4>
+                    }"><span class="step-name-toggle">${
+          step.name
+        }</span>${
+          assigneeName ? `<span class="step-assignee">(${assigneeName})</span>` : ""
+        }</h4>
                     <ul class="subtask-list ${
                       startCollapsed ? "hidden" : ""
                     }">${subtasksHtml}</ul>
@@ -557,6 +592,22 @@ document.addEventListener("DOMContentLoaded", () => {
                   service.category || "Não definida"
                 }</p>
                 <p><strong>Responsável Geral:</strong> ${responsibleName}</p>
+            </div>
+            <div class="detail-section">
+                <h3>Progresso Geral</h3>
+                <div class="progress-info">
+                    <span>${progress.completed} de ${
+      progress.total
+    } sub-tarefas concluídas</span>
+                    <span class="progress-text">${Math.round(
+                      progress.percentage
+                    )}%</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${
+                      progress.percentage
+                    }%;"></div>
+                </div>
             </div>
             <div class="detail-section">
                             <h3>Etapas e Sub-tarefas</h3>
@@ -790,15 +841,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteBtn = e.target.closest(".btn-delete");
     if (deleteBtn) {
       const serviceId = deleteBtn.dataset.serviceId;
-      if (confirm("Tem certeza que deseja deletar este serviço?")) {
+      if (confirm("Tem certeza que deseja deletar esta tarefa?")) {
         showLoading();
         try {
           await deleteDoc(doc(db, "services", serviceId));
-          console.log("Serviço deletado com sucesso!");
+          console.log("Tarefa deletada com sucesso!");
           // A UI se atualizará automaticamente pelo onSnapshot
         } catch (error) {
-          console.error("Erro ao deletar serviço:", error);
-          alert("Falha ao deletar o serviço.");
+          console.error("Erro ao deletar tarefa:", error);
+          alert("Falha ao deletar a tarefa.");
         } finally {
           hideLoading();
         }
@@ -896,12 +947,12 @@ document.addEventListener("DOMContentLoaded", () => {
           batch.update(requestDocRef, { status: "approved" });
           await batch.commit();
 
-          alert("Solicitação aprovada e convertida em um novo serviço!");
+          alert("Solicitação aprovada e convertida em uma nova tarefa!");
           window.location.hash = ""; // Navega para a página principal
         }
       } catch (error) {
         console.error("Erro ao aprovar solicitação:", error);
-        alert("Falha ao aprovar a solicitação e criar o serviço.");
+        alert("Falha ao aprovar a solicitação e criar a tarefa.");
       } finally {
         hideLoading();
       }
@@ -1010,7 +1061,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // MUDANÇA: Checkbox de uma ETAPA na lista principal de serviços
     if (e.target.matches('#service-container input[type="checkbox"]')) {
-      e.preventDefault(); // Impede a mudança visual imediata
       const checkbox = e.target;
       const serviceId = checkbox.closest(".service-card").dataset.id;
       const stepIndex = parseInt(checkbox.dataset.stepIndex, 10);
@@ -1315,7 +1365,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Altera o título e o botão do modal
-    modal.querySelector("h2").textContent = "Editar Serviço";
+    modal.querySelector("h2").textContent = "Editar Tarefa";
     modal.querySelector('button[type="submit"]').textContent =
       "Salvar Alterações";
 
@@ -1332,8 +1382,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // MUDANÇA: Garante que o modal esteja em modo de "adição"
     currentEditServiceId = null;
-    modal.querySelector("h2").textContent = "Adicionar Novo Serviço";
-    modal.querySelector('button[type="submit"]').textContent = "Criar Serviço";
+    modal.querySelector("h2").textContent = "Adicionar Nova Tarefa";
+    modal.querySelector('button[type="submit"]').textContent = "Criar Tarefa";
 
     modal.style.display = "block";
   });
@@ -1341,6 +1391,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // Abrir modal de "Fazer Solicitação"
   makeRequestBtn.addEventListener("click", () => {
     makeRequestForm.reset();
+    // MUDANÇA: Inicializa o editor de texto rico (TinyMCE)
+    tinymce.init({
+      selector: "#request-description",
+      plugins: "lists link image table code help wordcount autolink emoticons searchreplace",
+      toolbar:
+        "undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image emoticons searchreplace",
+      height: 250,
+      menubar: false,
+      // Adapta o tema do editor ao tema do app
+      skin: document.body.classList.contains("dark-theme")
+        ? "oxide-dark"
+        : "oxide",
+      content_css: document.body.classList.contains("dark-theme")
+        ? "dark"
+        : "default",
+    });
     makeRequestModal.style.display = "block";
   });
 
@@ -1356,6 +1422,10 @@ document.addEventListener("DOMContentLoaded", () => {
           sortableSteps.destroy();
           sortableSteps = null;
         }
+        // MUDANÇA: Remove a instância do TinyMCE para liberar memória
+        if (m.id === "make-request-modal" && tinymce.get("request-description")) {
+          tinymce.get("request-description").remove();
+        }
       });
     }
     // Clique fora do conteúdo do modal
@@ -1366,6 +1436,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (m.id === "add-service-modal" && sortableSteps) {
           sortableSteps.destroy();
           sortableSteps = null;
+        }
+        // MUDANÇA: Remove a instância do TinyMCE para liberar memória
+        if (m.id === "make-request-modal" && tinymce.get("request-description")) {
+          tinymce.get("request-description").remove();
         }
       }
     });
@@ -1383,19 +1457,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const formData = new FormData(addServiceForm);
     const serviceName = formData.get("serviceName");
     const responsibleId = formData.get("responsibleName");
-    const category = formData.get("serviceCategory");
+    const category = normalizeString(formData.get("serviceCategory")); // MUDANÇA: Normaliza a categoria ao salvar
 
     // MUDANÇA: Lógica para coletar etapas e sub-etapas
     const stepGroups = stepsContainer.querySelectorAll(".step-group-modal");
     const steps = Array.from(stepGroups).map((group) => {
       const stepName = group.querySelector('[name="stepName"]').value;
+      // MUDANÇA: Coleta o ID do responsável pela etapa
+      const assigneeId = group.querySelector('[name="stepAssignee"]').value;
       const substepInputs = group.querySelectorAll('[name="substepName"]');
       const subtasks = Array.from(substepInputs).map((input) => ({
         name: input.value,
         completed: false,
       }));
       // Garante que haja pelo menos uma sub-etapa se nenhuma for adicionada
-      return { name: stepName, subtasks: subtasks.length > 0 ? subtasks : [{ name: "Tarefa Padrão", completed: false }] };
+      return {
+        name: stepName,
+        assigneeId: assigneeId || null, // Salva null se nenhum for selecionado
+        subtasks: subtasks.length > 0 ? subtasks : [{ name: "Tarefa Padrão", completed: false }],
+      };
     });
 
     const serviceData = {
@@ -1416,14 +1496,14 @@ document.addEventListener("DOMContentLoaded", () => {
         // Não sobrescrevemos a data de criação
         const { createdAt, files, ...updateData } = serviceData;
         await updateDoc(serviceRef, updateData);
-        alert("Serviço atualizado com sucesso!");
+        alert("Tarefa atualizada com sucesso!");
       } else {
         // --- MODO ADIÇÃO ---
         await addDoc(servicesCollection, {
           ...serviceData,
           createdAt: serverTimestamp(),
         });
-        alert("Serviço adicionado com sucesso!");
+        alert("Tarefa adicionada com sucesso!");
       }
 
       modal.style.display = "none";
@@ -1434,8 +1514,8 @@ document.addEventListener("DOMContentLoaded", () => {
         sortableSteps = null;
       }
     } catch (error) {
-      console.error("Erro ao salvar serviço:", error);
-      alert("Falha ao salvar o serviço.");
+      console.error("Erro ao salvar tarefa:", error);
+      alert("Falha ao salvar a tarefa.");
     } finally {
       hideLoading();
     }
@@ -1445,7 +1525,8 @@ document.addEventListener("DOMContentLoaded", () => {
   makeRequestForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const title = makeRequestForm["request-title"].value;
-    const description = makeRequestForm["request-description"].value;
+    // MUDANÇA: Pega o conteúdo HTML do editor TinyMCE
+    const description = tinymce.get("request-description").getContent();
 
     showLoading();
     try {
@@ -1458,6 +1539,8 @@ document.addEventListener("DOMContentLoaded", () => {
         createdAt: serverTimestamp(),
       });
       makeRequestModal.style.display = "none";
+      // MUDANÇA: Garante que o editor seja removido após o envio
+      tinymce.get("request-description").remove();
       alert("Solicitação enviada com sucesso!");
     } catch (error) {
       console.error("Erro ao enviar solicitação:", error);
@@ -1497,11 +1580,28 @@ document.addEventListener("DOMContentLoaded", () => {
       step.subtasks.every((st, i) => st.name === `Unidade 0${i + 1}`);
     const initialType = isUnitsType ? "units" : "text";
 
+    // MUDANÇA: Cria as opções para o select de responsável da etapa
+    const assigneeOptions = teamMembers
+      .map(
+        (member) =>
+          `<option value="${member.id}" ${
+            step && step.assigneeId === member.id ? "selected" : ""
+          }>${member.name}</option>`
+      )
+      .join("");
+
     group.innerHTML = `
       <div class="drag-handle" title="Arraste para reordenar">⠿</div>
       <div class="step-input-row">
         <input type="text" name="stepName" placeholder="Nome da etapa principal" value="${stepName}" required />
         <button type="button" class="btn-icon btn-delete-step" title="Remover Etapa"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
+      </div>
+      <div class="form-group">
+          <label>Responsável pela Etapa</label>
+          <select name="stepAssignee">
+              <option value="">Geral (da Tarefa)</option>
+              ${assigneeOptions}
+          </select>
       </div>
       <div class="form-group">
         <label>Tipo de Sub-etapa</label>

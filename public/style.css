@@ -625,7 +625,8 @@ body.dark-theme .btn-primary:hover {
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid var(--progress-bar-bg);
@@ -743,12 +744,6 @@ body.dark-theme .btn-primary:hover {
     margin-left: 10px;
     cursor: pointer;
     transition: opacity 0.3s ease;
-}
-
-.step-assignee {
-    font-size: 0.85em;
-    opacity: 0.7;
-    margin-left: 5px;
 }
 
 .step-item input[type="checkbox"] {
@@ -951,6 +946,13 @@ body.detail-view-active #add-service-btn {
     color: var(--accent-color);
 }
 
+.step-assignee {
+    font-size: 0.85em;
+    opacity: 0.7;
+    margin-left: 8px;
+    font-weight: normal;
+}
+
 .step-group-title.collapsed::before {
     transform: translateY(-50%) rotate(-90deg);
 }
@@ -1123,6 +1125,19 @@ body.detail-view-active #add-service-btn {
 .request-description {
     margin-bottom: 20px;
     line-height: 1.6;
+}
+
+/* MUDANÇA: Estilos para o conteúdo rico dentro da descrição da solicitação */
+.request-description p {
+    margin-bottom: 1em; /* Adiciona espaçamento entre parágrafos */
+}
+
+.request-description img {
+    max-width: 100%; /* Garante que as imagens sejam responsivas */
+    height: auto;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .request-actions {
