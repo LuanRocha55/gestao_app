@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let teamMembers = [];
   let teamMemberMap = new Map();
   let currentEditServiceId = null; // MUDANÇA: Para rastrear o serviço em edição
+  let sortableSteps = null; // MUDANÇA: Para a instância do SortableJS
   let unsubscribeFromComments = null; // MUDANÇA: Listener para comentários
   let unsubscribeFromRequests = null; // MUDANÇA: Listener para solicitações
   let unsubscribeFromServices = null; // Para parar de ouvir os dados ao fazer logout
@@ -75,6 +76,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const stepsContainer = document.getElementById("steps-container");
   const makeRequestModal = document.getElementById("make-request-modal");
   const makeRequestForm = document.getElementById("make-request-form");
+  const loadingOverlay = document.getElementById("loading-overlay");
+  const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
+  const headerMenuItems = document.getElementById("header-menu-items");
 
   // --- MUDANÇA: Lógica para o seletor de tema ---
   // Verifica o tema salvo no localStorage ao carregar a página
@@ -100,6 +104,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function isValidEmail(email) {
     return email && emailRegex.test(String(email).toLowerCase());
+  }
+
+  // MUDANÇA: Funções para controlar o indicador de carregamento
+  function showLoading() {
+    if (loadingOverlay) {
+      loadingOverlay.classList.remove("hidden");
+    }
+  }
+
+  function hideLoading() {
+    if (loadingOverlay) {
+      loadingOverlay.classList.add("hidden");
+    }
   }
 
   // --- MUDANÇA: Listener de serviços agora filtra por usuário ---
@@ -774,6 +791,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (deleteBtn) {
       const serviceId = deleteBtn.dataset.serviceId;
       if (confirm("Tem certeza que deseja deletar este serviço?")) {
+        showLoading();
         try {
           await deleteDoc(doc(db, "services", serviceId));
           console.log("Serviço deletado com sucesso!");
@@ -781,6 +799,8 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
           console.error("Erro ao deletar serviço:", error);
           alert("Falha ao deletar o serviço.");
+        } finally {
+          hideLoading();
         }
       }
     }
@@ -796,6 +816,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const preview = document.getElementById("profile-picture-preview");
       preview.src = newPhotoURL; // Atualiza a visualização
 
+      showLoading();
       try {
         await updateProfile(auth.currentUser, { photoURL: newPhotoURL });
         await updateUserInFirestore(auth.currentUser); // Salva no Firestore também
@@ -804,6 +825,8 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         console.error("Erro ao atualizar avatar:", error);
         alert("Falha ao atualizar o avatar.");
+      } finally {
+        hideLoading();
       }
     }
 
@@ -841,6 +864,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Lógica para aprovar/rejeitar solicitações
     const approveBtn = e.target.closest(".btn-approve");
     if (approveBtn) {
+      showLoading();
       const requestId = approveBtn.closest(".request-card").dataset.id;
       try {
         const requestDocRef = doc(db, "requests", requestId);
@@ -878,12 +902,15 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         console.error("Erro ao aprovar solicitação:", error);
         alert("Falha ao aprovar a solicitação e criar o serviço.");
+      } finally {
+        hideLoading();
       }
     }
 
     const rejectBtn = e.target.closest(".btn-reject");
     if (rejectBtn) {
       const requestId = rejectBtn.closest(".request-card").dataset.id;
+      showLoading();
       const requestRef = doc(db, "requests", requestId);
       await updateDoc(requestRef, { status: "rejected" });
       // O onSnapshot cuidará de redesenhar a UI
@@ -946,6 +973,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const preview = document.getElementById("profile-picture-preview");
       const originalSrc = preview.src;
       preview.src = URL.createObjectURL(file); // Mostra preview local
+      showLoading();
 
       try {
         const storageRef = ref(storage, `users/${currentUser.uid}/profile.jpg`);
@@ -964,6 +992,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Erro ao fazer upload da foto:", error);
         alert("Falha ao atualizar a foto de perfil.");
         preview.src = originalSrc; // Reverte em caso de erro
+      } finally {
+        hideLoading();
       }
     }
 
@@ -973,7 +1003,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!file) return;
 
       const taskId = window.location.hash.substring("#/task/".length);
+      showLoading();
       await uploadAndLinkFile(taskId, file);
+      hideLoading();
     }
 
     // MUDANÇA: Checkbox de uma ETAPA na lista principal de serviços
@@ -984,6 +1016,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const stepIndex = parseInt(checkbox.dataset.stepIndex, 10);
 
       const service = services.find((s) => s.id === serviceId);
+      showLoading();
       if (service && !isNaN(stepIndex)) {
         // Marca/desmarca TODAS as sub-tarefas daquela etapa
         const allCompleted = checkbox.checked;
@@ -996,6 +1029,7 @@ document.addEventListener("DOMContentLoaded", () => {
         await updateDoc(serviceRef, {
           steps: service.steps,
         });
+        hideLoading();
       }
     }
   });
@@ -1018,6 +1052,7 @@ document.addEventListener("DOMContentLoaded", () => {
         createdAt: serverTimestamp(),
       };
 
+      showLoading();
       try {
         const commentsColRef = collection(db, "services", taskId, "comments");
         await addDoc(commentsColRef, commentData);
@@ -1025,6 +1060,8 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         console.error("Erro ao adicionar comentário:", error);
         alert("Falha ao enviar o comentário.");
+      } finally {
+        hideLoading();
       }
     }
 
@@ -1039,7 +1076,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const fileName = url.substring(url.lastIndexOf("/") + 1) || url; // Tenta extrair um nome
 
       const fileData = { name: fileName, url: url, isLocal: false };
+      showLoading();
       await addFileToService(taskId, fileData);
+      hideLoading();
       input.value = "";
     }
 
@@ -1049,6 +1088,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const newName = document.getElementById("profile-name").value;
       const successMessage = document.getElementById("profile-success");
 
+      showLoading();
       try {
         await updateProfile(currentUser, { displayName: newName });
         await updateUserInFirestore(currentUser); // Salva no Firestore
@@ -1058,6 +1098,8 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         console.error("Erro ao atualizar perfil:", error);
         alert("Falha ao salvar as alterações.");
+      } finally {
+        hideLoading();
       }
     }
   });
@@ -1152,6 +1194,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = emailLoginForm["login-password"].value;
     loginErrorEl.classList.add("hidden");
 
+    showLoading();
     try {
       await signInWithEmailAndPassword(auth, email, password);
       // O onAuthStateChanged cuidará de atualizar a UI
@@ -1159,6 +1202,8 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Erro no login:", error);
       loginErrorEl.textContent = "E-mail ou senha inválidos.";
       loginErrorEl.classList.remove("hidden");
+    } finally {
+      hideLoading();
     }
   });
 
@@ -1166,9 +1211,11 @@ document.addEventListener("DOMContentLoaded", () => {
   googleLoginBtn.addEventListener("click", async () => {
     const provider = new GoogleAuthProvider();
     try {
+      showLoading();
       await signInWithPopup(auth, provider);
       // O onAuthStateChanged cuidará de atualizar a UI
     } catch (error) {
+      hideLoading();
       console.error("Erro no login com Google:", error);
       // MUDANÇA: Mensagem de erro mais específica
       if (error.code === 'auth/operation-not-allowed') {
@@ -1192,6 +1239,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = registerForm["register-password"].value;
     registerErrorEl.classList.add("hidden");
 
+    showLoading();
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -1206,6 +1254,8 @@ document.addEventListener("DOMContentLoaded", () => {
       registerErrorEl.textContent =
         "Erro ao criar conta. Verifique os dados ou tente outro e-mail.";
       registerErrorEl.classList.remove("hidden");
+    } finally {
+      hideLoading();
     }
   });
 
@@ -1218,6 +1268,11 @@ document.addEventListener("DOMContentLoaded", () => {
   toggleToRegister.addEventListener("click", () => {
     loginBox.classList.add("hidden");
     registerBox.classList.remove("hidden");
+  });
+
+  // MUDANÇA: Evento para o botão de menu mobile
+  mobileMenuToggle.addEventListener("click", () => {
+    headerMenuItems.classList.toggle("open");
   });
   toggleToLogin.addEventListener("click", () => {
     registerBox.classList.add("hidden");
@@ -1287,13 +1342,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fechar modais (botão 'X' e clique fora)
   document.querySelectorAll(".modal").forEach((m) => {
     // Botão 'X'
-    m.querySelector(".close-btn").addEventListener("click", () => {
-      m.style.display = "none";
-    });
+    const closeBtn = m.querySelector(".close-btn");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        m.style.display = "none";
+        // MUDANÇA: Destrói a instância do Sortable se for o modal de serviço
+        if (m.id === "add-service-modal" && sortableSteps) {
+          sortableSteps.destroy();
+          sortableSteps = null;
+        }
+      });
+    }
     // Clique fora do conteúdo do modal
     m.addEventListener("click", (e) => {
       if (e.target === m) {
         m.style.display = "none";
+        // MUDANÇA: Destrói a instância do Sortable se for o modal de serviço
+        if (m.id === "add-service-modal" && sortableSteps) {
+          sortableSteps.destroy();
+          sortableSteps = null;
+        }
       }
     });
   });
@@ -1335,6 +1403,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // O createdAt não é atualizado na edição
     };
 
+    showLoading();
     try {
       if (currentEditServiceId) {
         // --- MODO EDIÇÃO ---
@@ -1354,9 +1423,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       modal.style.display = "none";
       currentEditServiceId = null; // Limpa o ID de edição
+      // MUDANÇA: Destrói a instância do Sortable após salvar
+      if (sortableSteps) {
+        sortableSteps.destroy();
+        sortableSteps = null;
+      }
     } catch (error) {
       console.error("Erro ao salvar serviço:", error);
       alert("Falha ao salvar o serviço.");
+    } finally {
+      hideLoading();
     }
   });
 
@@ -1366,6 +1442,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = makeRequestForm["request-title"].value;
     const description = makeRequestForm["request-description"].value;
 
+    showLoading();
     try {
       await addDoc(requestsCollection, {
         title,
@@ -1380,6 +1457,8 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error("Erro ao enviar solicitação:", error);
       alert("Falha ao enviar a solicitação.");
+    } finally {
+      hideLoading();
     }
   });
 
@@ -1414,6 +1493,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const initialType = isUnitsType ? "units" : "text";
 
     group.innerHTML = `
+      <div class="drag-handle" title="Arraste para reordenar">⠿</div>
       <div class="step-input-row">
         <input type="text" name="stepName" placeholder="Nome da etapa principal" value="${stepName}" required />
         <button type="button" class="btn-icon btn-delete-step" title="Remover Etapa"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
@@ -1454,7 +1534,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function uploadAndLinkFile(serviceId, file) {
     const storageRef = ref(storage, `services/${serviceId}/${file.name}`);
     try {
-      alert("Carregando arquivo...");
+      // O spinner global já está visível
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
       await addFileToService(serviceId, {

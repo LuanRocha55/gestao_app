@@ -53,9 +53,10 @@ header {
     gap: 20px;
     flex-grow: 1; /* Permite que este container ocupe o espaço disponível */
     min-width: 0; /* Previne que o flex item cause overflow */
+    justify-content: space-between; /* MUDANÇA: Garante o espaçamento no desktop */
 }
 
-.header-controls {
+#header-menu-items {
     display: flex;
     align-items: center;
     gap: 20px;
@@ -558,8 +559,12 @@ body.dark-theme .btn-primary:hover {
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease;
-    margin-top: 10px;
+}
+
+/* MUDANÇA: Aplica a largura total apenas para botões secundários dentro de formulários */
+.form-group .btn-secondary {
     width: 100%;
+    margin-top: 10px;
 }
 
 /* --- Estilos do Modal --- */
@@ -663,11 +668,38 @@ body.dark-theme .btn-primary:hover {
 
 /* --- MUDANÇA: Estilos para grupos de etapas no modal --- */
 .step-group-modal {
+    position: relative; /* Necessário para o posicionamento da alça de arrastar */
     background-color: var(--bg-color);
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 15px;
     border: 1px solid var(--progress-bar-bg);
+}
+
+.drag-handle {
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: grab;
+    color: var(--text-color);
+    opacity: 0.4;
+    padding: 10px;
+    font-size: 1.5em;
+    line-height: 1;
+}
+
+.drag-handle:hover {
+    opacity: 0.8;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+    background: var(--accent-color);
+}
+
+.sortable-drag {
+    cursor: grabbing;
 }
 
 .step-group-modal .form-group {
@@ -755,6 +787,12 @@ body.dark-theme .btn-primary:hover {
 
 /* --- Responsividade --- */
 
+/* MUDANÇA: Botão de menu mobile, visível apenas em telas menores */
+#mobile-menu-toggle {
+    display: none;
+    color: #fff;
+}
+
 /* Tablets e telas menores */
 @media (max-width: 768px) {
     header {
@@ -763,19 +801,31 @@ body.dark-theme .btn-primary:hover {
 
     .header-content {
         flex-wrap: wrap; /* Permite que os itens quebrem a linha */
+    }
+
+    #mobile-menu-toggle {
+        display: block;
+    }
+
+    /* MUDANÇA: No mobile, o container do menu se torna um bloco que será mostrado/escondido */
+    #header-menu-items {
+        display: none; /* Esconde os itens do menu por padrão */
+        flex-direction: column;
         gap: 15px;
-        flex-grow: 1;
-    }
-
-    .header-content > h1 {
-        /* Garante que o título ocupe a largura da sua linha */
-        flex-basis: 100%;
-    }
-
-    #search-input {
-        /* Ocupa a largura total se quebrar a linha */
         width: 100%;
-        margin: 0;
+        order: 3; /* Garante que o menu apareça abaixo do título e do botão */
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #header-menu-items.open {
+        display: flex; /* Mostra os itens quando o menu está aberto */
+    }
+
+    /* MUDANÇA: Garante que os itens dentro do menu mobile ocupem a largura total */
+    #header-menu-items > * {
+        width: 100%;
     }
 
     main {
@@ -785,12 +835,6 @@ body.dark-theme .btn-primary:hover {
 
 /* Celulares */
 @media (max-width: 480px) {
-    header {
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
-    }
-
     main {
         padding: 20px 15px;
         gap: 20px;
@@ -1094,4 +1138,35 @@ body.detail-view-active #add-service-btn {
 .request-actions .btn-reject {
     background-color: #E53935;
     border-color: #E53935;
+}
+
+/* --- MUDANÇA: Estilos para o Indicador de Carregamento (Spinner) --- */
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.3s ease;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
 }

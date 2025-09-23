@@ -18,26 +18,32 @@
     <header>
         <div id="app-header" class="header-content hidden">
             <h1><a href="#">Painel de Gestão</a></h1>
-            <input type="search" id="search-input" placeholder="Pesquisar...">
-            <button id="add-service-btn" class="btn-primary hidden">+ Adicionar Serviço</button>
-            <button id="make-request-btn" class="btn-primary hidden">Fazer Solicitação</button>
-        </div>
-        <div class="header-controls">
-            <div id="user-profile" class="user-profile-container hidden">
-                <img id="user-photo" src="" alt="Foto do usuário">
-                <a href="#/profile" class="user-profile-link">
-                    <span id="user-name"></span>
-                </a>
+
+            <!-- MUDANÇA: Container que agrupa todos os itens que serão movidos no mobile -->
+            <div id="header-menu-items">
+                <input type="search" id="search-input" placeholder="Pesquisar...">
+                <button id="add-service-btn" class="btn-primary hidden">+ Adicionar Serviço</button>
+                <button id="make-request-btn" class="btn-primary hidden">Fazer Solicitação</button>
                 <a href="#/requests" id="requests-link" class="btn-secondary hidden">Solicitações</a>
-                <button id="logout-btn" class="btn-secondary">Sair</button>
+                <div id="user-profile" class="user-profile-container hidden">
+                    <img id="user-photo" src="" alt="Foto do usuário">
+                    <a href="#/profile" class="user-profile-link">
+                        <span id="user-name"></span>
+                    </a>
+                    <button id="logout-btn" class="btn-secondary">Sair</button>
+                </div>
+                <div class="theme-switcher-container">
+                    <span>Modo Escuro</span>
+                    <label class="theme-switcher">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
-            <div class="theme-switcher-container">
-                <span>Modo Escuro</span>
-                <label class="theme-switcher">
-                    <input type="checkbox" id="theme-toggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
+            <!-- MUDANÇA: Botão de menu para mobile (movido para o final para facilitar o layout) -->
+            <button id="mobile-menu-toggle" class="btn-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>
+            </button>
         </div>
     </header>
 
@@ -150,6 +156,13 @@
             </form>
         </div>
     </div>
+
+    <!-- MUDANÇA: Indicador de Carregamento Global -->
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+    </div>
+    <!-- MUDANÇA: Adiciona a biblioteca SortableJS para a funcionalidade de arrastar e soltar -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <!-- Link para o script JavaScript -->
     <script type="module" src="script.js"></script>
 </body>
