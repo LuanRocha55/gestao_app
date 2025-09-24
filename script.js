@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let services = [];
   let teamMembers = [];
   let teamMemberMap = new Map();
+  let allUsersData = []; // MUDANÇA: Variável para armazenar dados de todos os usuários
   let currentEditServiceId = null; // MUDANÇA: Para rastrear o serviço em edição
   let sortableSteps = null; // MUDANÇA: Para a instância do SortableJS
   let unsubscribeFromComments = null; // MUDANÇA: Listener para comentários
@@ -61,18 +62,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const userProfile = document.getElementById("user-profile");
   const userNameEl = document.getElementById("user-name");
   const userPhotoEl = document.getElementById("user-photo");
-  const requestsLink = document.getElementById("requests-link");
   const serviceContainer = document.getElementById("service-container");
   const themeToggle = document.getElementById("theme-toggle");
-  const addServiceBtn = document.getElementById("add-service-btn");
   const modal = document.getElementById("add-service-modal");
-  const makeRequestBtn = document.getElementById("make-request-btn");
   const addServiceForm = document.getElementById("add-service-form");
   const searchInput = document.getElementById("search-input");
+  const serviceListWrapper = document.getElementById("service-list-wrapper");
   const taskDetailView = document.getElementById("task-detail-view");
   const profileView = document.getElementById("profile-view");
   const requestsView = document.getElementById("requests-view");
+  const userManagementView = document.getElementById("user-management-view");
   const addStepBtn = document.getElementById("add-step-btn");
+  const dashboardView = document.getElementById("dashboard-view");
   const stepsContainer = document.getElementById("steps-container");
   const makeRequestModal = document.getElementById("make-request-modal");
   const makeRequestForm = document.getElementById("make-request-form");
@@ -253,11 +254,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const userDocRef = doc(db, "users", user.uid);
     const userData = {
       uid: user.uid,
-      displayName: user.displayName,
+      displayName: user.displayName || user.email,
       email: user.email,
       photoURL: user.photoURL,
     };
-    // Usa set com merge:true para criar ou atualizar o usuário sem sobrescrever campos existentes (como 'role')
+    // Usa set com merge:true para criar ou atualizar.
+    // Se o documento não existir, adiciona o campo 'role' como 'member'.
+    const userDocSnap = await getDoc(userDocRef);
+    if (!userDocSnap.exists()) userData.role = "member";
     await setDoc(userDocRef, userData, { merge: true });
   }
 
@@ -268,14 +272,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return { id: data.uid, name: data.displayName || data.email };
     });
     teamMemberMap = new Map(teamMembers.map((m) => [m.id, m.name]));
+    // MUDANÇA: Carrega todos os dados do usuário para a página de admin
+    allUsersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
 
   // --- MUDANÇA: Funções para a página de solicitações ---
   function renderRequestsPage() {
     requestsView.innerHTML = `
-            <div class="detail-header">
+            <div class="detail-header requests-header">
                 <h2>Gerenciar Solicitações</h2>
-                <a href="#" class="btn-secondary">Voltar para a lista</a>
+                <button id="make-request-btn" class="btn-primary">Fazer Solicitação</button>
+                <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
             </div>
             <div id="requests-list-container"></div>
         `;
@@ -336,14 +343,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const date =
               request.createdAt?.toDate().toLocaleDateString("pt-BR") ||
               "Data indisponível";
+            
+            const mentionHtml = request.mentionedUserId 
+              ? `<div class="request-mention">Mencionado: <span>${teamMemberMap.get(request.mentionedUserId) || 'Usuário desconhecido'}</span></div>` 
+              : '';
 
             card.innerHTML = `
                             <h3>${request.title}</h3>
                             <div class="request-meta">
                                 Solicitado por: <span>${
                                   request.requesterName
-                                }</span> em ${date}
+                                }</span> em <span>${date}</span>
                             </div>
+                            ${mentionHtml}
                             <p class="request-description">${
                               request.description
                             }</p>
@@ -378,6 +390,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Função para Renderizar os Cartões de Serviço ---
   function renderServices() {
+    // MUDANÇA: Limpa o container principal e adiciona o cabeçalho da página de serviços dinamicamente
+    serviceContainer.innerHTML = `
+        <div class="detail-header requests-header">
+            <h2>Meus Serviços</h2>
+            <button id="add-service-btn" class="btn-primary">+ Adicionar Serviço</button>
+            <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
+        </div>
+        <div id="service-list-wrapper"></div>
+    `;
     const searchTerm = searchInput.value.toLowerCase().trim();
     const servicesToRender = services.filter((service) => {
       if (!searchTerm) return true; // Se a busca estiver vazia, mostra tudo
@@ -396,10 +417,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return inName || inResponsible || inCategory || inSteps;
     });
 
-    serviceContainer.innerHTML = ""; // Limpa o container antes de renderizar
+    // MUDANÇA: Pega a referência do wrapper recém-criado
+    const currentServiceListWrapper = document.getElementById("service-list-wrapper");
 
     if (servicesToRender.length === 0 && searchTerm) {
-      serviceContainer.innerHTML = `<p class="no-results">Nenhum serviço encontrado para "${searchInput.value}".</p>`;
+      currentServiceListWrapper.innerHTML = `<p class="no-results">Nenhum serviço encontrado para "${searchInput.value}".</p>`;
       return;
     }
     // 1. Agrupar serviços por categoria
@@ -490,11 +512,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
 
-    serviceContainer.appendChild(mainFragment);
+    currentServiceListWrapper.appendChild(mainFragment);
   }
 
-  // --- Funções da Página de Detalhes ---
-  function renderTaskDetail(service, openSteps = []) {
+  // --- Funções da Página de Detalhes do Serviço ---
+  function renderServiceDetail(service, openSteps = []) {
     const responsibleName =
       teamMemberMap.get(service.responsible) || "Não atribuído";
     const progress = calculateOverallProgress(service);
@@ -549,7 +571,7 @@ document.addEventListener("DOMContentLoaded", () => {
     taskDetailView.innerHTML = `
             <div class="detail-header">
                 <h2>${service.name}</h2>
-                <a href="#" class="btn-secondary">Voltar para a lista</a>
+                <a href="#/services" class="btn-secondary">Voltar para a lista</a>
             </div>
             <div class="detail-section">
                 <h3>Informações Gerais</h3>
@@ -559,7 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <p><strong>Responsável Geral:</strong> ${responsibleName}</p>
             </div>
             <div class="detail-section">
-                            <h3>Etapas e Sub-tarefas</h3>
+                            <h3>Etapas e Sub-etapas</h3>
                 <ul class="steps-list-detailed">${stepsHtml}</ul>
             </div>
             <div class="detail-section">
@@ -614,7 +636,7 @@ document.addEventListener("DOMContentLoaded", () => {
     profileView.innerHTML = `
             <div class="detail-header">
                 <h2>Meu Perfil</h2>
-                <a href="#" class="btn-secondary">Voltar para a lista</a>
+                <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
             </div>
             <div class="detail-section">
                 <h3>Informações da Conta</h3>
@@ -651,6 +673,48 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             </div>
         `;
+  }
+
+  // --- MUDANÇA: Função para renderizar a página de gerenciamento de usuários (Admin) ---
+  function renderUserManagementPage() {
+    if (currentUser.role !== 'admin') {
+        userManagementView.innerHTML = `<p>Acesso negado. Esta área é apenas para administradores.</p>`;
+        return;
+    }
+
+    const usersHtml = allUsersData.map(user => `
+        <li class="user-list-item" data-user-id="${user.id}">
+            <div class="user-list-avatar">
+                <img src="${user.photoURL || './assets/default-avatar.png'}" alt="Avatar de ${user.displayName}">
+            </div>
+            <div class="user-list-info">
+                <div class="user-name">${user.displayName}</div>
+                <div class="user-email">${user.email}</div>
+            </div>
+            <div class="user-list-actions">
+                <div class="form-group">
+                    <select class="user-role-selector" ${user.id === currentUser.uid ? 'disabled' : ''}>
+                        <option value="member" ${user.role === 'member' ? 'selected' : ''}>Membro</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                    ${user.id === currentUser.uid ? '<small>Você não pode alterar seu próprio cargo.</small>' : ''}
+                </div>
+            </div>
+        </li>
+    `).join('');
+
+    userManagementView.innerHTML = `
+        <div class="detail-header">
+            <h2>Gerenciamento de Usuários</h2>
+            <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
+        </div>
+        <div class="detail-section">
+            <h3>Membros da Equipe</h3>
+            <ul class="user-list">
+                ${usersHtml}
+            </ul>
+        </div>
+    `;
   }
 
   // MUDANÇA: Função para ouvir e renderizar comentários em tempo real
@@ -714,29 +778,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const hash = window.location.hash;
 
     // Define qual view está ativa com base na URL
-    const isTaskDetail = hash.startsWith("#/task/");
+    const isDashboard = hash === "" || hash === "#/";
+    const isServices = hash.startsWith("#/services");
+    const isServiceDetail = hash.startsWith("#/service/");
     const isProfile = hash.startsWith("#/profile");
     const isRequests = hash.startsWith("#/requests");
-    const isMainView = !isTaskDetail && !isProfile && !isRequests;
+    const isUserManagement = hash.startsWith("#/users");
 
     // MUDANÇA: Limpa o listener de comentários se não estiver na página de detalhes
-    if (!isTaskDetail && unsubscribeFromComments) {
+    if (!isServiceDetail && unsubscribeFromComments) {
       unsubscribeFromComments();
       unsubscribeFromComments = null;
     }
 
     // Esconde/mostra os containers corretos
-    serviceContainer.classList.toggle("hidden", !isMainView);
-    taskDetailView.classList.toggle("hidden", !isTaskDetail);
+    dashboardView.classList.toggle("hidden", !isDashboard);
+    serviceContainer.classList.toggle("hidden", !isServices);
+    taskDetailView.classList.toggle("hidden", !isServiceDetail);
     profileView.classList.toggle("hidden", !isProfile);
     requestsView.classList.toggle("hidden", !isRequests);
+    userManagementView.classList.toggle("hidden", !isUserManagement);
 
     // Adiciona uma classe ao body para estilizar o header de forma diferente
-    document.body.classList.toggle("detail-view-active", !isMainView);
+    const isSubPage = isServiceDetail || isProfile || isRequests || isServices || isUserManagement;
+    document.body.classList.toggle("detail-view-active", isSubPage);
 
     // Carrega o conteúdo da view ativa
-    if (isTaskDetail) {
-      const taskId = hash.substring("#/task/".length);
+    if (isDashboard) {
+      // Nenhuma ação necessária, o HTML é estático
+    } else if (isServiceDetail) {
+      const taskId = hash.substring("#/service/".length);
       const service = services.find((s) => s.id === taskId);
       if (service) {
         // MUDANÇA: Preserva o estado de expansão das etapas ao recarregar
@@ -750,18 +821,20 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           });
 
-        renderTaskDetail(service, openStepsIndices);
+        renderServiceDetail(service, openStepsIndices);
         listenForComments(taskId); // MUDANÇA: Começa a ouvir os comentários da tarefa
       } else {
         // Se a tarefa não for encontrada, volta para a lista principal
-        console.warn(`Tarefa com ID ${taskId} não encontrada.`);
-        window.location.hash = "";
+        console.warn(`Serviço com ID ${taskId} não encontrado.`);
+        window.location.hash = "#/services";
       }
     } else if (isProfile) {
       renderProfilePage();
     } else if (isRequests) {
       renderRequestsPage();
-    } else {
+    } else if (isUserManagement) {
+      renderUserManagementPage();
+    } else if (isServices) {
       // A view padrão é a lista de serviços
       renderServices();
     }
@@ -771,9 +844,19 @@ document.addEventListener("DOMContentLoaded", () => {
   // Ouve cliques em todo o documento para lidar com elementos criados dinamicamente
   document.addEventListener("click", async (e) => {
     // Botão "Voltar para a lista" nas páginas de detalhe/perfil
-    if (e.target.matches(".detail-header .btn-secondary")) {
+    // MUDANÇA: Botões de ação que foram movidos
+    if (e.target.id === 'add-service-btn') {
+        openAddServiceModal();
+    }
+
+    if (e.target.id === 'make-request-btn') {
+        openMakeRequestModal();
+    }
+
+
+    if (e.target.matches(".detail-header a.btn-secondary")) {
       e.preventDefault();
-      window.location.hash = ""; // Navega para a página principal
+      window.location.hash = e.target.getAttribute("href"); // Navega para o href do botão
     }
 
     // Título de um grupo de etapas (para expandir/recolher)
@@ -897,7 +980,7 @@ document.addEventListener("DOMContentLoaded", () => {
           await batch.commit();
 
           alert("Solicitação aprovada e convertida em um novo serviço!");
-          window.location.hash = ""; // Navega para a página principal
+          window.location.hash = "#/services"; // Navega para a lista de serviços
         }
       } catch (error) {
         console.error("Erro ao aprovar solicitação:", error);
@@ -911,9 +994,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (rejectBtn) {
       const requestId = rejectBtn.closest(".request-card").dataset.id;
       showLoading();
-      const requestRef = doc(db, "requests", requestId);
-      await updateDoc(requestRef, { status: "rejected" });
-      // O onSnapshot cuidará de redesenhar a UI
+      try {
+        const requestRef = doc(db, "requests", requestId);
+        await updateDoc(requestRef, { status: "rejected" });
+        // O onSnapshot cuidará de redesenhar a UI
+      } catch (error) {
+        console.error("Erro ao rejeitar solicitação:", error);
+        alert("Falha ao rejeitar a solicitação.");
+      } finally {
+        hideLoading();
+      }
     }
   });
 
@@ -949,7 +1039,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const checkbox = e.target;
       const stepIndex = parseInt(checkbox.dataset.stepIndex, 10);
       const subtaskIndex = parseInt(checkbox.dataset.subtaskIndex, 10);
-      const taskId = window.location.hash.substring("#/task/".length);
+      const taskId = window.location.hash.substring("#/service/".length);
 
       const service = services.find((s) => s.id === taskId);
       if (service && !isNaN(stepIndex) && !isNaN(subtaskIndex)) {
@@ -1002,7 +1092,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const file = e.target.files[0];
       if (!file) return;
 
-      const taskId = window.location.hash.substring("#/task/".length);
+      const taskId = window.location.hash.substring("#/service/".length);
       showLoading();
       await uploadAndLinkFile(taskId, file);
       hideLoading();
@@ -1032,6 +1122,33 @@ document.addEventListener("DOMContentLoaded", () => {
         hideLoading();
       }
     }
+
+    // MUDANÇA: Lógica para alterar o cargo de um usuário (movido para o evento 'change')
+    if (e.target.classList.contains('user-role-selector')) {
+        const select = e.target;
+        const newRole = select.value;
+        const userId = select.closest('.user-list-item').dataset.userId;
+
+        if (!userId || userId === currentUser.uid) return;
+
+        showLoading();
+        try {
+            const userRef = doc(db, 'users', userId);
+            await updateDoc(userRef, { role: newRole });
+            alert('Cargo do usuário atualizado com sucesso!');
+            // Atualiza o estado local para consistência imediata da UI
+            const userToUpdate = allUsersData.find(u => u.id === userId);
+            if (userToUpdate) userToUpdate.role = newRole;
+        } catch (error) {
+            console.error("Erro ao atualizar cargo:", error);
+            alert('Falha ao atualizar o cargo do usuário.');
+            // Reverte a mudança na UI em caso de erro
+            const userToUpdate = allUsersData.find(u => u.id === userId);
+            if (userToUpdate) select.value = userToUpdate.role;
+        } finally {
+            hideLoading();
+        }
+    }
   });
 
   // MUDANÇA: Gerenciador de 'submit' para formulários dinâmicos
@@ -1043,7 +1160,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const text = input.value.trim();
       if (!text) return;
 
-      const taskId = window.location.hash.substring("#/task/".length);
+      const taskId = window.location.hash.substring("#/service/".length);
       const commentData = {
         text: text,
         authorId: currentUser.uid,
@@ -1072,7 +1189,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const url = input.value.trim();
       if (!url) return;
 
-      const taskId = window.location.hash.substring("#/task/".length);
+      const taskId = window.location.hash.substring("#/service/".length);
       const fileName = url.substring(url.lastIndexOf("/") + 1) || url; // Tenta extrair um nome
 
       const fileData = { name: fileName, url: url, isLocal: false };
@@ -1112,10 +1229,17 @@ document.addEventListener("DOMContentLoaded", () => {
       // --- O USUÁRIO ESTÁ LOGADO ---
       currentUser = user;
       console.log("Usuário logado:", currentUser.uid);
+      
+      // MUDANÇA: Busca o perfil completo do usuário, incluindo o cargo (role)
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+          currentUser = { ...user, ...userDocSnap.data() };
+      }
 
       // Garante que o perfil do usuário no Firestore está atualizado com nome, email, etc.
       await updateUserInFirestore(user);
-
+      
       // MUDANÇA: Carrega a lista de membros da equipe para usar na aplicação
       await loadTeamMembers();
 
@@ -1123,15 +1247,19 @@ document.addEventListener("DOMContentLoaded", () => {
       userNameEl.textContent = currentUser.displayName || currentUser.email;
       userPhotoEl.src = currentUser.photoURL || "./assets/default-avatar.png"; // Use um avatar padrão se não houver foto
 
-      // MUDANÇA: Mostra todos os botões de ação para qualquer usuário logado
-      addServiceBtn.classList.remove("hidden");
-      requestsLink.classList.remove("hidden");
-      makeRequestBtn.classList.remove("hidden");
+      // MUDANÇA: Mostra o card de gerenciamento de usuários se for admin
+      const adminCard = document.getElementById('admin-user-management-card');
+      if (currentUser.role === 'admin') {
+          adminCard.classList.remove('hidden');
+      } else {
+          adminCard.classList.add('hidden');
+      }
 
       loginContainer.classList.add("hidden");
       appHeader.classList.remove("hidden");
       userProfile.classList.remove("hidden");
-      serviceContainer.classList.remove("hidden");
+      // serviceContainer.classList.remove("hidden"); // O roteador vai decidir isso
+      dashboardView.classList.remove("hidden");
 
       // Começa a ouvir por atualizações nos serviços do usuário em tempo real
       listenForServices(user);
@@ -1180,7 +1308,9 @@ document.addEventListener("DOMContentLoaded", () => {
       serviceContainer.classList.add("hidden");
       taskDetailView.classList.add("hidden");
       profileView.classList.add("hidden");
+      dashboardView.classList.add("hidden");
       requestsView.classList.add("hidden");
+      userManagementView.classList.add("hidden");
 
       // Garante que o layout volte ao normal
       document.body.classList.remove("detail-view-active");
@@ -1317,8 +1447,7 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.style.display = "block";
   }
 
-  // Abrir modal de "Adicionar Serviço"
-  addServiceBtn.addEventListener("click", () => {
+  function openAddServiceModal() {
     addServiceForm.reset(); // Limpa o formulário
     // MUDANÇA: Limpa o container e adiciona o primeiro grupo de etapa/sub-etapa
     stepsContainer.innerHTML = "";
@@ -1331,13 +1460,19 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.querySelector('button[type="submit"]').textContent = "Criar Serviço";
 
     modal.style.display = "block";
-  });
+  }
 
-  // Abrir modal de "Fazer Solicitação"
-  makeRequestBtn.addEventListener("click", () => {
+  function openMakeRequestModal() {
     makeRequestForm.reset();
+    const mentionSelect = document.getElementById("request-mention");
+    if (mentionSelect) {
+      const optionsHtml = teamMembers
+        .map(member => `<option value="${member.id}">${member.name}</option>`)
+        .join("");
+      mentionSelect.innerHTML = `<option value="">Ninguém em específico</option>${optionsHtml}`;
+    }
     makeRequestModal.style.display = "block";
-  });
+  }
 
   // Fechar modais (botão 'X' e clique fora)
   document.querySelectorAll(".modal").forEach((m) => {
@@ -1441,12 +1576,15 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const title = makeRequestForm["request-title"].value;
     const description = makeRequestForm["request-description"].value;
+    const mentionedUserId = makeRequestForm["request-mention"].value;
 
     showLoading();
     try {
       await addDoc(requestsCollection, {
         title,
         description,
+        mentionedUserId: mentionedUserId || null, // Salva o ID ou null
+        mentionedUserName: mentionedUserId ? teamMemberMap.get(mentionedUserId) : null, // Salva o nome para referência
         requesterId: currentUser.uid,
         requesterName: currentUser.displayName || currentUser.email,
         status: "pending", // 'pending', 'approved', 'rejected'

@@ -17,14 +17,11 @@
 
     <header>
         <div id="app-header" class="header-content hidden">
-            <h1><a href="#">Painel de Gestão</a></h1>
+            <h1><a href="#/">Painel de Gestão</a></h1>
 
             <!-- MUDANÇA: Container que agrupa todos os itens que serão movidos no mobile -->
             <div id="header-menu-items">
                 <input type="search" id="search-input" placeholder="Pesquisar...">
-                <button id="add-service-btn" class="btn-primary hidden">+ Adicionar Serviço</button>
-                <button id="make-request-btn" class="btn-primary hidden">Fazer Solicitação</button>
-                <a href="#/requests" id="requests-link" class="btn-secondary hidden">Solicitações</a>
                 <div id="user-profile" class="user-profile-container hidden">
                     <img id="user-photo" src="" alt="Foto do usuário">
                     <a href="#/profile" class="user-profile-link">
@@ -86,10 +83,12 @@
     </div>
 
     <main id="service-container" class="hidden">
-        <!-- Os cartões de serviço serão inseridos aqui pelo JavaScript -->
+        <div id="service-list-wrapper">
+            <!-- Os cartões de serviço serão inseridos aqui pelo JavaScript -->
+        </div>
     </main>
 
-    <!-- Nova seção para a página de detalhes da tarefa -->
+    <!-- Nova seção para a página de detalhes do serviço -->
     <section id="task-detail-view" class="hidden">
         <!-- O conteúdo será inserido aqui pelo JavaScript -->
     </section>
@@ -99,8 +98,54 @@
         <!-- O conteúdo será inserido aqui pelo JavaScript -->
     </section>
 
+    <!-- MUDANÇA: Nova seção para o Dashboard principal -->
+    <section id="dashboard-view" class="hidden">
+        <div class="dashboard-card">
+            <a href="#/services">
+                <div class="dashboard-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z" /></svg>
+                </div>
+                <h2>Gerenciar Serviços</h2>
+                <p>Acesse e gerencie todos os serviços e suas etapas.</p>
+            </a>
+        </div>
+        <div class="dashboard-card">
+            <a href="#/requests">
+                <div class="dashboard-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6,7.5L12,10.85L18,7.5L12,4.15M5,15.91L11,19.29V12.58L5,9.21V15.91Z" /></svg>
+                </div>
+                <h2>Ver Solicitações</h2>
+                <p>Aprove ou rejeite novas solicitações da equipe.</p>
+            </a>
+        </div>
+        <div class="dashboard-card">
+            <a href="#/profile">
+                <div class="dashboard-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" /></svg>
+                </div>
+                <h2>Meu Perfil</h2>
+                <p>Atualize suas informações e foto de perfil.</p>
+            </a>
+        </div>
+        <!-- MUDANÇA: Card de admin, oculto por padrão -->
+        <div class="dashboard-card hidden" id="admin-user-management-card">
+            <a href="#/users">
+                <div class="dashboard-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7A3,3 0 0,1 15,10A3,3 0 0,1 12,13A3,3 0 0,1 9,10A3,3 0 0,1 12,7M17.5,17.13C15.93,18.54 14,19.38 12,19.82C10,19.38 8.07,18.54 6.5,17.13C6.83,16.06 9.11,15 12,15C14.89,15 17.17,16.06 17.5,17.13Z"/></svg>
+                </div>
+                <h2>Gerenciar Usuários</h2>
+                <p>Altere cargos e permissões dos membros da equipe.</p>
+            </a>
+        </div>
+    </section>
+
     <!-- Nova seção para a página de Perfil -->
     <section id="profile-view" class="hidden">
+        <!-- O conteúdo será inserido aqui pelo JavaScript -->
+    </section>
+
+    <!-- MUDANÇA: Nova seção para a página de Gerenciamento de Usuários (Admin) -->
+    <section id="user-management-view" class="hidden">
         <!-- O conteúdo será inserido aqui pelo JavaScript -->
     </section>
 
@@ -125,7 +170,7 @@
                     <input type="text" id="service-category" name="serviceCategory" placeholder="Ex: Desenvolvimento, Marketing">
                 </div>
                 <div class="form-group">
-                    <label>Etapas da Tarefa</label>
+                    <label>Etapas do Serviço</label>
                     <div id="steps-container">
                         <div class="step-input-row">
                             <input type="text" name="stepName" placeholder="Nome da etapa" required />
@@ -147,6 +192,13 @@
                 <div class="form-group">
                     <label for="request-title">Título da Solicitação</label>
                     <input type="text" id="request-title" name="requestTitle" placeholder="Ex: Criar novo material de marketing" required />
+                </div>
+                <div class="form-group">
+                    <label for="request-mention">Mencionar Usuário (Opcional)</label>
+                    <select id="request-mention" name="requestMention">
+                        <option value="">Ninguém em específico</option>
+                        <!-- Opções de membros da equipe serão inseridas aqui pelo JS -->
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="request-description">Descrição</label>
