@@ -55,20 +55,16 @@ header {
     justify-content: space-between;
 }
 
-/* MUDANÇA: Estrutura do cabeçalho em 3 colunas */
-.header-left, .header-right {
+/* MUDANÇA: Ajusta os containers do cabeçalho */
+.header-left {
     display: flex;
     align-items: center;
     gap: 20px;
-    flex: 1;
 }
 
 .header-right {
+    display: flex;
     justify-content: flex-end;
-}
-
-.header-center {
-    text-align: center;
 }
 
 #header-menu-items { /* Agora é o mesmo que .header-right */
@@ -87,11 +83,20 @@ header h1 a {
     text-decoration: none;
 }
 
-/* MUDANÇA: Estilo para o novo botão home */
+/* MUDANÇA: Estilo com mais destaque para o botão home */
+#home-btn {
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+#home-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
 #home-btn svg {
     fill: #ffffff;
-    width: 24px;
-    height: 24px;
+    width: 28px; /* Aumenta o tamanho do ícone */
+    height: 28px;
+    display: block; /* Remove espaço extra abaixo do svg */
 }
 
 /* --- Barra de Pesquisa --- */
@@ -816,11 +821,6 @@ body.dark-theme .btn-primary:hover {
 
     #mobile-menu-toggle {
         display: block;
-    }
-    /* MUDANÇA: Ajusta o layout do header para mobile */
-    .header-center {
-        order: -1; /* Move o título para antes do botão de menu no fluxo */
-        flex-grow: 1;
     }
 
     /* MUDANÇA: No mobile, o container do menu se torna um bloco que será mostrado/escondido */
