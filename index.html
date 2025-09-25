@@ -143,6 +143,16 @@
                 <p>Altere cargos e permissões dos membros da equipe.</p>
             </a>
         </div>
+        <!-- MUDANÇA: Card de admin para categorias, oculto por padrão -->
+        <div class="dashboard-card hidden" id="admin-category-management-card">
+            <a href="#/categories">
+                <div class="dashboard-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.41,11.58L12.41,2.58C12.05,2.22 11.55,2 11,2H4C2.89,2 2,2.89 2,4V11C2,11.55 2.22,12.05 2.59,12.41L11.58,21.41C11.95,21.78 12.45,22 13,22C13.55,22 14.05,21.78 14.41,21.41L21.41,14.41C21.78,14.05 22,13.55 22,13C22,12.45 21.78,11.95 21.41,11.58M13,20L4,11V4H11L20,13L13,20M6.5,5.5A1.5,1.5 0 1,1 5,7A1.5,1.5 0 0,1 6.5,5.5Z"/></svg>
+                </div>
+                <h2>Gerenciar Categorias</h2>
+                <p>Adicione ou remova categorias pré-definidas para serviços.</p>
+            </a>
+        </div>
     </section>
 
     <!-- Nova seção para a página de Perfil -->
@@ -152,6 +162,11 @@
 
     <!-- MUDANÇA: Nova seção para a página de Gerenciamento de Usuários (Admin) -->
     <section id="user-management-view" class="hidden">
+        <!-- O conteúdo será inserido aqui pelo JavaScript -->
+    </section>
+
+    <!-- MUDANÇA: Nova seção para a página de Gerenciamento de Categorias (Admin) -->
+    <section id="category-management-view" class="hidden">
         <!-- O conteúdo será inserido aqui pelo JavaScript -->
     </section>
 
@@ -173,7 +188,10 @@
                 </div>
                 <div class="form-group">
                     <label for="service-category">Categoria</label>
-                    <input type="text" id="service-category" name="serviceCategory" placeholder="Ex: Desenvolvimento, Marketing">
+                    <select id="service-category" name="serviceCategory" required>
+                        <option value="">Selecione uma categoria...</option>
+                        <!-- Opções de categoria serão inseridas aqui pelo JS -->
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Etapas do Serviço</label>

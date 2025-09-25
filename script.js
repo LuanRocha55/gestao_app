@@ -32,6 +32,7 @@ import {
 const servicesCollection = collection(db, "services"); // Referência para a coleção 'services'
 const usersCollection = collection(db, "users"); // Referência para a coleção de usuários
 const requestsCollection = collection(db, "requests"); // Referência para a coleção de solicitações
+const categoriesCollection = collection(db, "categories"); // MUDANÇA: Coleção para categorias pré-definidas
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- MUDANÇA: Variáveis de estado e elementos da UI ---
@@ -39,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let services = [];
   let teamMembers = [];
   let teamMemberMap = new Map();
+  let predefinedCategories = []; // MUDANÇA: Para armazenar categorias do admin
   let allUsersData = []; // MUDANÇA: Variável para armazenar dados de todos os usuários
   let currentEditServiceId = null; // MUDANÇA: Para rastrear o serviço em edição
   let sortableSteps = null; // MUDANÇA: Para a instância do SortableJS
@@ -71,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const profileView = document.getElementById("profile-view");
   const requestsView = document.getElementById("requests-view");
   const userManagementView = document.getElementById("user-management-view");
+  const categoryManagementView = document.getElementById("category-management-view");
   const addStepBtn = document.getElementById("add-step-btn");
   const dashboardView = document.getElementById("dashboard-view");
   const stepsContainer = document.getElementById("steps-container");
@@ -261,7 +264,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // Se o documento não existir, adiciona o campo 'role' como 'member'.
     const userDocSnap = await getDoc(userDocRef);
     if (!userDocSnap.exists()) userData.role = "member";
+
+    // MUDANÇA: Promove o primeiro usuário a admin se não houver outros admins
+    const adminsQuery = query(usersCollection, where("role", "==", "admin"));
+    const adminSnapshot = await getDocs(adminsQuery);
+    if (adminSnapshot.empty) {
+        console.log("Nenhum admin encontrado. Promovendo o primeiro usuário.");
+        userData.role = "admin";
+    }
+
     await setDoc(userDocRef, userData, { merge: true });
+
+    // MUDANÇA: Atualiza o objeto currentUser local se o cargo foi alterado
+    if (currentUser && currentUser.uid === user.uid) {
+        currentUser.role = userData.role;
+    }
   }
 
   async function loadTeamMembers() {
@@ -273,6 +290,13 @@ document.addEventListener("DOMContentLoaded", () => {
     teamMemberMap = new Map(teamMembers.map((m) => [m.id, m.name]));
     // MUDANÇA: Carrega todos os dados do usuário para a página de admin
     allUsersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+  // MUDANÇA: Função para carregar categorias pré-definidas
+  async function loadPredefinedCategories() {
+    const querySnapshot = await getDocs(categoriesCollection);
+    predefinedCategories = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Ordena alfabeticamente
+    predefinedCategories.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   // --- MUDANÇA: Funções para a página de solicitações ---
@@ -501,9 +525,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           card.innerHTML = `
                     <div class="card-header">
-                        <h2><a href="#/task/${service.id}">${
-            service.name
-          }</a></h2>
+                        <h2><a href="#/service/${service.id}">${service.name}</a></h2>
                         <div class="card-actions">
                             <button class="btn-icon btn-edit" title="Editar Serviço" data-service-id="${
                               service.id
@@ -548,7 +570,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const subtasksHtml = (step.subtasks || [])
           .map(
             (subtask, subtaskIndex) => `
-                <li class="step-item">
+                <li class="step-item subtask-item">
                     <input type="checkbox" id="subtask-${
                       service.id
                     }-${stepIndex}-${subtaskIndex}" data-step-index="${stepIndex}" data-subtask-index="${subtaskIndex}" ${
@@ -557,6 +579,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     <label for="subtask-${
                       service.id
                     }-${stepIndex}-${subtaskIndex}">${subtask.name}</label>
+                    <button class="btn-icon btn-delete-subtask-detail" title="Deletar Sub-etapa" data-step-index="${stepIndex}" data-subtask-index="${subtaskIndex}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
+                    </button>
                 </li>
             `
           )
@@ -569,7 +594,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 <li class="step-group" data-step-index="${stepIndex}">
                     <h4 class="step-group-title ${
                       startCollapsed ? "collapsed" : ""
-                    }"><span class="step-name-toggle">${step.name}</span></h4>
+                    }">
+                        <span class="step-name-toggle">${step.name}</span>
+                        <button class="btn-icon btn-delete-step-detail" title="Deletar Etapa" data-step-index="${stepIndex}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
+                        </button>
+                    </h4>
                     <ul class="subtask-list ${
                       startCollapsed ? "hidden" : ""
                     }">${subtasksHtml}</ul>
@@ -577,13 +607,15 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .join("");
 
-    const filesHtml = (service.files || [])
-      .map((file) => {
+    const filesHtml = (service.files || []).map((file, index) => {
         // Se for um arquivo local, adiciona o atributo 'download'
         const downloadAttr = file.isLocal ? `download="${file.name}"` : "";
         return `
                 <li class="file-item">
                     <a href="${file.url}" target="_blank" rel="noopener noreferrer" ${downloadAttr}>${file.name}</a>
+                    <button class="btn-icon btn-delete-file" title="Deletar Arquivo" data-file-index="${index}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
+                    </button>
                 </li>
             `;
       })
@@ -592,7 +624,10 @@ document.addEventListener("DOMContentLoaded", () => {
     taskDetailView.innerHTML = `
             <div class="detail-header">
                 <h2>${service.name}</h2>
-                <a href="#/services" class="btn-secondary">Voltar para a lista</a>
+                <div class="detail-header-actions">
+                    <button class="btn-primary btn-edit" data-service-id="${service.id}">Editar</button>
+                    <a href="#/services" class="btn-secondary">Voltar</a>
+                </div>
             </div>
             <div class="detail-section">
                 <h3>Informações Gerais</h3>
@@ -600,6 +635,16 @@ document.addEventListener("DOMContentLoaded", () => {
                   service.category || "Não definida"
                 }</p>
                 <p><strong>Responsável Geral:</strong> ${responsibleName}</p>
+                <!-- MUDANÇA: Adiciona a barra de progresso -->
+                <div class="progress-info">
+                    <span>Progresso</span>
+                    <span class="progress-text">${Math.round(
+                      progress.percentage
+                    )}%</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${progress.percentage}%;"></div>
+                </div>
             </div>
             <div class="detail-section">
                             <h3>Etapas e Sub-etapas</h3>
@@ -609,8 +654,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <h3>Arquivos</h3>
                 <ul id="file-list" class="file-list">${filesHtml}</ul>
                 <div class="file-upload-actions">
-                    <form id="add-file-form">
-                        <input type="text" id="file-url-input" placeholder="Cole a URL do arquivo aqui...">
+                    <form id="add-file-form" class="form-inline">
+                        <input type="text" id="file-name-input" placeholder="Nome do link/arquivo" required>
+                        <input type="url" id="file-url-input" placeholder="Cole a URL do arquivo aqui..." required>
                         <button type="submit" class="btn-primary">Adicionar Link</button>
                     </form>
                     <span class="upload-separator">ou</span>
@@ -738,6 +784,70 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
+  // MUDANÇA: Função para renderizar a página de gerenciamento de categorias (Admin)
+  function renderCategoryManagementPage() {
+    if (currentUser.role !== 'admin') {
+        categoryManagementView.innerHTML = `<p>Acesso negado. Esta área é apenas para administradores.</p>`;
+        return;
+    }
+
+    const categoriesHtml = predefinedCategories.map(cat => `
+        <li class="user-list-item" data-category-id="${cat.id}">
+            <div class="user-list-info">
+                <div class="user-name">${cat.name}</div>
+            </div>
+            <div class="user-list-actions">
+                <button class="btn-icon btn-delete-category" title="Deletar Categoria">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
+                </button>
+            </div>
+        </li>
+    `).join('');
+
+    categoryManagementView.innerHTML = `
+        <div class="detail-header">
+            <h2>Gerenciamento de Categorias</h2>
+            <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
+        </div>
+        <div class="detail-section">
+            <h3>Adicionar Nova Categoria</h3>
+            <form id="add-category-form" class="form-inline">
+                <div class="form-group">
+                    <input type="text" id="new-category-name" placeholder="Nome da Categoria" required>
+                </div>
+                <button type="submit" class="btn-primary">Adicionar</button>
+            </form>
+        </div>
+        <div class="detail-section">
+            <h3>Categorias Pré-definidas</h3>
+            ${predefinedCategories.length > 0 ? `<ul class="user-list">${categoriesHtml}</ul>` : '<p>Nenhuma categoria pré-definida ainda.</p>'}
+        </div>
+    `;
+
+    // Adiciona o listener para o formulário de adicionar categoria
+    const addCategoryForm = document.getElementById('add-category-form');
+    if (addCategoryForm) {
+        addCategoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('new-category-name');
+            const categoryName = input.value.trim();
+            if (!categoryName) return;
+
+            showLoading();
+            try {
+                await addDoc(categoriesCollection, { name: categoryName });
+                await loadPredefinedCategories(); // Recarrega a lista
+                renderCategoryManagementPage(); // Redesenha a página
+            } catch (error) {
+                console.error("Erro ao adicionar categoria:", error);
+                alert("Falha ao adicionar a categoria.");
+            } finally {
+                hideLoading();
+            }
+        });
+    }
+  }
+
   // MUDANÇA: Função para ouvir e renderizar comentários em tempo real
   function listenForComments(serviceId) {
     const commentsList = document.getElementById("comments-list");
@@ -800,14 +910,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Define qual view está ativa com base na URL
     const isDashboard = hash === "" || hash === "#/";
-    const isServices = hash.startsWith("#/services");
+    const isServices = hash === "#/services"; // MUDANÇA: Verifica a correspondência exata para a lista
     const isServiceDetail = hash.startsWith("#/service/");
     const isProfile = hash.startsWith("#/profile");
     const isRequests = hash.startsWith("#/requests");
     const isUserManagement = hash.startsWith("#/users");
+    const isCategoryManagement = hash.startsWith("#/categories");
 
     // MUDANÇA: Limpa o listener de comentários se não estiver na página de detalhes
-    if (!isServiceDetail && unsubscribeFromComments) {
+    if (!isServiceDetail && unsubscribeFromComments) { 
       unsubscribeFromComments();
       unsubscribeFromComments = null;
     }
@@ -819,9 +930,10 @@ document.addEventListener("DOMContentLoaded", () => {
     profileView.classList.toggle("hidden", !isProfile);
     requestsView.classList.toggle("hidden", !isRequests);
     userManagementView.classList.toggle("hidden", !isUserManagement);
+    categoryManagementView.classList.toggle("hidden", !isCategoryManagement);
 
     // Adiciona uma classe ao body para estilizar o header de forma diferente
-    const isSubPage = isServiceDetail || isProfile || isRequests || isServices || isUserManagement;
+    const isSubPage = isServiceDetail || isProfile || isRequests || isServices || isUserManagement || isCategoryManagement;
     document.body.classList.toggle("detail-view-active", isSubPage);
 
     // Carrega o conteúdo da view ativa
@@ -855,6 +967,8 @@ document.addEventListener("DOMContentLoaded", () => {
       renderRequestsPage();
     } else if (isUserManagement) {
       renderUserManagementPage();
+    } else if (isCategoryManagement) {
+      renderCategoryManagementPage();
     } else if (isServices) {
       // A view padrão é a lista de serviços
       // MUDANÇA: Renderiza a estrutura da página e depois os cards
@@ -922,6 +1036,93 @@ document.addEventListener("DOMContentLoaded", () => {
           hideLoading();
         }
       }
+    }
+
+    // MUDANÇA: Botão de deletar categoria
+    const deleteCategoryBtn = e.target.closest(".btn-delete-category");
+    if (deleteCategoryBtn) {
+        const categoryId = deleteCategoryBtn.closest(".user-list-item").dataset.categoryId;
+        if (confirm("Tem certeza que deseja deletar esta categoria pré-definida?")) {
+            showLoading();
+            try {
+                await deleteDoc(doc(db, "categories", categoryId));
+                await loadPredefinedCategories(); // Recarrega a lista
+                renderCategoryManagementPage(); // Redesenha a página
+            } catch (error) {
+                console.error("Erro ao deletar categoria:", error);
+                alert("Falha ao deletar a categoria.");
+            } finally {
+                hideLoading();
+            }
+        }
+    }
+
+    // MUDANÇA: Botão de deletar arquivo na página de detalhes
+    const deleteFileBtn = e.target.closest(".btn-delete-file");
+    if (deleteFileBtn) {
+      const fileIndex = parseInt(deleteFileBtn.dataset.fileIndex, 10);
+      const serviceId = window.location.hash.substring("#/service/".length);
+      const service = services.find(s => s.id === serviceId);
+
+      if (service && confirm("Tem certeza que deseja deletar este arquivo?")) {
+        showLoading();
+        try {
+          const updatedFiles = service.files.filter((_, index) => index !== fileIndex);
+          const serviceRef = doc(db, "services", serviceId);
+          await updateDoc(serviceRef, { files: updatedFiles });
+          // A UI se atualizará pelo onSnapshot
+        } catch (error) {
+          console.error("Erro ao deletar arquivo:", error);
+          alert("Falha ao deletar o arquivo.");
+        } finally {
+          hideLoading();
+        }
+      }
+    }
+
+    // MUDANÇA: Botão de deletar sub-etapa na página de detalhes
+    const deleteSubtaskDetailBtn = e.target.closest(".btn-delete-subtask-detail");
+    if (deleteSubtaskDetailBtn) {
+        const stepIndex = parseInt(deleteSubtaskDetailBtn.dataset.stepIndex, 10);
+        const subtaskIndex = parseInt(deleteSubtaskDetailBtn.dataset.subtaskIndex, 10);
+        const serviceId = window.location.hash.substring("#/service/".length);
+        const service = services.find(s => s.id === serviceId);
+
+        if (service && confirm("Tem certeza que deseja deletar esta sub-etapa?")) {
+            showLoading();
+            try {
+                service.steps[stepIndex].subtasks.splice(subtaskIndex, 1);
+                const serviceRef = doc(db, "services", serviceId);
+                await updateDoc(serviceRef, { steps: service.steps });
+            } catch (error) {
+                console.error("Erro ao deletar sub-etapa:", error);
+                alert("Falha ao deletar a sub-etapa.");
+            } finally {
+                hideLoading();
+            }
+        }
+    }
+
+    // MUDANÇA: Botão de deletar etapa na página de detalhes
+    const deleteStepDetailBtn = e.target.closest(".btn-delete-step-detail");
+    if (deleteStepDetailBtn) {
+        const stepIndex = parseInt(deleteStepDetailBtn.dataset.stepIndex, 10);
+        const serviceId = window.location.hash.substring("#/service/".length);
+        const service = services.find(s => s.id === serviceId);
+
+        if (service && confirm("Tem certeza que deseja deletar esta etapa e todas as suas sub-etapas?")) {
+            showLoading();
+            try {
+                service.steps.splice(stepIndex, 1);
+                const serviceRef = doc(db, "services", serviceId);
+                await updateDoc(serviceRef, { steps: service.steps });
+            } catch (error) {
+                console.error("Erro ao deletar etapa:", error);
+                alert("Falha ao deletar a etapa.");
+            } finally {
+                hideLoading();
+            }
+        }
     }
 
     // Lógica para upload de foto de perfil
@@ -1221,18 +1422,20 @@ document.addEventListener("DOMContentLoaded", () => {
     // Formulário de Adicionar Link de Arquivo
     if (e.target.id === "add-file-form") {
       e.preventDefault();
-      const input = e.target.querySelector("#file-url-input");
-      const url = input.value.trim();
-      if (!url) return;
+      const nameInput = e.target.querySelector("#file-name-input");
+      const urlInput = e.target.querySelector("#file-url-input");
+      const fileName = nameInput.value.trim();
+      const url = urlInput.value.trim();
+      if (!url || !fileName) return;
 
       const taskId = window.location.hash.substring("#/service/".length);
-      const fileName = url.substring(url.lastIndexOf("/") + 1) || url; // Tenta extrair um nome
 
       const fileData = { name: fileName, url: url, isLocal: false };
       showLoading();
       await addFileToService(taskId, fileData);
       hideLoading();
-      input.value = "";
+      nameInput.value = "";
+      urlInput.value = "";
     }
 
     // Formulário de Perfil
@@ -1262,22 +1465,26 @@ document.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, async (user) => {
     // Esta função é chamada sempre que o estado de login do usuário muda.
     if (user) {
-      // --- O USUÁRIO ESTÁ LOGADO ---
-      currentUser = user;
-      console.log("Usuário logado:", currentUser.uid);
+      // Garante que o perfil do usuário no Firestore está atualizado com nome, email, etc.
+      await updateUserInFirestore(user);
       
-      // MUDANÇA: Busca o perfil completo do usuário, incluindo o cargo (role)
+      // --- O USUÁRIO ESTÁ LOGADO ---
+      console.log("Usuário logado:", user.uid);
+      
+      // MUDANÇA: Busca o perfil completo do usuário, incluindo o cargo (role), APÓS a atualização.
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
       if (userDocSnap.exists()) {
           currentUser = { ...user, ...userDocSnap.data() };
+      } else {
+          currentUser = user; // Fallback para o usuário do Auth
       }
 
-      // Garante que o perfil do usuário no Firestore está atualizado com nome, email, etc.
-      await updateUserInFirestore(user);
-      
       // MUDANÇA: Carrega a lista de membros da equipe para usar na aplicação
       await loadTeamMembers();
+
+      // MUDANÇA: Carrega as categorias pré-definidas
+      await loadPredefinedCategories();
 
       // Atualiza a UI para o estado "logado"
       userNameEl.textContent = currentUser.displayName || currentUser.email;
@@ -1285,10 +1492,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // MUDANÇA: Mostra o card de gerenciamento de usuários se for admin
       const adminCard = document.getElementById('admin-user-management-card');
+      const adminCategoryCard = document.getElementById('admin-category-management-card');
       if (currentUser.role === 'admin') {
           adminCard.classList.remove('hidden');
+          adminCategoryCard.classList.remove('hidden');
       } else {
           adminCard.classList.add('hidden');
+          adminCategoryCard.classList.add('hidden');
       }
 
       loginContainer.classList.add("hidden");
@@ -1339,6 +1549,7 @@ document.addEventListener("DOMContentLoaded", () => {
       profileView.classList.add("hidden");
       dashboardView.classList.add("hidden");
       requestsView.classList.add("hidden");
+      categoryManagementView.classList.add("hidden");
       userManagementView.classList.add("hidden");
 
       // Garante que o layout volte ao normal
@@ -1440,6 +1651,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- MUDANÇA: LÓGICA DOS MODAIS ---
 
+  // MUDANÇA: Nova função para popular as sugestões de categoria
+  function populateCategorySuggestions() {
+    const select = document.getElementById("service-category");
+    if (!select) return;
+
+    // MUDANÇA: Popula o <select> apenas com as categorias pré-definidas pelo admin.
+    const optionsHtml = predefinedCategories
+      .map(cat => `<option value="${cat.name}">${cat.name}</option>`)
+      .join('');
+    select.innerHTML = `<option value="">Selecione uma categoria...</option>${optionsHtml}`;
+  }
+
   function populateTeamMemberSelects() {
     const select = document.getElementById("responsibleName");
     if (!select) return;
@@ -1454,6 +1677,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentEditServiceId = service.id;
 
     populateTeamMemberSelects();
+    populateCategorySuggestions(); // MUDANÇA: Popula as categorias
 
     // Preenche o formulário com os dados do serviço
     addServiceForm.querySelector('[name="serviceName"]').value = service.name;
@@ -1482,6 +1706,7 @@ document.addEventListener("DOMContentLoaded", () => {
     stepsContainer.innerHTML = "";
     stepsContainer.appendChild(createStepGroupElement());
     populateTeamMemberSelects();
+    populateCategorySuggestions(); // MUDANÇA: Popula as categorias
 
     // MUDANÇA: Garante que o modal esteja em modo de "adição"
     currentEditServiceId = null;
