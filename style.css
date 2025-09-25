@@ -935,9 +935,9 @@ body.detail-view-active .header-content {
 /* MUDANÇA: Padroniza as views de lista */
 #service-container,
 #requests-view {
-    padding: 40px;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 40px; /* MUDANÇA: Padding padrão */
 }
 
 /* --- MUDANÇA: Estilos para o novo Dashboard --- */
@@ -1326,6 +1326,11 @@ body.detail-view-active .header-content {
 
     .detail-header-actions {
         justify-content: center;
+    }
+
+    /* MUDANÇA: Ajusta o padding das views de lista no mobile */
+    #service-container, #requests-view {
+        padding: 30px 20px;
     }
 }
 /* --- MUDANÇA: Estilos para o Indicador de Carregamento (Spinner) --- */
