@@ -66,7 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("theme-toggle");
   const modal = document.getElementById("add-service-modal");
   const addServiceForm = document.getElementById("add-service-form");
-  const searchInput = document.getElementById("search-input");
   const serviceListWrapper = document.getElementById("service-list-wrapper");
   const taskDetailView = document.getElementById("task-detail-view");
   const profileView = document.getElementById("profile-view");
@@ -278,16 +277,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- MUDANÇA: Funções para a página de solicitações ---
   function renderRequestsPage() {
+    // MUDANÇA: Adiciona a barra de pesquisa à página de solicitações
     requestsView.innerHTML = `
             <div class="detail-header requests-header">
                 <h2>Gerenciar Solicitações</h2>
                 <button id="make-request-btn" class="btn-primary">Fazer Solicitação</button>
                 <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
             </div>
+            <div class="search-bar-wrapper">
+                <input type="search" id="requests-search-input" placeholder="Pesquisar por título, solicitante, descrição...">
+            </div>
             <div id="requests-list-container"></div>
         `;
 
     listenForRequests();
+
+    // MUDANÇA: Adiciona o listener para a nova barra de pesquisa
+    document.getElementById('requests-search-input').addEventListener('input', listenForRequests);
   }
 
   function listenForRequests() {
@@ -301,10 +307,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const q = query(requestsCollection, orderBy("createdAt", "desc"));
 
+    // MUDANÇA: Pega o termo da busca para filtrar os resultados
+    const searchInput = document.getElementById('requests-search-input');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
     // MUDANÇA: Armazena a função de unsubscribe
     unsubscribeFromRequests = onSnapshot(q, (querySnapshot) => {
       if (querySnapshot.empty) {
         listContainer.innerHTML = "<p>Nenhuma solicitação encontrada.</p>";
+        return;
+      }
+
+      const allRequests = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Filtra as solicitações com base no termo de busca
+      const filteredRequests = allRequests.filter(request => {
+          if (!searchTerm) return true;
+          return request.title.toLowerCase().includes(searchTerm) ||
+                 request.description.toLowerCase().includes(searchTerm) ||
+                 request.requesterName.toLowerCase().includes(searchTerm);
+      });
+
+      if (filteredRequests.length === 0) {
+        listContainer.innerHTML = `<p class="no-results">Nenhuma solicitação encontrada para "${searchTerm}".</p>`;
         return;
       }
 
@@ -314,8 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
         rejected: [],
       };
 
-      querySnapshot.forEach((doc) => {
-        const request = { id: doc.id, ...doc.data() };
+      filteredRequests.forEach((request) => {
         requestsByStatus[request.status].push(request);
       });
 
@@ -393,12 +417,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Limpa o container principal e adiciona o cabeçalho da página de serviços dinamicamente
     serviceContainer.innerHTML = `
         <div class="detail-header requests-header">
-            <h2>Meus Serviços</h2>
+            <h2>Gerenciar Serviços</h2>
             <button id="add-service-btn" class="btn-primary">+ Adicionar Serviço</button>
             <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
         </div>
+        <div class="search-bar-wrapper">
+            <input type="search" id="services-search-input" placeholder="Pesquisar por nome, responsável, categoria...">
+        </div>
         <div id="service-list-wrapper"></div>
     `;
+    // MUDANÇA: Pega a referência do input de busca recém-criado
+    const searchInput = document.getElementById('services-search-input');
+
     const searchTerm = searchInput.value.toLowerCase().trim();
     const servicesToRender = services.filter((service) => {
       if (!searchTerm) return true; // Se a busca estiver vazia, mostra tudo
@@ -1007,6 +1037,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // MUDANÇA: Usa delegação de eventos para a barra de pesquisa dinâmica
+  document.addEventListener('input', (e) => {
+      // MUDANÇA: Verifica o ID correto para a busca de serviços
+      if (e.target.id === 'services-search-input') {
+          renderServices();
+      }
+      // A busca de solicitações agora tem seu próprio listener para evitar conflitos
+  });
+
   // MUDANÇA: Seletor de tipo de sub-etapa no modal
   document.addEventListener("change", (e) => {
     if (e.target.classList.contains("substep-type-selector")) {
@@ -1267,9 +1306,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // Verifica a URL (ex: #/task/some-id) para mostrar a view correta no carregamento
       handleRouteChange(); // MUDANÇA: Chamada inicial ao roteador
       window.addEventListener("hashchange", handleRouteChange); // MUDANÇA: Ouve por mudanças na URL
-
-      // MUDANÇA: Adiciona o listener para a barra de pesquisa
-      searchInput.addEventListener("input", renderServices);
     } else {
       // --- O USUÁRIO ESTÁ DESLOGADO ---
       currentUser = null;
@@ -1280,10 +1316,6 @@ document.addEventListener("DOMContentLoaded", () => {
         unsubscribeFromServices();
         window.removeEventListener("hashchange", handleRouteChange); // MUDANÇA: Remove o listener
         unsubscribeFromServices = null;
-
-        // MUDANÇA: Remove o listener da barra de pesquisa ao deslogar
-        searchInput.removeEventListener("input", renderServices);
-        searchInput.value = ''; // Limpa a busca
       }
       // MUDANÇA: Desliga o listener de solicitações também
       if (unsubscribeFromRequests) {
