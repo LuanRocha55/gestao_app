@@ -412,22 +412,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // --- Função para Renderizar os Cartões de Serviço ---
-  function renderServices() {
-    // MUDANÇA: Limpa o container principal e adiciona o cabeçalho da página de serviços dinamicamente
-    serviceContainer.innerHTML = `
-        <div class="detail-header requests-header">
-            <h2>Gerenciar Serviços</h2>
-            <button id="add-service-btn" class="btn-primary">+ Adicionar Serviço</button>
-            <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
-        </div>
-        <div class="search-bar-wrapper">
-            <input type="search" id="services-search-input" placeholder="Pesquisar por nome, responsável, categoria...">
-        </div>
-        <div id="service-list-wrapper"></div>
-    `;
-    // MUDANÇA: Pega a referência do input de busca recém-criado
+  // --- MUDANÇA: Função para Renderizar APENAS a lista de cartões de serviço ---
+  function renderServiceCards() {
     const searchInput = document.getElementById('services-search-input');
+    if (!searchInput) return; // Sai se a barra de busca não existir
 
     const searchTerm = searchInput.value.toLowerCase().trim();
     const servicesToRender = services.filter((service) => {
@@ -467,6 +455,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Usa um DocumentFragment para melhorar a performance da renderização,
     // montando todos os elementos em memória antes de adicioná-los ao DOM de uma só vez.
     const mainFragment = document.createDocumentFragment();
+
+    // MUDANÇA: Limpa a lista atual antes de adicionar os novos resultados filtrados.
+    currentServiceListWrapper.innerHTML = '';
 
     // 2. Renderizar por grupo
     Object.keys(groupedServices)
@@ -866,7 +857,22 @@ document.addEventListener("DOMContentLoaded", () => {
       renderUserManagementPage();
     } else if (isServices) {
       // A view padrão é a lista de serviços
-      renderServices();
+      // MUDANÇA: Renderiza a estrutura da página e depois os cards
+      serviceContainer.innerHTML = `
+        <div class="detail-header requests-header">
+            <h2>Gerenciar Serviços</h2>
+            <button id="add-service-btn" class="btn-primary">+ Adicionar Serviço</button>
+            <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
+        </div>
+        <div class="search-bar-wrapper">
+            <input type="search" id="services-search-input" placeholder="Pesquisar por nome, responsável, categoria...">
+        </div>
+        <div id="service-list-wrapper"></div>
+      `;
+      // Adiciona o listener para a nova barra de pesquisa
+      const searchInput = document.getElementById('services-search-input');
+      searchInput.addEventListener('input', renderServiceCards);
+      renderServiceCards(); // Renderiza os cards iniciais
     }
   }
 
@@ -1035,15 +1041,6 @@ document.addEventListener("DOMContentLoaded", () => {
         hideLoading();
       }
     }
-  });
-
-  // MUDANÇA: Usa delegação de eventos para a barra de pesquisa dinâmica
-  document.addEventListener('input', (e) => {
-      // MUDANÇA: Verifica o ID correto para a busca de serviços
-      if (e.target.id === 'services-search-input') {
-          renderServices();
-      }
-      // A busca de solicitações agora tem seu próprio listener para evitar conflitos
   });
 
   // MUDANÇA: Seletor de tipo de sub-etapa no modal
