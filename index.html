@@ -17,10 +17,20 @@
 
     <header>
         <div id="app-header" class="header-content hidden">
-            <h1><a href="#/">Painel de Gestão</a></h1>
+            <!-- Botão Home à esquerda -->
+            <div class="header-left">
+                <a href="#/" class="btn-icon" id="home-btn" title="Início">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                </a>
+            </div>
 
-            <!-- MUDANÇA: Container que agrupa todos os itens que serão movidos no mobile -->
-            <div id="header-menu-items">
+            <!-- Título Centralizado -->
+            <div class="header-center">
+                <h1><a href="#/">Painel de Gestão</a></h1>
+            </div>
+
+            <!-- Itens do Menu à direita -->
+            <div id="header-menu-items" class="header-right">
                 <input type="search" id="search-input" placeholder="Pesquisar...">
                 <div id="user-profile" class="user-profile-container hidden">
                     <img id="user-photo" src="" alt="Foto do usuário">
@@ -37,6 +47,7 @@
                     </label>
                 </div>
             </div>
+
             <!-- MUDANÇA: Botão de menu para mobile (movido para o final para facilitar o layout) -->
             <button id="mobile-menu-toggle" class="btn-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>

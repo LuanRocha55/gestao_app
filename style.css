@@ -50,13 +50,28 @@ header {
 .header-content {
     display: flex;
     align-items: center;
-    gap: 20px;
     flex-grow: 1; /* Permite que este container ocupe o espaço disponível */
     min-width: 0; /* Previne que o flex item cause overflow */
-    justify-content: space-between; /* MUDANÇA: Garante o espaçamento no desktop */
+    justify-content: space-between;
 }
 
-#header-menu-items {
+/* MUDANÇA: Estrutura do cabeçalho em 3 colunas */
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.header-right {
+    justify-content: flex-end;
+}
+
+.header-center {
+    text-align: center;
+}
+
+#header-menu-items { /* Agora é o mesmo que .header-right */
     display: flex;
     align-items: center;
     gap: 20px;
@@ -70,6 +85,13 @@ header h1 {
 header h1 a {
     color: #ffffff;
     text-decoration: none;
+}
+
+/* MUDANÇA: Estilo para o novo botão home */
+#home-btn svg {
+    fill: #ffffff;
+    width: 24px;
+    height: 24px;
 }
 
 /* --- Barra de Pesquisa --- */
@@ -794,6 +816,11 @@ body.dark-theme .btn-primary:hover {
 
     #mobile-menu-toggle {
         display: block;
+    }
+    /* MUDANÇA: Ajusta o layout do header para mobile */
+    .header-center {
+        order: -1; /* Move o título para antes do botão de menu no fluxo */
+        flex-grow: 1;
     }
 
     /* MUDANÇA: No mobile, o container do menu se torna um bloco que será mostrado/escondido */
