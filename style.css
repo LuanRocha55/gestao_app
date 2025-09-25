@@ -62,12 +62,12 @@ header {
     gap: 20px;
 }
 
-.header-right {
+.header-right, #header-menu-items {
     display: flex;
     justify-content: flex-end;
 }
 
-#header-menu-items { /* Agora é o mesmo que .header-right */
+#header-menu-items {
     display: flex;
     align-items: center;
     gap: 20px;
@@ -83,20 +83,28 @@ header h1 a {
     text-decoration: none;
 }
 
-/* MUDANÇA: Estilo com mais destaque para o botão home */
-#home-btn {
-    padding: 8px;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
+/* MUDANÇA: Adiciona opacidade padrão para os ícones do header */
+#home-btn, #notification-bell {
+    opacity: 0.8;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    border-radius: 50%; /* Garante o fundo circular no hover */
 }
-#home-btn:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+
+/* MUDANÇA: Aumenta a opacidade no hover */
+#home-btn:hover, #notification-bell:hover {
+    opacity: 1;
 }
+
 #home-btn svg {
     fill: #ffffff;
     width: 28px; /* Aumenta o tamanho do ícone */
     height: 28px;
     display: block; /* Remove espaço extra abaixo do svg */
+}
+
+/* MUDANÇA: Garante que o ícone de notificação seja sempre branco */
+#notification-bell svg {
+    fill: #ffffff;
 }
 
 /* --- Barra de Pesquisa --- */
@@ -158,9 +166,100 @@ header h1 a {
 .theme-switcher-container {
     display: flex;
     align-items: center;
+    margin-left: 10px; /* MUDANÇA: Adiciona um respiro entre o sino e o tema */
     gap: 10px;
     color: #f0f0f0;
     font-weight: 600;
+}
+
+/* MUDANÇA: Container para os controles que ficam visíveis no mobile */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* --- MUDANÇA: Estilos do Sistema de Notificação --- */
+#notification-container {
+    position: relative;
+}
+
+/* MUDANÇA: Estilo de destaque para botões de ícone importantes */
+#notification-bell:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+#notification-count.badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background-color: #E53935;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.75em;
+    font-weight: 700;
+    border: 2px solid var(--primary-color);
+    transform: scale(0);
+    transition: transform 0.2s ease;
+}
+
+#notification-count.badge:not(.hidden) {
+    transform: scale(1);
+}
+
+#notification-panel {
+    position: absolute;
+    top: calc(100% + 15px);
+    right: 0;
+    width: 350px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 5px 20px var(--shadow-color);
+    z-index: 1100;
+    border: 1px solid var(--progress-bar-bg);
+}
+
+.notification-panel-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--progress-bar-bg);
+}
+
+.notification-panel-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+}
+
+#notification-list {
+    list-style: none;
+}
+
+.notification-item {
+    border-bottom: 1px solid var(--progress-bar-bg);
+}
+.notification-item.empty {
+    padding: 20px;
+    text-align: center;
+    opacity: 0.7;
+}
+.notification-item a {
+    display: block;
+    padding: 15px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+.notification-item a:hover {
+    background-color: var(--bg-color);
+}
+.notification-item.read a {
+    opacity: 0.6;
 }
 
 .theme-switcher {
@@ -168,6 +267,7 @@ header h1 a {
     display: inline-block;
     width: 50px;
     height: 26px;
+    cursor: pointer;
 }
 
 .theme-switcher input {
@@ -891,6 +991,20 @@ body.dark-theme .btn-primary:hover {
     main {
         padding: 30px 20px;
     }
+
+    /* MUDANÇA: Reorganiza o header no mobile */
+    .header-right {
+        order: 3; /* Move para o final */
+        width: 100%;
+        display: none; /* Escondido por padrão */
+        flex-direction: column;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .header-right.open {
+        display: flex; /* Mostra quando o menu está aberto */
+    }
 }
 
 /* Celulares */
@@ -898,10 +1012,6 @@ body.dark-theme .btn-primary:hover {
     main {
         padding: 20px 15px;
         gap: 20px;
-    }
-
-    .theme-switcher-container span {
-        display: none; /* Esconde o texto "Modo Escuro" */
     }
 
     .step-input-row {
@@ -935,9 +1045,9 @@ body.detail-view-active .header-content {
 /* MUDANÇA: Padroniza as views de lista */
 #service-container,
 #requests-view {
+    padding: 40px;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 40px; /* MUDANÇA: Padding padrão */
 }
 
 /* --- MUDANÇA: Estilos para o novo Dashboard --- */
@@ -951,6 +1061,7 @@ body.detail-view-active .header-content {
 }
 
 .dashboard-card {
+    position: relative; /* MUDANÇA: Para posicionar o selo */
     background-color: var(--card-bg);
     border-radius: 10px;
     box-shadow: 0 4px 15px var(--shadow-color);
@@ -1255,21 +1366,63 @@ body.detail-view-active .header-content {
     padding: 25px;
     box-shadow: 0 4px 15px var(--shadow-color);
     margin-bottom: 20px;
-    border-left: 5px solid; /* Será definido pelo status */
+    border-left: 4px solid; /* Será definido pelo status */
+    transition: background-color 0.3s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .request-card[data-status="pending"] { border-left-color: #FFB300; } /* Ambar */
-.request-card[data-status="approved"] { border-left-color: #43A047; } /* Verde */
-.request-card[data-status="rejected"] { border-left-color: #E53935; } /* Vermelho */
+.request-card[data-status="approved"] {
+    border-left-color: #43A047; /* Verde */
+    background-color: rgba(67, 160, 71, 0.05);
+}
+.request-card[data-status="rejected"] {
+    border-left-color: #E53935; /* Vermelho */
+    background-color: rgba(229, 57, 53, 0.05);
+}
+
+body.dark-theme .request-card[data-status="approved"] {
+    background-color: rgba(67, 160, 71, 0.1);
+}
+body.dark-theme .request-card[data-status="rejected"] {
+    background-color: rgba(229, 57, 53, 0.1);
+}
+
+.request-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.request-card-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.request-card-title img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
 
 .request-card h3 {
-    margin-bottom: 10px;
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.request-status-icon {
+    font-size: 1.5rem;
+    opacity: 0.7;
 }
 
 .request-meta {
     font-size: 0.9em;
     opacity: 0.7;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .request-meta span {
@@ -1284,7 +1437,7 @@ body.detail-view-active .header-content {
 
 .request-description {
     margin-bottom: 20px;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 .request-mention {
     font-size: 0.9em;
@@ -1297,6 +1450,7 @@ body.detail-view-active .header-content {
 .request-actions {
     display: flex;
     gap: 10px;
+    margin-top: auto; /* Empurra as ações para o final do card */
 }
 
 .request-actions .btn-approve {

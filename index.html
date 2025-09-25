@@ -34,19 +34,34 @@
                     </a>
                     <button id="logout-btn" class="btn-secondary">Sair</button>
                 </div>
+            </div>
+
+            <!-- MUDANÇA: Agrupa os controles do canto direito (visíveis no mobile) -->
+            <div class="header-controls">
+                <!-- MUDANÇA: Container para o sino de notificação -->
+                <div id="notification-container" class="hidden">
+                    <div id="notification-bell" class="btn-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19Z"/></svg>
+                        <span id="notification-count" class="badge hidden"></span>
+                    </div>
+                    <div id="notification-panel" class="hidden">
+                        <div class="notification-panel-header">
+                            <h3>Notificações</h3>
+                        </div>
+                        <ul id="notification-list"></ul>
+                    </div>
+                </div>
                 <div class="theme-switcher-container">
                     <span>Modo Escuro</span>
-                    <label class="theme-switcher">
+                    <label class="theme-switcher" title="Alternar tema">
                         <input type="checkbox" id="theme-toggle">
                         <span class="slider"></span>
                     </label>
                 </div>
+                <button id="mobile-menu-toggle" class="btn-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>
+                </button>
             </div>
-
-            <!-- MUDANÇA: Botão de menu para mobile (movido para o final para facilitar o layout) -->
-            <button id="mobile-menu-toggle" class="btn-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>
-            </button>
         </div>
     </header>
 
@@ -115,7 +130,7 @@
                 <p>Acesse e gerencie todos os serviços e suas etapas.</p>
             </a>
         </div>
-        <div class="dashboard-card">
+        <div class="dashboard-card" id="requests-dashboard-card">
             <a href="#/requests">
                 <div class="dashboard-card-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6,7.5L12,10.85L18,7.5L12,4.15M5,15.91L11,19.29V12.58L5,9.21V15.91Z" /></svg>

@@ -33,6 +33,7 @@ const servicesCollection = collection(db, "services"); // Referência para a col
 const usersCollection = collection(db, "users"); // Referência para a coleção de usuários
 const requestsCollection = collection(db, "requests"); // Referência para a coleção de solicitações
 const categoriesCollection = collection(db, "categories"); // MUDANÇA: Coleção para categorias pré-definidas
+const notificationsCollection = collection(db, "notifications"); // MUDANÇA: Coleção para notificações
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- MUDANÇA: Variáveis de estado e elementos da UI ---
@@ -46,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let sortableSteps = null; // MUDANÇA: Para a instância do SortableJS
   let unsubscribeFromComments = null; // MUDANÇA: Listener para comentários
   let unsubscribeFromRequests = null; // MUDANÇA: Listener para solicitações
+  let unsubscribeFromNotifications = null; // MUDANÇA: Listener para notificações
   let unsubscribeFromServices = null; // Para parar de ouvir os dados ao fazer logout
 
   // --- MUDANÇA: Elementos de Autenticação expandidos ---
@@ -82,6 +84,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadingOverlay = document.getElementById("loading-overlay");
   const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
   const headerMenuItems = document.getElementById("header-menu-items");
+  const notificationContainer = document.getElementById("notification-container");
+  const notificationBell = document.getElementById("notification-bell");
+  const notificationCount = document.getElementById("notification-count");
+  const notificationPanel = document.getElementById("notification-panel");
 
   // --- MUDANÇA: Lógica para o seletor de tema ---
   // Verifica o tema salvo no localStorage ao carregar a página
@@ -337,12 +343,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // MUDANÇA: Armazena a função de unsubscribe
     unsubscribeFromRequests = onSnapshot(q, (querySnapshot) => {
+      const allRequests = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      updateDashboardBadges(allRequests); // MUDANÇA: Atualiza o selo no dashboard
+
       if (querySnapshot.empty) {
         listContainer.innerHTML = "<p>Nenhuma solicitação encontrada.</p>";
         return;
       }
-
-      const allRequests = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       // Filtra as solicitações com base no termo de busca
       const filteredRequests = allRequests.filter(request => {
@@ -396,31 +403,58 @@ document.addEventListener("DOMContentLoaded", () => {
               ? `<div class="request-mention">Mencionado: <span>${teamMemberMap.get(request.mentionedUserId) || 'Usuário desconhecido'}</span></div>` 
               : '';
 
+            const statusIconsSvg = {
+                pending: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/></svg>', // Ícone de relógio
+                approved: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"/></svg>', // Ícone de check
+                rejected: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C17.5,2 22,6.5 22,12S17.5,22 12,22 2,17.5 2,12 6.5,2 12,2M17,15.59L15.59,17L12,13.41L8.41,17L7,15.59L10.59,12L7,8.41L8.41,7L12,10.59L15.59,7L17,8.41L13.41,12L17,15.59Z"/></svg>'  // Ícone de X
+            };
+            const statusIcon = statusIconsSvg[request.status] || '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>';
+
             card.innerHTML = `
-                            <h3>${request.title}</h3>
-                            <div class="request-meta">
-                                Solicitado por: <span>${
-                                  request.requesterName
-                                }</span> em <span>${date}</span>
-                            </div>
-                            ${mentionHtml}
-                            <p class="request-description">${
-                              request.description
-                            }</p>
-                            ${
-                              request.status === "pending"
-                                ? `<div class="request-actions">
-                                    <button class="btn-primary btn-approve">Aprovar</button>
-                                    <button class="btn-primary btn-reject">Rejeitar</button>
-                                  </div>`
-                                : ""
-                            }`;
+                <div class="request-card-header">
+                    <div class="request-card-title">
+                        <img src="${request.requesterPhotoURL || './assets/default-avatar.png'}" alt="Avatar de ${request.requesterName}">
+                        <h3>${request.title}</h3>
+                    </div>
+                    <div class="request-status-icon" title="Status: ${request.status}">${statusIcon}</div>
+                </div>
+                <div class="request-meta">Solicitado por <span>${request.requesterName}</span> em <span>${date}</span></div>
+                ${mentionHtml}
+                <p class="request-description">${request.description}</p>
+                ${request.status === "pending" ? `
+                    <div class="request-actions">
+                        <button class="btn-primary btn-approve">Aprovar</button>
+                        <button class="btn-primary btn-reject">Rejeitar</button>
+                    </div>` : ""
+                }`;
             listContainer.appendChild(card);
           });
         }
       });
     });
   }
+
+  // MUDANÇA: Função para atualizar os selos de contagem no dashboard
+  function updateDashboardBadges(allRequests) {
+    const pendingCount = allRequests.filter(req => req.status === 'pending').length;
+    const card = document.getElementById('requests-dashboard-card');
+    if (!card) return;
+
+    let badge = card.querySelector('.dashboard-badge');
+    if (!badge) {
+        badge = document.createElement('div');
+        badge.className = 'dashboard-badge';
+        card.appendChild(badge);
+    }
+
+    if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.classList.add('visible');
+    } else {
+        badge.classList.remove('visible');
+    }
+  }
+
   // --- MUDANÇA: Função para calcular progresso com base nas sub-tarefas ---
   function calculateOverallProgress(service) {
     const allSubtasks = service.steps.flatMap((s) => s.subtasks || []);
@@ -1038,6 +1072,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // MUDANÇA: Abrir/fechar painel de notificações
+    if (e.target.closest("#notification-bell")) {
+        const panel = document.getElementById("notification-panel");
+        const isVisible = !panel.classList.contains("hidden");
+        panel.classList.toggle("hidden");
+
+        // Se o painel está sendo aberto e tem notificações, marca como lidas
+        if (!isVisible) {
+            markNotificationsAsRead();
+        }
+    } else if (!e.target.closest("#notification-panel")) {
+        // Fecha o painel se clicar fora dele
+        document.getElementById("notification-panel").classList.add("hidden");
+    }
+
     // MUDANÇA: Botão de deletar categoria
     const deleteCategoryBtn = e.target.closest(".btn-delete-category");
     if (deleteCategoryBtn) {
@@ -1510,6 +1559,12 @@ document.addEventListener("DOMContentLoaded", () => {
       // Começa a ouvir por atualizações nos serviços do usuário em tempo real
       listenForServices(user);
 
+      // MUDANÇA: Começa a ouvir as solicitações para atualizar o selo do dashboard
+      listenForRequests();
+
+      // MUDANÇA: Começa a ouvir por notificações
+      listenForNotifications(user.uid);
+
       // Verifica a URL (ex: #/task/some-id) para mostrar a view correta no carregamento
       handleRouteChange(); // MUDANÇA: Chamada inicial ao roteador
       window.addEventListener("hashchange", handleRouteChange); // MUDANÇA: Ouve por mudanças na URL
@@ -1534,6 +1589,11 @@ document.addEventListener("DOMContentLoaded", () => {
         unsubscribeFromComments();
         unsubscribeFromComments = null;
       }
+      // MUDANÇA: Desliga o listener de notificações
+      if (unsubscribeFromNotifications) {
+        unsubscribeFromNotifications();
+        unsubscribeFromNotifications = null;
+      }
 
       // Limpa os dados locais da aplicação
       services = [];
@@ -1550,6 +1610,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dashboardView.classList.add("hidden");
       requestsView.classList.add("hidden");
       categoryManagementView.classList.add("hidden");
+      notificationContainer.classList.add("hidden");
       userManagementView.classList.add("hidden");
 
       // Garante que o layout volte ao normal
@@ -1841,10 +1902,23 @@ document.addEventListener("DOMContentLoaded", () => {
         mentionedUserName: mentionedUserId ? teamMemberMap.get(mentionedUserId) : null, // Salva o nome para referência
         requesterId: currentUser.uid,
         requesterName: currentUser.displayName || currentUser.email,
+        requesterPhotoURL: currentUser.photoURL || './assets/default-avatar.png',
         status: "pending", // 'pending', 'approved', 'rejected'
         createdAt: serverTimestamp(),
       });
       makeRequestModal.style.display = "none";
+
+      // MUDANÇA: Cria a notificação se um usuário foi mencionado
+      if (mentionedUserId) {
+          await addDoc(notificationsCollection, {
+              userId: mentionedUserId,
+              text: `Você foi mencionado na solicitação "${title}" por ${currentUser.displayName}.`,
+              link: "#/requests",
+              read: false,
+              createdAt: serverTimestamp(),
+          });
+      }
+
       alert("Solicitação enviada com sucesso!");
     } catch (error) {
       console.error("Erro ao enviar solicitação:", error);
@@ -1853,6 +1927,66 @@ document.addEventListener("DOMContentLoaded", () => {
       hideLoading();
     }
   });
+
+  // --- MUDANÇA: Funções para o sistema de notificação ---
+  function listenForNotifications(userId) {
+      notificationContainer.classList.remove("hidden");
+
+      if (unsubscribeFromNotifications) {
+          unsubscribeFromNotifications();
+      }
+
+      const q = query(
+          notificationsCollection,
+          where("userId", "==", userId),
+          orderBy("createdAt", "desc")
+      );
+
+      unsubscribeFromNotifications = onSnapshot(q, (snapshot) => {
+          const unreadCount = snapshot.docs.filter(doc => !doc.data().read).length;
+          const notificationList = document.getElementById("notification-list");
+
+          // Atualiza o contador no sino
+          if (unreadCount > 0) {
+              notificationCount.textContent = unreadCount;
+              notificationCount.classList.remove("hidden");
+          } else {
+              notificationCount.classList.add("hidden");
+          }
+
+          // Atualiza a lista no painel
+          if (snapshot.empty) {
+              notificationList.innerHTML = '<li class="notification-item empty">Nenhuma notificação.</li>';
+          } else {
+              notificationList.innerHTML = snapshot.docs.map(doc => {
+                  const notif = doc.data();
+                  return `
+                      <li class="notification-item ${notif.read ? 'read' : ''}">
+                          <a href="${notif.link}">${notif.text}</a>
+                      </li>
+                  `;
+              }).join('');
+          }
+      });
+  }
+
+  async function markNotificationsAsRead() {
+      const q = query(
+          notificationsCollection,
+          where("userId", "==", currentUser.uid),
+          where("read", "==", false)
+      );
+
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) return;
+
+      const batch = writeBatch(db);
+      snapshot.forEach(doc => {
+          batch.update(doc.ref, { read: true });
+      });
+
+      await batch.commit();
+  }
 
   // --- MUDANÇA: Funções auxiliares para criar elementos do formulário ---
 
