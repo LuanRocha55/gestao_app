@@ -435,23 +435,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // MUDANÇA: Função para atualizar os selos de contagem no dashboard
+  // CORREÇÃO: Refatorada para garantir a criação e posicionamento corretos do selo.
   function updateDashboardBadges(allRequests) {
-    const pendingCount = allRequests.filter(req => req.status === 'pending').length;
-    const card = document.getElementById('requests-dashboard-card');
+    const pendingCount = allRequests.filter(
+      (req) => req.status === "pending"
+    ).length;
+    const card = document.getElementById("requests-dashboard-card");
     if (!card) return;
-
-    let badge = card.querySelector('.dashboard-badge');
+ 
+    let badge = card.querySelector(".dashboard-badge");
     if (!badge) {
-        badge = document.createElement('div');
-        badge.className = 'dashboard-badge';
-        card.appendChild(badge);
+      badge = document.createElement("div");
+      badge.className = "dashboard-badge";
+      card.appendChild(badge);
     }
-
+ 
     if (pendingCount > 0) {
-        badge.textContent = pendingCount;
-        badge.classList.add('visible');
+      badge.textContent = pendingCount;
+      badge.classList.remove("hidden"); // Garante que o selo esteja visível
     } else {
-        badge.classList.remove('visible');
+      badge.classList.add("hidden"); // Esconde o selo se não houver notificações
     }
   }
 

@@ -210,8 +210,15 @@ header h1 a {
 
 #notification-count.badge:not(.hidden) {
     transform: scale(1);
+    animation: pulse 0.5s 1; /* MUDANÇA: Adiciona a animação de pulso */
 }
 
+/* MUDANÇA: Animação de pulso para o selo de notificação */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
 #notification-panel {
     position: absolute;
     top: calc(100% + 15px);
@@ -1071,6 +1078,26 @@ body.detail-view-active .header-content {
 .dashboard-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px var(--shadow-color);
+}
+
+/* MUDANÇA: Estilo para o selo de notificação no card do dashboard */
+.dashboard-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: #E53935; /* Vermelho */
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8em;
+    font-weight: 700;
+    border: 2px solid var(--card-bg);
+    z-index: 1; /* Garante que fique acima do conteúdo do card */
+    transition: transform 0.2s ease;
 }
 
 .dashboard-card a {
