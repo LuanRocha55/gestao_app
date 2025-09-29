@@ -50,10 +50,16 @@ header {
 .header-content {
     display: flex;
     align-items: center;
-    gap: 20px;
     flex-grow: 1; /* Permite que este container ocupe o espaço disponível */
     min-width: 0; /* Previne que o flex item cause overflow */
-    justify-content: space-between; /* MUDANÇA: Garante o espaçamento no desktop */
+    justify-content: space-between;
+}
+
+/* MUDANÇA: Ajusta os containers do cabeçalho */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 #header-menu-items {
@@ -68,17 +74,36 @@ header h1 {
 }
 
 header h1 a {
-    color: inherit;
+    color: #ffffff;
     text-decoration: none;
-    cursor: default;
 }
 
-header h1 a:hover {
-    text-decoration: none; /* Garante que não haja sublinhado no hover */
+/* MUDANÇA: Adiciona opacidade padrão para os ícones do header */
+#home-btn, #notification-bell {
+    opacity: 0.8;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    border-radius: 50%; /* Garante o fundo circular no hover */
+}
+
+/* MUDANÇA: Aumenta a opacidade no hover */
+#home-btn:hover, #notification-bell:hover {
+    opacity: 1;
+}
+
+#home-btn svg {
+    fill: #ffffff;
+    width: 28px; /* Aumenta o tamanho do ícone */
+    height: 28px;
+    display: block; /* Remove espaço extra abaixo do svg */
+}
+
+/* MUDANÇA: Garante que o ícone de notificação seja sempre branco */
+#notification-bell svg {
+    fill: #ffffff;
 }
 
 /* --- Barra de Pesquisa --- */
-#search-input {
+.search-bar-wrapper input {
     width: 350px; /* Define um tamanho padrão e previsível */
     padding: 10px 15px;
     border-radius: 5px;
@@ -90,26 +115,14 @@ header h1 a:hover {
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-#search-input::placeholder {
+.search-bar-wrapper input::placeholder {
     color: rgba(255, 255, 255, 0.7);
 }
 
-#search-input:focus {
+.search-bar-wrapper input:focus {
     outline: none;
     background-color: rgba(255, 255, 255, 0.3);
     border-color: var(--accent-color);
-}
-
-/* --- Estilo Específico para o Botão Adicionar no Cabeçalho --- */
-#add-service-btn {
-    background-color: #ffffff;
-    color: var(--primary-color);
-    flex-shrink: 0; /* Impede que o botão encolha */
-}
-
-#add-service-btn:hover {
-    background-color: #f0f0f0;
-    transform: translateY(-2px);
 }
 
 .header-content a.btn-secondary {
@@ -118,14 +131,141 @@ header h1 a:hover {
     text-decoration: none;
     padding: 8px 15px;
 }
+/* MUDANÇA: Estilos para a barra de pesquisa em seu novo local */
+.search-bar-wrapper {
+    margin-bottom: 30px;
+}
+
+.search-bar-wrapper input {
+    width: 100%;
+    max-width: 500px; /* Limita a largura em telas grandes */
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--progress-bar-bg);
+}
+
+.search-bar-wrapper input::placeholder {
+    color: var(--text-color);
+    opacity: 0.6;
+}
+
+.search-bar-wrapper input:focus {
+    background-color: var(--bg-color);
+    border-color: var(--accent-color);
+}
+
+.form-inline .form-group {
+    display: flex;
+    flex-grow: 1;
+    gap: 10px;
+}
+
+input[type="color"] {
+    padding: 5px;
+    min-width: 45px;
+    height: 45px; /* Alinha altura com outros inputs */
+}
+
+
 
 /* --- Botão de Troca de Tema --- */
 .theme-switcher-container {
     display: flex;
     align-items: center;
+    margin-left: 10px; /* MUDANÇA: Adiciona um respiro entre o sino e o tema */
     gap: 10px;
     color: #f0f0f0;
     font-weight: 600;
+}
+
+/* MUDANÇA: Container para os controles que ficam visíveis no mobile */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* --- MUDANÇA: Estilos do Sistema de Notificação --- */
+#notification-container {
+    position: relative;
+}
+
+/* MUDANÇA: Estilo de destaque para botões de ícone importantes */
+#notification-bell:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+#notification-count.badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background-color: #E53935;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.75em;
+    font-weight: 700;
+    border: 2px solid var(--primary-color);
+    transform: scale(0);
+    transition: transform 0.2s ease;
+}
+
+#notification-count.badge:not(.hidden) {
+    transform: scale(1);
+}
+
+#notification-panel {
+    position: absolute;
+    top: calc(100% + 15px);
+    right: 0;
+    width: 350px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 5px 20px var(--shadow-color);
+    z-index: 1100;
+    border: 1px solid var(--progress-bar-bg);
+}
+
+.notification-panel-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--progress-bar-bg);
+}
+
+.notification-panel-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+}
+
+#notification-list {
+    list-style: none;
+}
+
+.notification-item {
+    border-bottom: 1px solid var(--progress-bar-bg);
+}
+.notification-item.empty {
+    padding: 20px;
+    text-align: center;
+    opacity: 0.7;
+}
+.notification-item a {
+    display: block;
+    padding: 15px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+.notification-item a:hover {
+    background-color: var(--bg-color);
+}
+.notification-item.read a {
+    opacity: 0.6;
 }
 
 .theme-switcher {
@@ -133,6 +273,7 @@ header h1 a:hover {
     display: inline-block;
     width: 50px;
     height: 26px;
+    cursor: pointer;
 }
 
 .theme-switcher input {
@@ -309,13 +450,19 @@ body.dark-theme .auth-success {
     background-color: #1a5d1a;
     color: #c2ffc2;
 }
-
-/* --- MUDANÇA: Estilos de Botões para o Modo Escuro --- */
-body.dark-theme .btn-primary {
-    background-color: var(--accent-color);
-    color: var(--primary-color); /* Texto escuro para contraste */
+.form-extra-links {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 0.9em;
 }
 
+.form-extra-links a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+.form-extra-links a:hover {
+    text-decoration: underline;
+}
 body.dark-theme .btn-primary:hover {
     background-color: #aee1fa; /* Um pouco mais claro no hover */
 }
@@ -324,6 +471,13 @@ body.dark-theme .btn-secondary {
     color: var(--accent-color);
     border-color: var(--accent-color);
 }
+
+/* --- MUDANÇA: Estilos de Botões para o Modo Escuro --- */
+body.dark-theme .btn-primary {
+    background-color: var(--accent-color);
+    color: var(--primary-color); /* Texto escuro para contraste */
+}
+
 /* --- Conteúdo Principal e Cartões de Serviço --- */
 .profile-picture-section {
     display: flex;
@@ -385,23 +539,34 @@ body.dark-theme .btn-secondary {
 }
 .auth-success { color: #270; background-color: #DFF2BF; border-radius: 5px; padding: 10px; margin-bottom: 15px; text-align: center; }
 main {
+    /* MUDANÇA: Padding movido para os containers internos para melhor controle */
+}
+
+#service-list-wrapper {
     padding: 40px;
+}
+
+/* MUDANÇA: O grid agora é aplicado ao container de cartões de cada categoria */
+.service-card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 30px;
+    margin-bottom: 30px; /* Espaço entre as categorias */
+    min-height: 100px; /* Garante que mesmo categorias vazias tenham uma área para soltar */
 }
 
 .category-title {
     grid-column: 1 / -1; /* Garante que o título ocupe toda a largura da grid */
     color: var(--accent-color);
-    margin-bottom: 0; /* O gap da grid cuidará do espaçamento vertical */
+    margin-bottom: 25px; /* CORREÇÃO: Adiciona espaço entre o título e os cartões */
+    border-bottom: 3px solid var(--accent-color); /* MUDANÇA: Aumenta a espessura da borda */
     margin-top: 20px;
     padding-bottom: 10px;
     border-bottom: 2px solid var(--progress-bar-bg);
     font-size: 1.5em;
 }
 
-main > .category-title:first-of-type {
+#service-list-wrapper > .category-title:first-of-type {
     margin-top: 0;
 }
 
@@ -435,6 +600,44 @@ main > .category-title:first-of-type {
     margin-right: 10px;
 }
 
+/* MUDANÇA: Wrapper para o título e a tag de prioridade */
+.card-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/* MUDANÇA: Estilos para o indicador de data de entrega */
+.due-date-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 5px;
+    margin-top: 15px;
+    margin-bottom: 5px; /* Espaço antes da barra de progresso */
+    background-color: var(--bg-color);
+    border: 1px solid var(--progress-bar-bg);
+    width: fit-content; /* Ajusta a largura ao conteúdo */
+}
+
+.due-date-info svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+.due-date-info.due-soon {
+    color: #856404;
+    background-color: #fff3cd;
+}
+.due-date-info.overdue {
+    color: #721c24;
+    background-color: #f8d7da;
+}
+
 .service-card h2 a {
     color: inherit;
     text-decoration: none;
@@ -445,6 +648,32 @@ main > .category-title:first-of-type {
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 10px;
+}
+
+/* MUDANÇA: Estilos para a tag de prioridade */
+.priority-tag {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0; /* Impede que a tag encolha */
+}
+
+.priority-tag.alta { background-color: #E53935; } /* Vermelho */
+.priority-tag.média { background-color: #FFB300; } /* Âmbar */
+.priority-tag.baixa { background-color: #43A047; } /* Verde */
+
+/* MUDANÇA: Estilo da tag na página de detalhes */
+.priority-tag-detail {
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 5px;
+    color: #fff;
+}
+.priority-tag-detail.alta { background-color: #E53935; }
+.priority-tag-detail.média { background-color: #FFB300; }
+.priority-tag-detail.baixa { background-color: #43A047; }
 }
 .card-actions {
     display: flex;
@@ -463,6 +692,11 @@ main > .category-title:first-of-type {
     color: var(--text-color);
     opacity: 0.6;
     transition: opacity 0.2s ease, color 0.3s ease;
+}
+
+.step-item .btn-delete-subtask-detail {
+    visibility: hidden;
+    opacity: 0;
 }
 
 .service-card .responsible {
@@ -525,6 +759,11 @@ main > .category-title:first-of-type {
     transition: width 0.5s ease-in-out, background-color 0.3s ease;
 }
 
+/* MUDANÇA: Adiciona um espaçamento para a barra de progresso na página de detalhes */
+#task-detail-view .progress-info {
+    margin-top: 20px;
+}
+
 /* --- Botão Primário --- */
 .btn-primary {
     background-color: var(--primary-color);
@@ -567,6 +806,11 @@ body.dark-theme .btn-primary:hover {
     margin-top: 10px;
 }
 
+.form-inline {
+    display: flex;
+    gap: 10px;
+}
+
 /* --- Estilos do Modal --- */
 .modal {
     display: none; /* Oculto por padrão */
@@ -583,14 +827,16 @@ body.dark-theme .btn-primary:hover {
 
 .modal-content {
     background-color: var(--card-bg);
-    margin: 15% auto;
+    margin: 3vh auto; /* MUDANÇA: Reduz a margem vertical para telas menores */
     padding: 30px;
     border-radius: 10px;
     width: 90%;
-    max-width: 500px;
+    max-width: 600px; /* MUDANÇA: Aumenta um pouco a largura máxima para o modal de serviço */
     position: relative;
     box-shadow: 0 5px 20px var(--shadow-color);
     animation: slideIn 0.4s ease-out;
+    max-height: 94vh; /* MUDANÇA: Garante que o modal não saia da tela */
+    overflow-y: auto; /* MUDANÇA: Adiciona scroll se o conteúdo for maior */
 }
 
 .close-btn {
@@ -703,6 +949,12 @@ body.dark-theme .btn-primary:hover {
     cursor: grabbing;
 }
 
+/* MUDANÇA: Estilo para o "fantasma" do cartão de serviço ao arrastar */
+.service-card.sortable-ghost {
+    background: var(--accent-color);
+    opacity: 0.3;
+}
+
 .step-group-modal .form-group {
     margin-top: 15px;
     margin-bottom: 15px;
@@ -740,10 +992,38 @@ body.dark-theme .btn-primary:hover {
     margin-bottom: 12px;
 }
 
+/* MUDANÇA: Adiciona uma borda colorida para a etapa */
+.step-item {
+    position: relative;
+    padding-left: 15px; /* Espaço para a barra de cor */
+}
+.step-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    width: 5px;
+    background-color: var(--step-color, var(--progress-bar-bg)); /* Usa a variável ou um fallback */
+    border-radius: 3px;
+}
 .step-item label {
     margin-left: 10px;
     cursor: pointer;
     transition: opacity 0.3s ease;
+    flex-grow: 1; /* MUDANÇA: Empurra o botão de deletar para a direita */
+}
+
+.step-item label {
+    margin-left: 10px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.step-assignee {
+    font-size: 0.85em;
+    opacity: 0.7;
+    margin-left: 5px;
 }
 
 .step-item input[type="checkbox"] {
@@ -814,17 +1094,27 @@ body.dark-theme .btn-primary:hover {
         border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
+    main {
+        padding: 30px 20px;
+    }
+
+    /* MUDANÇA: Reorganiza o header no mobile */
+    .header-right {
+        order: 3; /* Move para o final */
+        width: 100%;
+        display: none; /* Escondido por padrão */
+        flex-direction: column;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
     #header-menu-items.open {
-        display: flex; /* Mostra os itens quando o menu está aberto */
+        display: flex; /* Mostra quando o menu está aberto */
     }
 
     /* MUDANÇA: Garante que os itens dentro do menu mobile ocupem a largura total */
     #header-menu-items > * {
         width: 100%;
-    }
-
-    main {
-        padding: 30px 20px;
     }
 }
 
@@ -835,12 +1125,13 @@ body.dark-theme .btn-primary:hover {
         gap: 20px;
     }
 
-    .theme-switcher-container span {
-        display: none; /* Esconde o texto "Modo Escuro" */
-    }
-
     .step-input-row {
         flex-direction: column;
+        align-items: stretch; /* Faz os itens ocuparem a largura total */
+    }
+
+    .modal-content {
+        padding: 20px; /* Reduz o padding do modal em telas muito pequenas */
     }
 }
 
@@ -857,23 +1148,79 @@ body:not(.detail-view-active) #app-header.hidden {
 
 /* Oculta elementos do header quando na visão de detalhe */
 body.detail-view-active .header-content {
-    justify-content: center;
-}
-body.detail-view-active #search-input,
-body.detail-view-active #add-service-btn {
-    display: none;
+    /* Não é mais necessário centralizar */
 }
 
 /* MUDANÇA: Aplica o mesmo layout para a view de detalhes e de perfil */
-#task-detail-view, #profile-view {
+#task-detail-view, #profile-view, #user-management-view, #category-management-view {
     padding: 40px;
     max-width: 900px;
     margin: 0 auto;
 }
 
+/* MUDANÇA: Padroniza as views de lista */
+#service-container,
 #requests-view {
     padding: 40px;
+    max-width: 1200px;
     margin: 0 auto;
+}
+
+/* --- MUDANÇA: Estilos para o novo Dashboard --- */
+#dashboard-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.dashboard-card {
+    position: relative; /* MUDANÇA: Para posicionar o selo */
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px var(--shadow-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px var(--shadow-color);
+}
+
+.dashboard-card a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 40px 25px;
+    text-decoration: none;
+    color: var(--text-color);
+    height: 100%;
+}
+
+.dashboard-card-icon {
+    margin-bottom: 20px;
+    background-color: var(--accent-color);
+    color: var(--card-bg);
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dashboard-card-icon svg {
+    width: 36px;
+    height: 36px;
+    fill: currentColor;
+}
+
+.dashboard-card h2 {
+    color: var(--accent-color);
+    margin-bottom: 10px;
 }
 
 .detail-header {
@@ -888,6 +1235,18 @@ body.detail-view-active #add-service-btn {
 .detail-header h2 {
     color: var(--accent-color);
     font-size: 2em;
+}
+
+.requests-header h2 {
+    font-size: 1.5em; /* MUDANÇA: Reduz o título em telas menores */
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.detail-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .detail-section {
@@ -916,6 +1275,13 @@ body.detail-view-active #add-service-btn {
     border-radius: 8px;
 }
 
+/* MUDANÇA: Adiciona uma borda colorida para o grupo de etapas */
+.step-group {
+    border-left: 5px solid var(--step-color, var(--progress-bar-bg));
+    padding-left: 20px;
+}
+
+
 .step-group-title {
     font-weight: 700;
     font-size: 1.1em;
@@ -924,7 +1290,14 @@ body.detail-view-active #add-service-btn {
     position: relative;
     padding-left: 25px;
     user-select: none; /* Impede a seleção de texto ao clicar */
+    display: flex; /* MUDANÇA: Transforma em flex container para alinhar o botão */
     transition: color 0.2s;
+}
+
+.step-group-title .btn-delete-step-detail {
+    margin-left: auto;
+    visibility: hidden; /* Escondido por padrão */
+    opacity: 0;
 }
 
 .step-group-title:hover {
@@ -935,6 +1308,11 @@ body.detail-view-active #add-service-btn {
     cursor: pointer;
 }
 
+.step-group-title:hover .btn-delete-step-detail,
+.subtask-item:hover .btn-delete-subtask-detail {
+    visibility: visible;
+    opacity: 0.6;
+}
 .step-group-title::before {
     content: '▼';
     position: absolute;
@@ -945,12 +1323,11 @@ body.detail-view-active #add-service-btn {
     font-size: 0.8em;
     color: var(--accent-color);
 }
-
-.step-assignee {
+.step-assignee-detail {
     font-size: 0.85em;
+    font-weight: 400; /* Normal, não negrito */
     opacity: 0.7;
-    margin-left: 8px;
-    font-weight: normal;
+    cursor: default;
 }
 
 .step-group-title.collapsed::before {
@@ -969,12 +1346,24 @@ body.detail-view-active #add-service-btn {
 
 .file-item {
     padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     border-radius: 5px;
     transition: background-color 0.2s ease;
 }
 
+.file-item .btn-delete-file {
+    visibility: hidden; /* Escondido por padrão */
+    opacity: 0;
+}
+
 .file-item:hover {
     background-color: var(--bg-color);
+}
+.file-item:hover .btn-delete-file {
+    visibility: visible;
+    opacity: 0.6;
 }
 
 .file-item a {
@@ -987,18 +1376,23 @@ body.detail-view-active #add-service-btn {
     text-decoration: underline;
 }
 
-#add-file-form {
-    display: flex;
-    gap: 10px;
+/* MUDANÇA: Melhora a estilização dos inputs de adicionar link */
+#add-file-form #file-name-input {
+    flex: 1 1 30%; /* Ocupa 30% do espaço, mas pode encolher/crescer */
 }
 
-#add-file-form input {
-    flex-grow: 1;
+#add-file-form #file-url-input {
+    flex: 1 1 70%; /* Ocupa 70% do espaço */
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) { /* MUDANÇA: Ajusta o breakpoint para telas um pouco maiores */
     #add-file-form {
         flex-direction: column;
+    }
+
+    .modal-content {
+        margin: 5% auto; /* Ajusta a margem para telas menores */
+        max-width: 95%;
     }
 
     .file-upload-actions {
@@ -1007,6 +1401,90 @@ body.detail-view-active #add-service-btn {
     }
 }
 
+/* --- MUDANÇA: Estilos para o Painel Kanban --- */
+#kanban-board {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 6 colunas fixas */
+    gap: 20px;
+    padding-top: 20px;
+    overflow-x: auto; /* Permite scroll horizontal em telas pequenas */
+    min-height: 60vh;
+}
+
+.kanban-column {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-color);
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid var(--progress-bar-bg);
+}
+
+.kanban-column-title {
+    color: var(--accent-color);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--accent-color);
+    text-align: center;
+    font-size: 1.1em;
+}
+
+.kanban-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex-grow: 1; /* Ocupa o espaço disponível */
+}
+
+.kanban-card {
+    padding: 20px;
+}
+
+.kanban-card h2 {
+    font-size: 1.1em;
+}
+
+.kanban-card .responsible {
+    margin-bottom: 10px;
+}
+
+.kanban-card .progress-info {
+    margin-top: 10px;
+}
+
+@media (max-width: 1200px) {
+    #kanban-board {
+        /* Em telas menores, permite que as colunas tenham um tamanho mínimo */
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+/* --- MUDANÇA: Estilos para Serviços Concluídos --- */
+.service-completed {
+    opacity: 0.7;
+    transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+
+.service-completed:hover {
+    opacity: 1; /* Restaura a opacidade no hover para facilitar a interação */
+}
+
+.service-completed .progress-bar {
+    background-color: #43A047; /* Mantém a barra de progresso verde */
+}
+
+/* MUDANÇA: Estilo para o selo de conclusão na página de detalhes */
+.completion-badge {
+    display: inline-block;
+    background-color: #43A047;
+    color: #fff;
+    padding: 5px 12px;
+    font-size: 0.7em;
+    border-radius: 15px;
+    vertical-align: middle;
+    margin-left: 10px;
+    font-weight: 700;
+}
 /* --- Estilos da Área de Upload --- */
 .file-upload-actions {
     margin-top: 20px;
@@ -1031,6 +1509,16 @@ body.detail-view-active #add-service-btn {
     width: auto; /* Garante que o botão se ajuste ao conteúdo */
     margin-top: 0; /* Remove a margem desnecessária */
     padding: 12px 20px; /* Ajusta o padding para ficar consistente com o botão de link */
+}
+
+/* MUDANÇA: Estilos para o indicador de data no tema escuro */
+body.dark-theme .due-date-info.due-soon {
+    color: #ffeeba;
+    background-color: #533f03;
+}
+body.dark-theme .due-date-info.overdue {
+    color: #f5c6cb;
+    background-color: #58151c;
 }
 
 /* --- Estilos da Seção de Comentários --- */
@@ -1101,21 +1589,69 @@ body.detail-view-active #add-service-btn {
     padding: 25px;
     box-shadow: 0 4px 15px var(--shadow-color);
     margin-bottom: 20px;
-    border-left: 5px solid; /* Será definido pelo status */
+    border-left: 4px solid; /* Será definido pelo status */
+    transition: background-color 0.3s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .request-card[data-status="pending"] { border-left-color: #FFB300; } /* Ambar */
-.request-card[data-status="approved"] { border-left-color: #43A047; } /* Verde */
-.request-card[data-status="rejected"] { border-left-color: #E53935; } /* Vermelho */
+.request-card[data-status="approved"] {
+    border-left-color: #43A047; /* Verde */
+    background-color: rgba(67, 160, 71, 0.05);
+}
+.request-card[data-status="rejected"] {
+    border-left-color: #E53935; /* Vermelho */
+    background-color: rgba(229, 57, 53, 0.05);
+}
+
+body.dark-theme .request-card[data-status="approved"] {
+    background-color: rgba(67, 160, 71, 0.1);
+}
+body.dark-theme .request-card[data-status="rejected"] {
+    background-color: rgba(229, 57, 53, 0.1);
+}
+
+.request-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.request-card-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.request-card-title img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
 
 .request-card h3 {
-    margin-bottom: 10px;
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.request-status-icon {
+    font-size: 1.5rem;
+    opacity: 0.7;
 }
 
 .request-meta {
     font-size: 0.9em;
     opacity: 0.7;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.request-meta span {
+    font-weight: 600;
+    color: var(--text-color);
+    opacity: 1;
 }
 
 .request-meta span {
@@ -1124,25 +1660,20 @@ body.detail-view-active #add-service-btn {
 
 .request-description {
     margin-bottom: 20px;
-    line-height: 1.6;
+    line-height: 1.7;
+}
+.request-mention {
+    font-size: 0.9em;
+    margin-bottom: 15px;
+    font-weight: 600;
+    opacity: 0.8;
 }
 
-/* MUDANÇA: Estilos para o conteúdo rico dentro da descrição da solicitação */
-.request-description p {
-    margin-bottom: 1em; /* Adiciona espaçamento entre parágrafos */
-}
-
-.request-description img {
-    max-width: 100%; /* Garante que as imagens sejam responsivas */
-    height: auto;
-    border-radius: 5px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
 
 .request-actions {
     display: flex;
     gap: 10px;
+    margin-top: auto; /* Empurra as ações para o final do card */
 }
 
 .request-actions .btn-approve {
@@ -1155,6 +1686,30 @@ body.detail-view-active #add-service-btn {
     border-color: #E53935;
 }
 
+.requests-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px; /* MUDANÇA: Ajustado no media query */
+}
+
+@media (max-width: 768px) {
+    .detail-header, .requests-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch; /* Faz os botões ocuparem a largura */
+        text-align: center;
+    }
+
+    .detail-header-actions {
+        justify-content: center;
+    }
+
+    /* MUDANÇA: Ajusta o padding das views de lista no mobile */
+    #service-container, #requests-view {
+        padding: 30px 20px;
+    }
+}
 /* --- MUDANÇA: Estilos para o Indicador de Carregamento (Spinner) --- */
 #loading-overlay {
     position: fixed;
@@ -1184,4 +1739,82 @@ body.detail-view-active #add-service-btn {
         transform: rotate(360deg);
     }
 }
+
+/* --- MUDANÇA: Estilos para a Página de Gerenciamento de Usuários --- */
+.user-list {
+    list-style: none;
+}
+
+.user-list-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.user-list-item:not(:last-child) {
+    border-bottom: 1px solid var(--progress-bar-bg);
+}
+
+.user-list-item:hover {
+    background-color: var(--bg-color);
+}
+
+.user-list-avatar img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-list-info {
+    flex-grow: 1;
+}
+
+.user-list-info .user-name { font-weight: 700; }
+.user-list-info .user-email { font-size: 0.9em; opacity: 0.7; }
+
+.category-color-swatch {
+    width: 25px;
+    height: 25px;
+    border-radius: 5px;
+    border: 1px solid var(--progress-bar-bg);
+    flex-shrink: 0;
+}
+
+/* MUDANÇA: Estilos para o modo de edição da categoria */
+.user-list-item.editing {
+    padding: 10px; /* Reduz o padding para acomodar o formulário */
+}
+
+.category-edit-form {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.category-edit-form input[type="text"] {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--progress-bar-bg);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.category-edit-form .btn-save-category { color: #43A047; } /* Verde */
+.category-edit-form .btn-cancel-edit-category { color: #E53935; } /* Vermelho */
+
+
+@media (max-width: 600px) {
+    .user-list-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .user-list-actions { width: 100%; }
 }
