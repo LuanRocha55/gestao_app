@@ -1330,11 +1330,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Abrir/fechar painel de notificações
     if (e.target.closest("#notification-bell")) {
         const panel = document.getElementById("notification-panel");
-        const isVisible = !panel.classList.contains("hidden");
         panel.classList.toggle("hidden");
 
-        // Se o painel está sendo aberto e tem notificações, marca como lidas
-        if (!isVisible) {
+        // CORREÇÃO: Marca as notificações como lidas quando o painel é aberto.
+        // A verificação `!panel.classList.contains("hidden")` garante que isso só aconteça
+        // quando o painel está visível (ou seja, após o toggle o ter aberto).
+        if (!panel.classList.contains("hidden")) {
+            // Fornece feedback visual imediato zerando o contador
+            notificationCount.textContent = '0';
+            notificationCount.classList.add("hidden");
             markNotificationsAsRead();
         }
     } else if (!e.target.closest("#notification-panel")) {
@@ -2370,6 +2374,21 @@ document.addEventListener("DOMContentLoaded", () => {
               read: false,
               createdAt: serverTimestamp(),
           });
+
+          // MUDANÇA: Adiciona um documento na coleção 'mail' para disparar o e-mail.
+          // A extensão "Send Email" irá processar este documento.
+          const mentionedUserEmail = allUsersData.find(u => u.id === mentionedUserId)?.email;
+          if (mentionedUserEmail) {
+              await addDoc(collection(db, "mail"), {
+                  to: mentionedUserEmail,
+                  message: {
+                      subject: `[Painel de Gestão] Você foi mencionado em uma solicitação!`,
+                      html: `Olá, ${mentionedUserName}!<br><br>
+                             O usuário <strong>${currentUser.displayName}</strong> mencionou você na solicitação: <strong>"${title}"</strong>.<br><br>
+                             Acesse o painel para ver os detalhes.`,
+                  },
+              });
+          }
       }
 
       alert("Solicitação enviada com sucesso!");
