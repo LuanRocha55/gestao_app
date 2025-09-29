@@ -1960,11 +1960,12 @@ document.addEventListener("DOMContentLoaded", () => {
   googleLoginBtn.addEventListener("click", async () => {
     const provider = new GoogleAuthProvider();
     try {
-      showLoading();
+      showLoading(); // Mostra o carregamento
       await signInWithPopup(auth, provider);
-      // O onAuthStateChanged cuidará de atualizar a UI
+      // O onAuthStateChanged cuidará de atualizar a UI.
+      // O hideLoading() será chamado dentro do onAuthStateChanged após a UI ser montada.
     } catch (error) {
-      hideLoading();
+      hideLoading(); // Esconde o carregamento em caso de erro
       console.error("Erro no login com Google:", error);
       // MUDANÇA: Mensagem de erro mais específica
       if (error.code === 'auth/operation-not-allowed') {
@@ -2042,16 +2043,16 @@ document.addEventListener("DOMContentLoaded", () => {
     showLoading();
     try {
       await sendPasswordResetEmail(auth, email);
-      hideLoading();
       alert(`Um e-mail para redefinição de senha foi enviado para ${email}. Verifique sua caixa de entrada e spam.`);
     } catch (error) {
-      hideLoading();
       console.error("Erro ao enviar e-mail de redefinição:", error);
       loginErrorEl.textContent = "Não foi possível enviar o e-mail. Verifique se o e-mail está correto e tente novamente.";
       if (error.code === 'auth/user-not-found') {
         loginErrorEl.textContent = "Nenhum usuário encontrado com este e-mail.";
       }
       loginErrorEl.classList.remove("hidden");
+    } finally {
+      hideLoading(); // Garante que o carregamento seja escondido, com sucesso ou erro.
     }
   });
   // --- MUDANÇA: LÓGICA DOS MODAIS ---
