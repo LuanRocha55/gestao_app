@@ -159,6 +159,17 @@ header h1 a {
     border-color: var(--accent-color);
 }
 
+.form-inline .form-group {
+    display: flex;
+    flex-grow: 1;
+    gap: 10px;
+}
+
+input[type="color"] {
+    padding: 5px;
+    min-width: 45px;
+    height: 45px; /* Alinha altura com outros inputs */
+}
 
 
 
@@ -535,6 +546,7 @@ main {
     grid-column: 1 / -1; /* Garante que o título ocupe toda a largura da grid */
     color: var(--accent-color);
     margin-bottom: 0; /* O gap da grid cuidará do espaçamento vertical */
+    border-bottom: 3px solid var(--accent-color); /* MUDANÇA: Aumenta a espessura da borda */
     margin-top: 20px;
     padding-bottom: 10px;
     border-bottom: 2px solid var(--progress-bar-bg);
@@ -573,6 +585,38 @@ main {
     /* Garante que o título não empurre os botões para fora */
     flex-grow: 1;
     margin-right: 10px;
+}
+
+/* MUDANÇA: Estilos para o indicador de data de entrega */
+.due-date-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 5px;
+    margin-top: 15px;
+    margin-bottom: 5px; /* Espaço antes da barra de progresso */
+    background-color: var(--bg-color);
+    border: 1px solid var(--progress-bar-bg);
+    width: fit-content; /* Ajusta a largura ao conteúdo */
+}
+
+.due-date-info svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+.due-date-info.due-soon {
+    color: #856404;
+    background-color: #fff3cd;
+}
+.due-date-info.overdue {
+    color: #721c24;
+    background-color: #f8d7da;
 }
 
 .service-card h2 a {
@@ -892,6 +936,21 @@ body.dark-theme .btn-primary:hover {
     margin-bottom: 12px;
 }
 
+/* MUDANÇA: Adiciona uma borda colorida para a etapa */
+.step-item {
+    position: relative;
+    padding-left: 15px; /* Espaço para a barra de cor */
+}
+.step-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    width: 5px;
+    background-color: var(--step-color, var(--progress-bar-bg)); /* Usa a variável ou um fallback */
+    border-radius: 3px;
+}
 .step-item label {
     margin-left: 10px;
     cursor: pointer;
@@ -1159,6 +1218,13 @@ body.detail-view-active .header-content {
     border-radius: 8px;
 }
 
+/* MUDANÇA: Adiciona uma borda colorida para o grupo de etapas */
+.step-group {
+    border-left: 5px solid var(--step-color, var(--progress-bar-bg));
+    padding-left: 20px;
+}
+
+
 .step-group-title {
     font-weight: 700;
     font-size: 1.1em;
@@ -1296,6 +1362,16 @@ body.detail-view-active .header-content {
     width: auto; /* Garante que o botão se ajuste ao conteúdo */
     margin-top: 0; /* Remove a margem desnecessária */
     padding: 12px 20px; /* Ajusta o padding para ficar consistente com o botão de link */
+}
+
+/* MUDANÇA: Estilos para o indicador de data no tema escuro */
+body.dark-theme .due-date-info.due-soon {
+    color: #ffeeba;
+    background-color: #533f03;
+}
+body.dark-theme .due-date-info.overdue {
+    color: #f5c6cb;
+    background-color: #58151c;
 }
 
 /* --- Estilos da Seção de Comentários --- */
@@ -1552,6 +1628,39 @@ body.dark-theme .request-card[data-status="rejected"] {
 
 .user-list-info .user-name { font-weight: 700; }
 .user-list-info .user-email { font-size: 0.9em; opacity: 0.7; }
+
+.category-color-swatch {
+    width: 25px;
+    height: 25px;
+    border-radius: 5px;
+    border: 1px solid var(--progress-bar-bg);
+    flex-shrink: 0;
+}
+
+/* MUDANÇA: Estilos para o modo de edição da categoria */
+.user-list-item.editing {
+    padding: 10px; /* Reduz o padding para acomodar o formulário */
+}
+
+.category-edit-form {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.category-edit-form input[type="text"] {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--progress-bar-bg);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.category-edit-form .btn-save-category { color: #43A047; } /* Verde */
+.category-edit-form .btn-cancel-edit-category { color: #E53935; } /* Vermelho */
+
 
 @media (max-width: 600px) {
     .user-list-item {

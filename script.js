@@ -180,12 +180,14 @@ document.addEventListener("DOMContentLoaded", () => {
         name: "Livro de Exemplo",
         responsible: user.uid,
         category: "Desenvolvimento",
+        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Vence em 15 dias
         files: [],
         steps: [
           {
             name: "Conteudista",
             // MUDANÇA: Garante que a estrutura de sub-tarefas sempre exista
             subtasks: [
+              { name: "Tarefa Padrão", completed: false },
               { name: "Unidade 1", completed: true },
               { name: "Unidade 2", completed: true },
               { name: "Unidade 3", completed: true },
@@ -194,6 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
           },
           {
             name: "DI",
+            color: "#ffc107",
             subtasks: [
               { name: "Unidade 1", completed: true },
               { name: "Unidade 2", completed: false },
@@ -203,6 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
           },
           {
             name: "PDF",
+            color: "#28a745",
             subtasks: [
               { name: "Unidade 1", completed: false },
               { name: "Unidade 2", completed: false },
@@ -212,6 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
           },
           {
             name: "AudioVisual",
+            color: "#dc3545",
             subtasks: [
               { name: "Unidade 1", completed: false },
               { name: "Unidade 2", completed: false },
@@ -226,6 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
         name: "Campanha de Exemplo",
         responsible: user.uid,
         category: "Marketing",
+        dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Venceu há 2 dias
+        color: "#17a2b8",
         files: [],
         steps: [
           {
@@ -455,6 +462,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // MUDANÇA: Nova função para verificar o status da data de entrega
+  function getDueDateStatus(dueDateString) {
+    if (!dueDateString) {
+      return { text: '', className: '' };
+    }
+
+    const dueDate = new Date(dueDateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // CORREÇÃO: Ajusta a data de entrega para o início do dia no fuso horário local para evitar erros de cálculo.
+    const comparisonDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+
+    const diffTime = comparisonDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    const formattedDate = dueDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    if (diffDays < 0) {
+      return { text: `Atrasado (${formattedDate})`, className: 'overdue' };
+    }
+    if (diffDays === 0) {
+      return { text: `Vence Hoje (${formattedDate})`, className: 'due-soon' };
+    }
+    if (diffDays === 1) {
+      return { text: `Vence Amanhã (${formattedDate})`, className: 'due-soon' };
+    }
+    if (diffDays <= 7) {
+      return { text: `Vence em ${diffDays} dias (${formattedDate})`, className: 'due-soon' };
+    }
+
+    return { text: `Entrega: ${formattedDate}`, className: '' };
+  }
+
   // --- MUDANÇA: Função para calcular progresso com base nas sub-tarefas ---
   function calculateOverallProgress(service) {
     const allSubtasks = service.steps.flatMap((s) => s.subtasks || []);
@@ -524,6 +564,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Cria e adiciona o título da categoria
         const titleEl = document.createElement("h3");
         titleEl.className = "category-title";
+        // MUDANÇA: Aplica a cor da categoria na borda inferior do título
+        const categoryData = predefinedCategories.find(c => c.name === category);
+        if (categoryData && categoryData.color) {
+            titleEl.style.borderBottomColor = categoryData.color;
+        }
         titleEl.textContent = category;
         mainFragment.appendChild(titleEl);
 
@@ -532,6 +577,16 @@ document.addEventListener("DOMContentLoaded", () => {
           // MUDANÇA: O progresso agora é baseado nas sub-tarefas
           const progress = calculateOverallProgress(service);
 
+          // MUDANÇA: Verifica o status da data de entrega
+          const dueDateStatus = getDueDateStatus(service.dueDate);
+          let dueDateHtml = '';
+          if (dueDateStatus.text) {
+              dueDateHtml = `
+                  <div class="due-date-info ${dueDateStatus.className}">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z" /></svg>
+                      <span>${dueDateStatus.text}</span>
+                  </div>`;
+          }
           const responsibleName =
             teamMemberMap.get(service.responsible) || "Não atribuído";
 
@@ -546,7 +601,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 step.subtasks.length > 0 &&
                 step.subtasks.every((st) => st.completed);
 
-              return `<li class="step-item"> 
+              return `<li class="step-item" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};"> 
                         <input type="checkbox" id="step-${
                           service.id
                         }-${index}" data-step-index="${index}" ${
@@ -570,6 +625,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                     </div>
                     <p class="responsible">Responsável: ${responsibleName}</p>
+                    ${dueDateHtml}
                     <div class="progress-info">
                         <span>Progresso</span>
                         <span class="progress-text">${Math.round(
@@ -598,6 +654,14 @@ document.addEventListener("DOMContentLoaded", () => {
       teamMemberMap.get(service.responsible) || "Não atribuído";
     const progress = calculateOverallProgress(service);
 
+    // MUDANÇA: Adiciona o status da data de entrega na página de detalhes
+    const dueDateStatus = getDueDateStatus(service.dueDate);
+    let dueDateDetailHtml = '<p><strong>Data de Entrega:</strong> Não definida</p>';
+    if (dueDateStatus.text) {
+        dueDateDetailHtml = `<p class="due-date-info ${dueDateStatus.className}" style="width: 100%; justify-content: center;"><strong>${dueDateStatus.text}</strong></p>`;
+    }
+
+
     // MUDANÇA: Renderização aninhada para etapas e sub-tarefas
     const stepsHtml = service.steps
       .map((step, stepIndex) => {
@@ -625,7 +689,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const startCollapsed = !openSteps.includes(stepIndex);
 
         return `
-                <li class="step-group" data-step-index="${stepIndex}">
+                <li class="step-group" data-step-index="${stepIndex}" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};">
                     <h4 class="step-group-title ${
                       startCollapsed ? "collapsed" : ""
                     }">
@@ -669,6 +733,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   service.category || "Não definida"
                 }</p>
                 <p><strong>Responsável Geral:</strong> ${responsibleName}</p>
+                ${dueDateDetailHtml}
                 <!-- MUDANÇA: Adiciona a barra de progresso -->
                 <div class="progress-info">
                     <span>Progresso</span>
@@ -827,10 +892,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const categoriesHtml = predefinedCategories.map(cat => `
         <li class="user-list-item" data-category-id="${cat.id}">
+            <div class="category-color-swatch" style="background-color: ${cat.color || '#ccc'}"></div>
             <div class="user-list-info">
-                <div class="user-name">${cat.name}</div>
+                <div class="user-name" style="color: ${cat.color || 'inherit'}">${cat.name}</div>
             </div>
             <div class="user-list-actions">
+                <button class="btn-icon btn-edit-category" title="Editar Categoria">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg>
+                </button>
                 <button class="btn-icon btn-delete-category" title="Deletar Categoria">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
                 </button>
@@ -848,6 +917,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <form id="add-category-form" class="form-inline">
                 <div class="form-group">
                     <input type="text" id="new-category-name" placeholder="Nome da Categoria" required>
+                    <input type="color" id="new-category-color" title="Cor da Categoria" value="#001f3f">
                 </div>
                 <button type="submit" class="btn-primary">Adicionar</button>
             </form>
@@ -865,11 +935,13 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const input = document.getElementById('new-category-name');
             const categoryName = input.value.trim();
+            const categoryColor = document.getElementById('new-category-color').value;
+
             if (!categoryName) return;
 
             showLoading();
             try {
-                await addDoc(categoriesCollection, { name: categoryName });
+                await addDoc(categoriesCollection, { name: categoryName, color: categoryColor });
                 await loadPredefinedCategories(); // Recarrega a lista
                 renderCategoryManagementPage(); // Redesenha a página
             } catch (error) {
@@ -1085,6 +1157,68 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (!e.target.closest("#notification-panel")) {
         // Fecha o painel se clicar fora dele
         document.getElementById("notification-panel").classList.add("hidden");
+    }
+
+    // MUDANÇA: Botão de editar categoria
+    const editCategoryBtn = e.target.closest(".btn-edit-category");
+    if (editCategoryBtn) {
+        const listItem = editCategoryBtn.closest(".user-list-item");
+        const categoryId = listItem.dataset.categoryId;
+        const category = predefinedCategories.find(c => c.id === categoryId);
+        if (!category) return;
+
+        // Salva o HTML original para poder cancelar a edição
+        listItem.dataset.originalHtml = listItem.innerHTML;
+
+        // Transforma o item da lista em um formulário de edição
+        listItem.innerHTML = `
+            <div class="category-edit-form">
+                <input type="color" name="editCategoryColor" value="${category.color || '#001f3f'}">
+                <input type="text" name="editCategoryName" value="${category.name}" required>
+                <div class="user-list-actions">
+                    <button class="btn-icon btn-save-category" title="Salvar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>
+                    </button>
+                    <button class="btn-icon btn-cancel-edit-category" title="Cancelar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>
+                    </button>
+                </div>
+            </div>
+        `;
+        listItem.classList.add('editing');
+    }
+
+    // MUDANÇA: Botão para cancelar a edição da categoria
+    const cancelEditCategoryBtn = e.target.closest(".btn-cancel-edit-category");
+    if (cancelEditCategoryBtn) {
+        const listItem = cancelEditCategoryBtn.closest(".user-list-item");
+        listItem.innerHTML = listItem.dataset.originalHtml;
+        listItem.classList.remove('editing');
+        delete listItem.dataset.originalHtml;
+    }
+
+    // MUDANÇA: Botão para salvar a edição da categoria
+    const saveCategoryBtn = e.target.closest(".btn-save-category");
+    if (saveCategoryBtn) {
+        const listItem = saveCategoryBtn.closest(".user-list-item");
+        const categoryId = listItem.dataset.categoryId;
+        const newName = listItem.querySelector('[name="editCategoryName"]').value.trim();
+        const newColor = listItem.querySelector('[name="editCategoryColor"]').value;
+
+        if (!newName || !categoryId) return;
+
+        showLoading();
+        try {
+            const categoryRef = doc(db, "categories", categoryId);
+            await updateDoc(categoryRef, { name: newName, color: newColor });
+            await loadPredefinedCategories(); // Recarrega os dados
+            renderCategoryManagementPage(); // Redesenha a página com os dados atualizados
+        } catch (error) {
+            console.error("Erro ao atualizar categoria:", error);
+            alert("Falha ao atualizar a categoria.");
+        } finally {
+            hideLoading();
+        }
     }
 
     // MUDANÇA: Botão de deletar categoria
@@ -1746,6 +1880,8 @@ document.addEventListener("DOMContentLoaded", () => {
       service.responsible;
     addServiceForm.querySelector('[name="serviceCategory"]').value =
       service.category || "";
+    // MUDANÇA: Preenche a data de entrega
+    addServiceForm.querySelector('[name="serviceDueDate"]').value = service.dueDate || "";
 
     // MUDANÇA: Limpa e preenche as etapas e sub-etapas corretamente
     stepsContainer.innerHTML = "";
@@ -1829,24 +1965,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const serviceName = formData.get("serviceName");
     const responsibleId = formData.get("responsibleName");
     const category = formData.get("serviceCategory");
+    const dueDate = formData.get("serviceDueDate"); // MUDANÇA: Pega a data
 
     // MUDANÇA: Lógica para coletar etapas e sub-etapas
     const stepGroups = stepsContainer.querySelectorAll(".step-group-modal");
     const steps = Array.from(stepGroups).map((group) => {
       const stepName = group.querySelector('[name="stepName"]').value;
+      const stepColor = group.querySelector('[name="stepColor"]').value;
       const substepInputs = group.querySelectorAll('[name="substepName"]');
       const subtasks = Array.from(substepInputs).map((input) => ({
         name: input.value,
         completed: false,
       }));
       // Garante que haja pelo menos uma sub-etapa se nenhuma for adicionada
-      return { name: stepName, subtasks: subtasks.length > 0 ? subtasks : [{ name: "Tarefa Padrão", completed: false }] };
+      return { name: stepName, color: stepColor, subtasks: subtasks.length > 0 ? subtasks : [{ name: "Tarefa Padrão", completed: false }] };
     });
 
     const serviceData = {
       name: serviceName,
       responsible: responsibleId,
       category: category,
+      dueDate: dueDate || null, // MUDANÇA: Salva a data ou null
       steps: steps,
       ownerId: currentUser.uid,
       files: [], // Manter os arquivos existentes ao editar (lógica futura)
@@ -2007,6 +2146,7 @@ document.addEventListener("DOMContentLoaded", () => {
     group.className = "step-group-modal";
 
     const stepName = step ? step.name : "";
+    const stepColor = step ? step.color : "#808080"; // Cinza como padrão
     const subtasks = step
       ? step.subtasks
       : [{ name: "Tarefa Padrão", completed: false }];
@@ -2022,6 +2162,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="drag-handle" title="Arraste para reordenar">⠿</div>
       <div class="step-input-row">
         <input type="text" name="stepName" placeholder="Nome da etapa principal" value="${stepName}" required />
+        <input type="color" name="stepColor" title="Cor da Etapa" value="${stepColor}" />
         <button type="button" class="btn-icon btn-delete-step" title="Remover Etapa"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
       </div>
       <div class="form-group">
