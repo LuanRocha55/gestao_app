@@ -62,11 +62,6 @@ header {
     gap: 20px;
 }
 
-.header-right, #header-menu-items {
-    display: flex;
-    justify-content: flex-end;
-}
-
 #header-menu-items {
     display: flex;
     align-items: center;
@@ -221,15 +216,8 @@ input[type="color"] {
 
 #notification-count.badge:not(.hidden) {
     transform: scale(1);
-    animation: pulse 0.5s 1; /* MUDANÇA: Adiciona a animação de pulso */
 }
 
-/* MUDANÇA: Animação de pulso para o selo de notificação */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.25); }
-    100% { transform: scale(1); }
-}
 #notification-panel {
     position: absolute;
     top: calc(100% + 15px);
@@ -543,16 +531,21 @@ main {
 
 #service-list-wrapper {
     padding: 40px;
+}
+
+/* MUDANÇA: O grid agora é aplicado ao container de cartões de cada categoria */
+.service-card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 30px;
+    margin-bottom: 30px; /* Espaço entre as categorias */
+    min-height: 100px; /* Garante que mesmo categorias vazias tenham uma área para soltar */
 }
-
 
 .category-title {
     grid-column: 1 / -1; /* Garante que o título ocupe toda a largura da grid */
     color: var(--accent-color);
-    margin-bottom: 0; /* O gap da grid cuidará do espaçamento vertical */
+    margin-bottom: 25px; /* CORREÇÃO: Adiciona espaço entre o título e os cartões */
     border-bottom: 3px solid var(--accent-color); /* MUDANÇA: Aumenta a espessura da borda */
     margin-top: 20px;
     padding-bottom: 10px;
@@ -594,6 +587,12 @@ main {
     margin-right: 10px;
 }
 
+/* MUDANÇA: Wrapper para o título e a tag de prioridade */
+.card-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 /* MUDANÇA: Estilos para o indicador de data de entrega */
 .due-date-info {
     display: flex;
@@ -637,6 +636,32 @@ main {
     align-items: flex-start;
     margin-bottom: 10px;
 }
+
+/* MUDANÇA: Estilos para a tag de prioridade */
+.priority-tag {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0; /* Impede que a tag encolha */
+}
+
+.priority-tag.alta { background-color: #E53935; } /* Vermelho */
+.priority-tag.média { background-color: #FFB300; } /* Âmbar */
+.priority-tag.baixa { background-color: #43A047; } /* Verde */
+
+/* MUDANÇA: Estilo da tag na página de detalhes */
+.priority-tag-detail {
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 5px;
+    color: #fff;
+}
+.priority-tag-detail.alta { background-color: #E53935; }
+.priority-tag-detail.média { background-color: #FFB300; }
+.priority-tag-detail.baixa { background-color: #43A047; }
+}
 .card-actions {
     display: flex;
     gap: 8px;
@@ -654,6 +679,11 @@ main {
     color: var(--text-color);
     opacity: 0.6;
     transition: opacity 0.2s ease, color 0.3s ease;
+}
+
+.step-item .btn-delete-subtask-detail {
+    visibility: hidden;
+    opacity: 0;
 }
 
 .service-card .responsible {
@@ -784,7 +814,7 @@ body.dark-theme .btn-primary:hover {
 
 .modal-content {
     background-color: var(--card-bg);
-    margin: 5vh auto; /* MUDANÇA: Usa vh para melhor posicionamento vertical */
+    margin: 3vh auto; /* MUDANÇA: Reduz a margem vertical para telas menores */
     padding: 30px;
     border-radius: 10px;
     width: 90%;
@@ -792,7 +822,7 @@ body.dark-theme .btn-primary:hover {
     position: relative;
     box-shadow: 0 5px 20px var(--shadow-color);
     animation: slideIn 0.4s ease-out;
-    max-height: 90vh; /* MUDANÇA: Garante que o modal não saia da tela */
+    max-height: 94vh; /* MUDANÇA: Garante que o modal não saia da tela */
     overflow-y: auto; /* MUDANÇA: Adiciona scroll se o conteúdo for maior */
 }
 
@@ -904,6 +934,12 @@ body.dark-theme .btn-primary:hover {
 
 .sortable-drag {
     cursor: grabbing;
+}
+
+/* MUDANÇA: Estilo para o "fantasma" do cartão de serviço ao arrastar */
+.service-card.sortable-ghost {
+    background: var(--accent-color);
+    opacity: 0.3;
 }
 
 .step-group-modal .form-group {
@@ -1045,15 +1081,6 @@ body.dark-theme .btn-primary:hover {
         border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    #header-menu-items.open {
-        display: flex; /* Mostra os itens quando o menu está aberto */
-    }
-
-    /* MUDANÇA: Garante que os itens dentro do menu mobile ocupem a largura total */
-    #header-menu-items > * {
-        width: 100%;
-    }
-
     main {
         padding: 30px 20px;
     }
@@ -1068,8 +1095,13 @@ body.dark-theme .btn-primary:hover {
         padding-top: 20px;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .header-right.open {
+    #header-menu-items.open {
         display: flex; /* Mostra quando o menu está aberto */
+    }
+
+    /* MUDANÇA: Garante que os itens dentro do menu mobile ocupem a largura total */
+    #header-menu-items > * {
+        width: 100%;
     }
 }
 
@@ -1082,6 +1114,11 @@ body.dark-theme .btn-primary:hover {
 
     .step-input-row {
         flex-direction: column;
+        align-items: stretch; /* Faz os itens ocuparem a largura total */
+    }
+
+    .modal-content {
+        padding: 20px; /* Reduz o padding do modal em telas muito pequenas */
     }
 }
 
@@ -1137,26 +1174,6 @@ body.detail-view-active .header-content {
 .dashboard-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px var(--shadow-color);
-}
-
-/* MUDANÇA: Estilo para o selo de notificação no card do dashboard */
-.dashboard-badge {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background-color: #E53935; /* Vermelho */
-    color: white;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 0.8em;
-    font-weight: 700;
-    border: 2px solid var(--card-bg);
-    z-index: 1; /* Garante que fique acima do conteúdo do card */
-    transition: transform 0.2s ease;
 }
 
 .dashboard-card a {
@@ -1293,6 +1310,12 @@ body.detail-view-active .header-content {
     font-size: 0.8em;
     color: var(--accent-color);
 }
+.step-assignee-detail {
+    font-size: 0.85em;
+    font-weight: 400; /* Normal, não negrito */
+    opacity: 0.7;
+    cursor: default;
+}
 
 .step-group-title.collapsed::before {
     transform: translateY(-50%) rotate(-90deg);
@@ -1365,6 +1388,90 @@ body.detail-view-active .header-content {
     }
 }
 
+/* --- MUDANÇA: Estilos para o Painel Kanban --- */
+#kanban-board {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 6 colunas fixas */
+    gap: 20px;
+    padding-top: 20px;
+    overflow-x: auto; /* Permite scroll horizontal em telas pequenas */
+    min-height: 60vh;
+}
+
+.kanban-column {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-color);
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid var(--progress-bar-bg);
+}
+
+.kanban-column-title {
+    color: var(--accent-color);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--accent-color);
+    text-align: center;
+    font-size: 1.1em;
+}
+
+.kanban-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex-grow: 1; /* Ocupa o espaço disponível */
+}
+
+.kanban-card {
+    padding: 20px;
+}
+
+.kanban-card h2 {
+    font-size: 1.1em;
+}
+
+.kanban-card .responsible {
+    margin-bottom: 10px;
+}
+
+.kanban-card .progress-info {
+    margin-top: 10px;
+}
+
+@media (max-width: 1200px) {
+    #kanban-board {
+        /* Em telas menores, permite que as colunas tenham um tamanho mínimo */
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+/* --- MUDANÇA: Estilos para Serviços Concluídos --- */
+.service-completed {
+    opacity: 0.7;
+    transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+
+.service-completed:hover {
+    opacity: 1; /* Restaura a opacidade no hover para facilitar a interação */
+}
+
+.service-completed .progress-bar {
+    background-color: #43A047; /* Mantém a barra de progresso verde */
+}
+
+/* MUDANÇA: Estilo para o selo de conclusão na página de detalhes */
+.completion-badge {
+    display: inline-block;
+    background-color: #43A047;
+    color: #fff;
+    padding: 5px 12px;
+    font-size: 0.7em;
+    border-radius: 15px;
+    vertical-align: middle;
+    margin-left: 10px;
+    font-weight: 700;
+}
 /* --- Estilos da Área de Upload --- */
 .file-upload-actions {
     margin-top: 20px;

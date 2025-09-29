@@ -180,11 +180,14 @@ document.addEventListener("DOMContentLoaded", () => {
         name: "Livro de Exemplo",
         responsible: user.uid,
         category: "Desenvolvimento",
+        orderIndex: 1, // MUDANÇA: Adiciona índice de ordenação
+        priority: "Alta", // MUDANÇA: Adiciona prioridade
         dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Vence em 15 dias
         files: [],
         steps: [
           {
             name: "Conteudista",
+            responsibleId: user.uid, // MUDANÇA: Adiciona responsável pela etapa
             // MUDANÇA: Garante que a estrutura de sub-tarefas sempre exista
             subtasks: [
               { name: "Tarefa Padrão", completed: false },
@@ -197,6 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
           {
             name: "DI",
             color: "#ffc107",
+            responsibleId: null, // MUDANÇA: Etapa sem responsável definido
             subtasks: [
               { name: "Unidade 1", completed: true },
               { name: "Unidade 2", completed: false },
@@ -207,6 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
           {
             name: "PDF",
             color: "#28a745",
+            responsibleId: null,
             subtasks: [
               { name: "Unidade 1", completed: false },
               { name: "Unidade 2", completed: false },
@@ -217,6 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
           {
             name: "AudioVisual",
             color: "#dc3545",
+            responsibleId: null,
             subtasks: [
               { name: "Unidade 1", completed: false },
               { name: "Unidade 2", completed: false },
@@ -231,6 +237,8 @@ document.addEventListener("DOMContentLoaded", () => {
         name: "Campanha de Exemplo",
         responsible: user.uid,
         category: "Marketing",
+        orderIndex: 2, // MUDANÇA: Adiciona índice de ordenação
+        priority: "Média", // MUDANÇA: Adiciona prioridade
         dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Venceu há 2 dias
         color: "#17a2b8",
         files: [],
@@ -543,15 +551,31 @@ document.addEventListener("DOMContentLoaded", () => {
       currentServiceListWrapper.innerHTML = `<p class="no-results">Nenhum serviço encontrado para "${searchInput.value}".</p>`;
       return;
     }
-    // 1. Agrupar serviços por categoria
-    const groupedServices = servicesToRender.reduce((acc, service) => {
-      const category = service.category || "Outros"; // Agrupa em 'Outros' se não tiver categoria
+
+    // MUDANÇA: Separa os serviços em ativos e concluídos
+    const activeServices = [];
+    const completedServices = [];
+
+    servicesToRender.forEach(service => {
+        if (calculateOverallProgress(service).percentage === 100) {
+            completedServices.push(service);
+        } else {
+            activeServices.push(service);
+        }
+    });
+
+    // 1. Agrupa apenas os serviços ativos por categoria
+    const groupedActiveServices = activeServices.reduce((acc, service) => {
+      const category = service.category || "Outros";
       if (!acc[category]) {
         acc[category] = [];
       }
       acc[category].push(service);
       return acc;
     }, {});
+
+    // MUDANÇA: Limpa a lista atual antes de adicionar os novos resultados filtrados.
+    currentServiceListWrapper.innerHTML = '';
 
     // MUDANÇA: Usa um DocumentFragment para melhorar a performance da renderização,
     // montando todos os elementos em memória antes de adicioná-los ao DOM de uma só vez.
@@ -560,10 +584,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Limpa a lista atual antes de adicionar os novos resultados filtrados.
     currentServiceListWrapper.innerHTML = '';
 
-    // 2. Renderizar por grupo
-    Object.keys(groupedServices)
-      .sort()
-      .forEach((category) => {
+    // MUDANÇA: Função para renderizar um grupo de categoria
+    const renderCategoryGroup = (category, services) => {
         // Cria e adiciona o título da categoria
         const titleEl = document.createElement("h3");
         titleEl.className = "category-title";
@@ -575,8 +597,21 @@ document.addEventListener("DOMContentLoaded", () => {
         titleEl.textContent = category;
         mainFragment.appendChild(titleEl);
 
+        // MUDANÇA: Cria um container para os cartões da categoria, que será o alvo do SortableJS
+        const cardContainer = document.createElement('div');
+        cardContainer.className = 'service-card-grid';
+        cardContainer.dataset.category = category; // Armazena a categoria no container
+
         // Renderiza os cards dentro da categoria
-        groupedServices[category].forEach((service) => {
+        // MUDANÇA: Ordena os serviços pelo orderIndex antes de renderizar
+        services
+          .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+          .forEach((service) => {
+
+          // MUDANÇA: O cartão agora tem um data-id para identificação no drag-and-drop
+          const card = document.createElement("div");
+          card.className = "service-card";
+          card.dataset.id = service.id;
           // MUDANÇA: O progresso agora é baseado nas sub-tarefas
           const progress = calculateOverallProgress(service);
 
@@ -593,9 +628,20 @@ document.addEventListener("DOMContentLoaded", () => {
           const responsibleName =
             teamMemberMap.get(service.responsible) || "Não atribuído";
 
-          const card = document.createElement("div");
-          card.className = "service-card";
-          card.dataset.id = service.id;
+          // MUDANÇA: Adiciona a tag de prioridade
+          const priority = service.priority || "Média";
+          const priorityTagHtml = `<span class="priority-tag ${priority.toLowerCase()}">${priority}</span>`;
+
+          // MUDANÇA: Adiciona um ID único ao container de etapas para o SortableJS
+          const stepsListId = `steps-list-${service.id}`;
+          card.addEventListener('mouseenter', () => {
+              initializeCardStepSorting(stepsListId, service.id);
+          });
+
+          // MUDANÇA: Adiciona classe se o serviço estiver completo
+          if (progress.percentage === 100) {
+              card.classList.add('service-completed');
+          }
 
           const stepsHtml = service.steps
             .map((step, index) => {
@@ -604,20 +650,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 step.subtasks.length > 0 &&
                 step.subtasks.every((st) => st.completed);
 
-              return `<li class="step-item" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};"> 
+              // MUDANÇA: Adiciona o nome do responsável da etapa, se houver
+              const stepResponsibleName = step.responsibleId ? teamMemberMap.get(step.responsibleId) : null;
+              const stepResponsibleHtml = stepResponsibleName ? `<span class="step-assignee">(${stepResponsibleName})</span>` : '';
+
+              return `<li class="step-item" data-step-name="${step.name}" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};"> 
                         <input type="checkbox" id="step-${
                           service.id
                         }-${index}" data-step-index="${index}" ${
                 isStepCompleted ? "checked" : ""
               }>
-                        <label for="step-${service.id}-${index}">${step.name}</label>
+                        <label for="step-${service.id}-${index}">${step.name} ${stepResponsibleHtml}</label>
                     </li>`;
             })
             .join("");
 
           card.innerHTML = `
                     <div class="card-header">
-                        <h2><a href="#/service/${service.id}">${service.name}</a></h2>
+                        <div class="card-title-wrapper">
+                            <h2><a href="#/service/${service.id}">${service.name}</a></h2>
+                            ${priorityTagHtml}
+                        </div>
                         <div class="card-actions">
                             <button class="btn-icon btn-edit" title="Editar Serviço" data-service-id="${
                               service.id
@@ -640,16 +693,99 @@ document.addEventListener("DOMContentLoaded", () => {
                           progress.percentage
                         }%;"></div>
                     </div>
-                    <ul class="steps-list">
-                        ${stepsHtml}
-                    </ul>
+                    ${progress.percentage === 100 ? 
+                        `<button class="btn-secondary btn-reopen" data-service-id="${service.id}" style="width: 100%; margin-top: 15px;">Reabrir Serviço</button>` :
+                        `<ul class="steps-list" id="${stepsListId}">${stepsHtml}</ul>`
+                    }
                 `;
-          mainFragment.appendChild(card);
+          cardContainer.appendChild(card);
         });
+        mainFragment.appendChild(cardContainer);
+    };
+
+    // 2. Renderiza os grupos de serviços ativos
+    Object.keys(groupedActiveServices)
+      .sort()
+      .forEach((category) => {
+        renderCategoryGroup(category, groupedActiveServices[category]);
       });
 
+    // 3. Renderiza a categoria de serviços concluídos, se houver
+    if (completedServices.length > 0) {
+        renderCategoryGroup("Concluídos", completedServices);
+    }
+
     currentServiceListWrapper.appendChild(mainFragment);
+
+    // MUDANÇA: Inicializa o SortableJS para todos os containers de categoria
+    initializeServiceCardSorting();
   }
+/*
+            const progress = calculateOverallProgress(service);
+            const dueDateStatus = getDueDateStatus(service.dueDate);
+            let dueDateHtml = '';
+            if (dueDateStatus.text) {
+                dueDateHtml = `
+                    <div class="due-date-info ${dueDateStatus.className}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z" /></svg>
+                        <span>${dueDateStatus.text}</span>
+                    </div>`;
+            }
+            const responsibleName = teamMemberMap.get(service.responsible) || "Não atribuído";
+            const priority = service.priority || "Média";
+            const priorityTagHtml = `<span class="priority-tag ${priority.toLowerCase()}">${priority}</span>`;
+
+            // MUDANÇA: Adiciona um botão de reabrir para serviços concluídos
+            const reopenButtonHtml = `
+                <button class="btn-secondary btn-reopen" data-service-id="${service.id}" style="width: 100%; margin-top: 15px;">Reabrir Serviço</button>
+            `;
+
+            const card = document.createElement("div");
+            card.className = "service-card service-completed"; // Adiciona a classe para estilo
+            card.dataset.id = service.id;
+
+            const stepsHtml = service.steps
+                .map((step, index) => {
+                    const isStepCompleted = step.subtasks && step.subtasks.length > 0 && step.subtasks.every((st) => st.completed);
+                    const stepResponsibleName = step.responsibleId ? teamMemberMap.get(step.responsibleId) : null;
+                    const stepResponsibleHtml = stepResponsibleName ? `<span class="step-assignee">(${stepResponsibleName})</span>` : '';
+
+                    return `<li class="step-item" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};"> 
+                                <input type="checkbox" id="step-${service.id}-${index}" data-step-index="${index}" ${isStepCompleted ? "checked" : ""}>
+                                <label for="step-${service.id}-${index}">${step.name} ${stepResponsibleHtml}</label>
+                            </li>`;
+                })
+                .join("");
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title-wrapper">
+                        <h2><a href="#/service/${service.id}">${service.name}</a></h2>
+                        ${priorityTagHtml}
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-icon btn-edit" title="Editar Serviço" data-service-id="${service.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg>
+                        </button>
+                        <button class="btn-icon btn-delete" title="Deletar Serviço" data-service-id="${service.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <p class="responsible">Responsável: ${responsibleName}</p>
+                ${dueDateHtml}
+                <div class="progress-info">
+                    <span>Progresso</span>
+                    <span class="progress-text">${Math.round(progress.percentage)}%</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${progress.percentage}%;"></div>
+                </div>
+                ${reopenButtonHtml}
+            `;
+            mainFragment.appendChild(card);
+        });
+    }*/
 
   // --- Funções da Página de Detalhes do Serviço ---
   function renderServiceDetail(service, openSteps = []) {
@@ -664,6 +800,9 @@ document.addEventListener("DOMContentLoaded", () => {
         dueDateDetailHtml = `<p class="due-date-info ${dueDateStatus.className}" style="width: 100%; justify-content: center;"><strong>${dueDateStatus.text}</strong></p>`;
     }
 
+    // MUDANÇA: Adiciona a prioridade na página de detalhes
+    const priority = service.priority || "Média";
+    const priorityDetailHtml = `<p><strong>Prioridade:</strong> <span class="priority-tag-detail ${priority.toLowerCase()}">${priority}</span></p>`;
 
     // MUDANÇA: Renderização aninhada para etapas e sub-tarefas
     const stepsHtml = service.steps
@@ -688,15 +827,22 @@ document.addEventListener("DOMContentLoaded", () => {
           )
           .join("");
 
+        // MUDANÇA: Adiciona o responsável da etapa no título
+        const stepResponsibleName = step.responsibleId ? teamMemberMap.get(step.responsibleId) : "Ninguém";
+        const stepResponsibleHtml = `<span class="step-assignee-detail">Responsável: ${stepResponsibleName}</span>`;
+
         // MUDANÇA: Verifica se a etapa deve começar recolhida ou não
         const startCollapsed = !openSteps.includes(stepIndex);
 
         return `
-                <li class="step-group" data-step-index="${stepIndex}" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};">
+                <li class="step-group" data-step-name="${step.name}" data-step-index="${stepIndex}" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};">
                     <h4 class="step-group-title ${
                       startCollapsed ? "collapsed" : ""
                     }">
-                        <span class="step-name-toggle">${step.name}</span>
+                        <div class="step-title-content">
+                            <span class="step-name-toggle">${step.name}</span>
+                            ${stepResponsibleHtml}
+                        </div>
                         <button class="btn-icon btn-delete-step-detail" title="Deletar Etapa" data-step-index="${stepIndex}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
                         </button>
@@ -724,7 +870,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     taskDetailView.innerHTML = `
             <div class="detail-header">
-                <h2>${service.name}</h2>
+                <h2>${service.name} ${progress.percentage === 100 ? '<span class="completion-badge">Concluído</span>' : ''}</h2>
                 <div class="detail-header-actions">
                     <button class="btn-primary btn-edit" data-service-id="${service.id}">Editar</button>
                     <a href="#/services" class="btn-secondary">Voltar</a>
@@ -736,6 +882,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   service.category || "Não definida"
                 }</p>
                 <p><strong>Responsável Geral:</strong> ${responsibleName}</p>
+                ${priorityDetailHtml}
                 ${dueDateDetailHtml}
                 <!-- MUDANÇA: Adiciona a barra de progresso -->
                 <div class="progress-info">
@@ -750,7 +897,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="detail-section">
                             <h3>Etapas e Sub-etapas</h3>
-                <ul class="steps-list-detailed">${stepsHtml}</ul>
+                <ul id="detailed-steps-list" class="steps-list-detailed">${stepsHtml}</ul>
             </div>
             <div class="detail-section">
                 <h3>Arquivos</h3>
@@ -1065,6 +1212,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         renderServiceDetail(service, openStepsIndices);
         listenForComments(taskId); // MUDANÇA: Começa a ouvir os comentários da tarefa
+        initializeDetailStepSorting(taskId); // MUDANÇA: Ativa o drag-and-drop na página de detalhes
       } else {
         // Se a tarefa não for encontrada, volta para a lista principal
         console.warn(`Serviço com ID ${taskId} não encontrado.`);
@@ -1095,6 +1243,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // Adiciona o listener para a nova barra de pesquisa
       const searchInput = document.getElementById('services-search-input');
       searchInput.addEventListener('input', renderServiceCards);
+      // MUDANÇA: Limpa o wrapper antes de renderizar para evitar duplicação de conteúdo
+      const wrapper = document.getElementById("service-list-wrapper");
+      if (wrapper) wrapper.innerHTML = '';
       renderServiceCards(); // Renderiza os cards iniciais
     }
   }
@@ -1120,8 +1271,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Título de um grupo de etapas (para expandir/recolher)
     if (e.target.classList.contains("step-name-toggle")) {
-      const titleElement = e.target.parentElement;
-      titleElement.classList.toggle("collapsed");
+      // CORREÇÃO: Busca o elemento 'h4' pai para garantir que a lógica funcione
+      const titleElement = e.target.closest(".step-group-title");
+      if (titleElement) titleElement.classList.toggle("collapsed");
       const subtaskList = titleElement.nextElementSibling;
       if (subtaskList && subtaskList.classList.contains("subtask-list")) {
         subtaskList.classList.toggle("hidden");
@@ -1145,6 +1297,32 @@ document.addEventListener("DOMContentLoaded", () => {
           hideLoading();
         }
       }
+    }
+
+    // MUDANÇA: Lógica para o botão "Reabrir Serviço"
+    const reopenBtn = e.target.closest(".btn-reopen");
+    if (reopenBtn) {
+        const serviceId = reopenBtn.dataset.serviceId;
+        const service = services.find(s => s.id === serviceId);
+
+        if (service && confirm("Tem certeza que deseja reabrir este serviço? Ele voltará para sua categoria original.")) {
+            showLoading();
+            try {
+                // Encontra a primeira sub-etapa e a desmarca
+                const firstStepWithSubtasks = service.steps.find(step => step.subtasks && step.subtasks.length > 0);
+                if (firstStepWithSubtasks) {
+                    firstStepWithSubtasks.subtasks[0].completed = false;
+                    const serviceRef = doc(db, "services", serviceId);
+                    await updateDoc(serviceRef, { steps: service.steps });
+                    // O onSnapshot cuidará de mover o card
+                }
+            } catch (error) {
+                console.error("Erro ao reabrir serviço:", error);
+                alert("Falha ao reabrir o serviço.");
+            } finally {
+                hideLoading();
+            }
+        }
     }
 
     // MUDANÇA: Abrir/fechar painel de notificações
@@ -1464,7 +1642,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const subtaskIndex = parseInt(checkbox.dataset.subtaskIndex, 10);
       const taskId = window.location.hash.substring("#/service/".length);
 
-      const service = services.find((s) => s.id === taskId);
+      const service = services.find((s) => s.id === taskId); // CORREÇÃO: A variável já estava correta, mas o problema estava em outro lugar.
       if (service && !isNaN(stepIndex) && !isNaN(subtaskIndex)) {
         // Atualiza o estado localmente
         service.steps[stepIndex].subtasks[subtaskIndex].completed =
@@ -1515,7 +1693,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const file = e.target.files[0];
       if (!file) return;
 
-      const taskId = window.location.hash.substring("#/service/".length);
+      // CORREÇÃO: Captura o ID do serviço a partir do hash da URL corretamente.
+      const taskId = window.location.hash.split('/')[2];
       showLoading();
       await uploadAndLinkFile(taskId, file);
       hideLoading();
@@ -1861,6 +2040,101 @@ document.addEventListener("DOMContentLoaded", () => {
     select.innerHTML = `<option value="">Selecione uma categoria...</option>${optionsHtml}`;
   }
 
+  // MUDANÇA: Nova função para inicializar a ordenação dos cartões de serviço
+  function initializeServiceCardSorting() {
+    const containers = document.querySelectorAll('.service-card-grid');
+    containers.forEach(container => {
+      new Sortable(container, {
+        group: 'services', // Permite arrastar entre categorias
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: async (evt) => {
+          const serviceId = evt.item.dataset.id;
+          const newCategory = evt.to.dataset.category;
+          
+          // Pega todos os IDs na nova lista e encontra o novo índice
+          const serviceIdsInNewList = Array.from(evt.to.children).map(card => card.dataset.id);
+          const newIndex = serviceIdsInNewList.indexOf(serviceId);
+
+          // Atualiza o serviço no Firestore
+          const serviceRef = doc(db, "services", serviceId);
+          await updateDoc(serviceRef, { category: newCategory, orderIndex: newIndex });
+          // O onSnapshot irá redesenhar a UI, mas a mudança visual é instantânea.
+        }
+      });
+    });
+  }
+
+  // MUDANÇA: Função para salvar a nova ordem das etapas
+  async function saveStepOrder(serviceId, newStepOrder) {
+      const service = services.find(s => s.id === serviceId);
+      if (!service) return;
+
+      // Mapeia a nova ordem de nomes de volta para a estrutura completa das etapas
+      const originalStepsMap = new Map(service.steps.map(step => [step.name, step]));
+      const reorderedSteps = newStepOrder.map(stepName => originalStepsMap.get(stepName));
+
+      // Atualiza o objeto local e o Firestore
+      service.steps = reorderedSteps;
+      const serviceRef = doc(db, "services", serviceId);
+      try {
+          await updateDoc(serviceRef, { steps: reorderedSteps });
+      } catch (error) {
+          console.error("Erro ao reordenar etapas:", error);
+          alert("Falha ao salvar a nova ordem das etapas.");
+      }
+  }
+
+  // MUDANÇA: Função para inicializar a ordenação das etapas no cartão
+  function initializeCardStepSorting(listId, serviceId) {
+      const listElement = document.getElementById(listId);
+      if (listElement && !listElement.classList.contains('sortable-initialized')) {
+          new Sortable(listElement, {
+              animation: 150,
+              ghostClass: "sortable-ghost",
+              onEnd: (evt) => {
+                  const newOrder = Array.from(evt.target.children).map(item => item.dataset.stepName);
+                  saveStepOrder(serviceId, newOrder);
+              },
+          });
+          listElement.classList.add('sortable-initialized');
+      }
+  }
+
+  // MUDANÇA: Função para inicializar a ordenação na página de detalhes
+  function initializeDetailStepSorting(serviceId) {
+      const listElement = document.getElementById('detailed-steps-list');
+      if (listElement) {
+          new Sortable(listElement, {
+              animation: 150,
+              handle: ".step-group-title", // Permite arrastar pelo título
+              ghostClass: "sortable-ghost",
+              onEnd: (evt) => {
+                  const newOrder = Array.from(evt.target.children).map(item => item.dataset.stepName);
+                  // Salva a nova ordem
+                  saveStepOrder(serviceId, newOrder).then(() => {
+                      // Redesenha a view para atualizar os índices, se necessário
+                      const service = services.find(s => s.id === serviceId);
+                      if (service) renderServiceDetail(service);
+                  });
+              },
+          });
+      }
+  }
+
+  // MUDANÇA: Nova função para inicializar a ordenação das etapas
+  function initializeStepSorting() {
+    if (sortableSteps) {
+      sortableSteps.destroy();
+    }
+    sortableSteps = new Sortable(stepsContainer, {
+      animation: 150,
+      handle: ".drag-handle", // Define o ícone como a alça para arrastar
+      ghostClass: "sortable-ghost", // Classe CSS para o item "fantasma"
+      dragClass: "sortable-drag", // Classe CSS para o item sendo arrastado
+    });
+  }
+
   function populateTeamMemberSelects() {
     const select = document.getElementById("responsibleName");
     if (!select) return;
@@ -1885,6 +2159,8 @@ document.addEventListener("DOMContentLoaded", () => {
       service.category || "";
     // MUDANÇA: Preenche a data de entrega
     addServiceForm.querySelector('[name="serviceDueDate"]').value = service.dueDate || "";
+    // MUDANÇA: Preenche a prioridade
+    addServiceForm.querySelector('[name="servicePriority"]').value = service.priority || "Média";
 
     // MUDANÇA: Limpa e preenche as etapas e sub-etapas corretamente
     stepsContainer.innerHTML = "";
@@ -1898,6 +2174,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "Salvar Alterações";
 
     modal.style.display = "block";
+    initializeStepSorting(); // MUDANÇA: Ativa o arrastar e soltar
   }
 
   function openAddServiceModal() {
@@ -1969,25 +2246,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const responsibleId = formData.get("responsibleName");
     const category = formData.get("serviceCategory");
     const dueDate = formData.get("serviceDueDate"); // MUDANÇA: Pega a data
+    const priority = formData.get("servicePriority"); // MUDANÇA: Pega a prioridade
 
     // MUDANÇA: Lógica para coletar etapas e sub-etapas
     const stepGroups = stepsContainer.querySelectorAll(".step-group-modal");
     const steps = Array.from(stepGroups).map((group) => {
       const stepName = group.querySelector('[name="stepName"]').value;
       const stepColor = group.querySelector('[name="stepColor"]').value;
+      const stepResponsibleId = group.querySelector('[name="stepResponsible"]').value; // MUDANÇA: Pega o responsável da etapa
       const substepInputs = group.querySelectorAll('[name="substepName"]');
       const subtasks = Array.from(substepInputs).map((input) => ({
         name: input.value,
         completed: false,
       }));
       // Garante que haja pelo menos uma sub-etapa se nenhuma for adicionada
-      return { name: stepName, color: stepColor, subtasks: subtasks.length > 0 ? subtasks : [{ name: "Tarefa Padrão", completed: false }] };
+      return { name: stepName, color: stepColor, responsibleId: stepResponsibleId || null, subtasks: subtasks.length > 0 ? subtasks : [{ name: "Tarefa Padrão", completed: false }] };
     });
 
     const serviceData = {
       name: serviceName,
       responsible: responsibleId,
       category: category,
+      orderIndex: services.length, // MUDANÇA: Define uma ordem inicial
+      priority: priority, // MUDANÇA: Salva a prioridade
       dueDate: dueDate || null, // MUDANÇA: Salva a data ou null
       steps: steps,
       ownerId: currentUser.uid,
@@ -2015,6 +2296,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       modal.style.display = "none";
       currentEditServiceId = null; // Limpa o ID de edição
+      addServiceForm.reset();
       // MUDANÇA: Destrói a instância do Sortable após salvar
       if (sortableSteps) {
         sortableSteps.destroy();
@@ -2150,9 +2432,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const stepName = step ? step.name : "";
     const stepColor = step ? step.color : "#808080"; // Cinza como padrão
+    const stepResponsibleId = step ? step.responsibleId : null; // MUDANÇA
     const subtasks = step
       ? step.subtasks
       : [{ name: "Tarefa Padrão", completed: false }];
+
+    // MUDANÇA: Cria as opções para o select de responsáveis da etapa
+    const responsibleOptions = teamMembers
+      .map(member => `<option value="${member.id}" ${stepResponsibleId === member.id ? 'selected' : ''}>${member.name}</option>`)
+      .join('');
+    const responsibleSelectHtml = `
+      <select name="stepResponsible">
+        <option value="">Ninguém</option>
+        ${responsibleOptions}
+      </select>`;
 
     // Determina o tipo inicial com base na estrutura das sub-tarefas
     const isUnitsType =
@@ -2167,6 +2460,10 @@ document.addEventListener("DOMContentLoaded", () => {
         <input type="text" name="stepName" placeholder="Nome da etapa principal" value="${stepName}" required />
         <input type="color" name="stepColor" title="Cor da Etapa" value="${stepColor}" />
         <button type="button" class="btn-icon btn-delete-step" title="Remover Etapa"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
+      </div>
+      <div class="form-group">
+        <label>Responsável pela Etapa</label>
+        ${responsibleSelectHtml}
       </div>
       <div class="form-group">
         <label>Tipo de Sub-etapa</label>
