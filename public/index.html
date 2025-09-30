@@ -69,7 +69,7 @@
     <div id="login-container">
         <!-- Formulário de Login -->
         <div id="login-box" class="auth-box">
-            <h1>Bem-vindo de volta!</h1>
+            <h1>Bem-vindo ao Painel de Gestão!</h1>
             <p>Faça login para acessar seu painel.</p>
             <form id="email-login-form">
                 <div class="form-group">
@@ -96,13 +96,24 @@
             <h1>Crie sua Conta</h1>
             <p>É rápido e fácil.</p>
             <form id="register-form">
-                <input type="text" id="register-name" placeholder="Seu nome completo" required>
+                <input type="text" id="register-name" placeholder="Seu nome completo" required maxlength="30">
                 <input type="email" id="register-email" placeholder="Seu e-mail" required>
                 <input type="password" id="register-password" placeholder="Crie uma senha" required>
                 <p id="register-error" class="auth-error hidden"></p>
                 <button type="submit" class="btn-primary">Registrar</button>
             </form>
             <p class="auth-toggle">Já tem uma conta? <a href="#" id="toggle-to-login">Faça login</a></p>
+        </div>
+        <!-- MUDANÇA: Box para "Continuar como" -->
+        <div id="continue-as-box" class="auth-box hidden">
+            <div id="continue-as-user-profile">
+                <img id="continue-as-photo" src="" alt="Foto do usuário">
+                <h2 id="continue-as-name"></h2>
+            </div>
+            <p>Bem-vindo(a) de volta!</p>
+            <button id="continue-as-btn" class="btn-primary">Continuar</button>
+            <div class="auth-separator"><span>ou</span></div>
+            <a href="#" id="switch-account-link" class="auth-toggle">Entrar com outra conta</a>
         </div>
     </div>
 
@@ -114,7 +125,46 @@
 
     <!-- Nova seção para a página de detalhes do serviço -->
     <section id="task-detail-view" class="hidden">
-        <!-- O conteúdo será inserido aqui pelo JavaScript -->
+        <!-- MUDANÇA: Estrutura fixa para a página de detalhes -->
+        <div class="detail-header">
+            <h2 id="detail-service-name"></h2>
+            <div class="detail-header-actions"></div>
+        </div>
+        <div class="detail-section" id="detail-general-info-section">
+            <h3>Informações Gerais</h3>
+            <div id="detail-general-info-content"></div>
+        </div>
+        <div class="detail-section" id="detail-steps-section">
+            <h3>Etapas</h3>
+            <div id="detailed-steps-list-container">
+                <ul id="detailed-steps-list" class="steps-list-detailed"></ul>
+            </div>
+        </div>
+        <div class="detail-section" id="detail-files-section">
+            <h3>Arquivos</h3>
+            <ul id="file-list" class="file-list"></ul>
+            <div class="file-upload-actions">
+                <form id="add-file-form" class="form-inline">
+                    <input type="text" id="file-name-input" placeholder="Nome do link/arquivo" required>
+                    <input type="url" id="file-url-input" placeholder="Cole a URL do arquivo aqui..." required>
+                    <button type="submit" class="btn-primary">Adicionar Link</button>
+                </form>
+                <span class="upload-separator">ou</span>
+                <div class="upload-button-wrapper">
+                    <label for="file-upload-input" class="btn-secondary">Carregar Arquivo</label>
+                    <input type="file" id="file-upload-input" class="hidden">
+                </div>
+            </div>
+        </div>
+        <div class="detail-section" id="detail-comments-section">
+            <h3>Comentários</h3>
+            <ul id="comments-list" class="comments-list"></ul>
+            <form id="comment-form">
+                <input type="text" id="comment-input" placeholder="Adicione um comentário..." required>
+                <button type="submit" class="btn-primary">Enviar</button>
+            </form>
+        </div>
+        <div id="detail-sticky-footer-container"></div>
     </section>
 
     <!-- Nova seção para a página de Solicitações -->
@@ -232,8 +282,10 @@
                     </div>
                     <button type="button" id="add-step-btn" class="btn-secondary">Adicionar Etapa</button>
                 </div>
-                <button type="submit" class="btn-primary">Criar Serviço</button>
             </form>
+            <div class="modal-footer">
+                <button type="submit" form="add-service-form" class="btn-primary">Criar Serviço</button>
+            </div>
         </div>
     </div>
 
@@ -263,6 +315,27 @@
         </div>
     </div>
 
+    <!-- MUDANÇA: Modal para Editar Sub-etapa -->
+    <div id="edit-subtask-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-btn">&times;</span>
+            <h2>Editar Sub-etapa</h2>
+            <form id="edit-subtask-form">
+                <input type="hidden" name="serviceId">
+                <input type="hidden" name="stepIndex">
+                <input type="hidden" name="subtaskIndex">
+                <div class="form-group">
+                    <label for="edit-subtask-name">Nome da Sub-etapa</label>
+                    <input type="text" id="edit-subtask-name" name="subtaskName" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-subtask-pending">Descrição da Pendência (Opcional)</label>
+                    <textarea id="edit-subtask-pending" name="pendingDescription" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
     <!-- MUDANÇA: Indicador de Carregamento Global -->
     <div id="loading-overlay" class="hidden">
         <div class="spinner"></div>

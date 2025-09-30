@@ -10,7 +10,7 @@
     --primary-color: #001f3f; /* Azul Marinho */
     --accent-color: #001f3f; /* Cor de destaque para títulos e barras */
     --progress-bar-bg: #e0e0e0;
-    --shadow-color: rgba(0, 0, 0, 0.1);
+    --shadow-color: rgba(0, 31, 63, 0.1); /* CORREÇÃO: Sombra baseada no azul primário */
 }
 
 body.dark-theme {
@@ -20,7 +20,7 @@ body.dark-theme {
     --card-bg: #1e1e1e;
     --accent-color: #87CEFA; /* Azul claro para destaque no tema escuro */
     --progress-bar-bg: #333; /* Cinza escuro para bordas e fundos de progresso */
-    --shadow-color: rgba(0, 0, 0, 0.4);
+    --shadow-color: rgba(0, 0, 0, 0.3); /* CORREÇÃO: Suaviza a sombra no tema escuro */
 }
 
 * {
@@ -40,7 +40,7 @@ body {
 header {
     padding: 20px 40px;
     background-color: var(--primary-color);
-    box-shadow: 0 2px 10px var(--shadow-color);
+    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Sombra mais suave e padronizada */
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
     display: flex;
     justify-content: space-between;
@@ -364,8 +364,7 @@ input:checked + .slider:before {
 .auth-box {
     background-color: var(--card-bg);
     padding: 40px 50px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px var(--shadow-color);
+    border-radius: 10px;    box-shadow: 0 6px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais pronunciada para a caixa de login */
     width: 90%;
     max-width: 400px;
     text-align: center;
@@ -437,7 +436,13 @@ input:checked + .slider:before {
 .btn-google:hover { background-color: #357ae8; }
 .btn-google svg { width: 18px; height: 18px; fill: white; }
 .auth-toggle { margin-top: 25px; }
-.auth-toggle a { color: var(--accent-color); text-decoration: none; font-weight: 600; }
+/* CORREÇÃO: Aplica o estilo tanto para links dentro de .auth-toggle quanto para o próprio .auth-toggle se for um link. */
+.auth-toggle a,
+a.auth-toggle { 
+    color: var(--accent-color); 
+    text-decoration: none; 
+    font-weight: 600; 
+}
 .auth-error { color: #D8000C; background-color: #FFD2D2; border-radius: 5px; padding: 10px; margin-bottom: 15px; }
 
 /* --- MUDANÇA: Estilos de Alerta para o Modo Escuro --- */
@@ -462,6 +467,27 @@ body.dark-theme .auth-success {
 }
 .form-extra-links a:hover {
     text-decoration: underline;
+}
+
+/* MUDANÇA: Estilos para a tela "Continuar como" */
+#continue-as-user-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#continue-as-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    border: 3px solid var(--accent-color);
+}
+
+#continue-as-name {
+    font-size: 1.5em;
 }
 body.dark-theme .btn-primary:hover {
     background-color: #aee1fa; /* Um pouco mais claro no hover */
@@ -581,19 +607,20 @@ main {
 .service-card {
     background-color: var(--card-bg);
     border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 4px 15px var(--shadow-color);
+    padding: 25px;    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra dos cards */
     transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
 }
 
 .service-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px var(--shadow-color);
+    box-shadow: 0 8px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais suave no hover */
 }
 
 .service-card h2 {
     color: var(--accent-color);
     font-weight: 700;
+    /* MUDANÇA: Reduz o tamanho da fonte do título do card */
+    font-size: 1.2em;
     transition: color 0.3s ease;
     /* Garante que o título não empurre os botões para fora */
     flex-grow: 1;
@@ -604,7 +631,17 @@ main {
 .card-title-wrapper {
     display: flex;
     align-items: center;
+    /* CORREÇÃO: Impede que o wrapper do título cresça indefinidamente e empurre os botões para fora */
+    min-width: 0;
     gap: 10px;
+}
+
+/* MUDANÇA: Container para a prioridade e o alerta de pendência */
+.card-meta-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 5px; /* Espaço abaixo do header */
 }
 /* MUDANÇA: Estilos para o indicador de data de entrega */
 .due-date-info {
@@ -615,7 +652,7 @@ main {
     font-weight: 600;
     padding: 4px 8px;
     border-radius: 5px;
-    margin-top: 15px;
+    margin-top: 10px; /* Reduz um pouco a margem */
     margin-bottom: 5px; /* Espaço antes da barra de progresso */
     background-color: var(--bg-color);
     border: 1px solid var(--progress-bar-bg);
@@ -674,7 +711,6 @@ main {
 .priority-tag-detail.alta { background-color: #E53935; }
 .priority-tag-detail.média { background-color: #FFB300; }
 .priority-tag-detail.baixa { background-color: #43A047; }
-}
 .card-actions {
     display: flex;
     gap: 8px;
@@ -699,12 +735,6 @@ main {
     opacity: 0;
 }
 
-.service-card .responsible {
-    font-weight: 600;
-    margin-bottom: 20px;
-    opacity: 0.8;
-}
-
 .btn-icon svg {
     width: 18px;
     height: 18px;
@@ -724,16 +754,21 @@ main {
     opacity: 1;
 }
 
-.responsible a, .step-assignee a {
-    color: inherit;
+.responsible > a, .step-assignee > a {
+    color: var(--text-color);
     text-decoration: underline;
     text-decoration-color: var(--accent-color);
     text-decoration-thickness: 1px;
     transition: color 0.2s ease;
 }
 
-.responsible a:hover, .step-assignee a:hover {
+.responsible > a:hover, .step-assignee > a:hover {
     color: var(--accent-color);
+}
+
+.service-card .responsible {
+    margin-top: 15px; /* Adiciona espaço acima do nome do responsável */
+    margin-bottom: 10px;
 }
 
 .progress-info {
@@ -759,6 +794,24 @@ main {
     transition: width 0.5s ease-in-out, background-color 0.3s ease;
 }
 
+/* MUDANÇA: Estilos para a nova seção de pendências no card */
+.card-pending-issues {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--progress-bar-bg);
+}
+
+.card-pending-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+}
+
+
 /* MUDANÇA: Adiciona um espaçamento para a barra de progresso na página de detalhes */
 #task-detail-view .progress-info {
     margin-top: 20px;
@@ -775,6 +828,8 @@ main {
     font-weight: 600;
     font-size: 1em;
     cursor: pointer;
+    text-decoration: none; /* CORREÇÃO: Garante que botões nunca sejam sublinhados */
+    white-space: nowrap; /* CORREÇÃO: Impede que o texto do botão quebre a linha */
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
@@ -797,6 +852,8 @@ body.dark-theme .btn-primary:hover {
     font-family: 'Montserrat', sans-serif;
     font-weight: 600;
     cursor: pointer;
+    text-decoration: none; /* CORREÇÃO: Garante que botões nunca sejam sublinhados */
+    white-space: nowrap; /* CORREÇÃO: Impede que o texto do botão quebre a linha */
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -905,6 +962,19 @@ body.dark-theme .btn-primary:hover {
     margin-bottom: 10px;
 }
 
+/* CORREÇÃO: Aplica os estilos de formulário também aos inputs de edição de etapa. */
+.step-input-row input[type="text"],
+.step-input-row input[type="color"] {
+    padding: 12px;
+    border: 1px solid var(--progress-bar-bg);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1em;
+    height: 45px; /* Garante a mesma altura dos outros campos */
+}
+
 .step-input-row input[name="stepName"] {
     flex-grow: 1;
 }
@@ -972,6 +1042,26 @@ body.dark-theme .btn-primary:hover {
     gap: 10px;
     margin-bottom: 10px;
     align-items: center;
+}
+
+/* MUDANÇA: Estilo para o novo select de pendências */
+.substep-input-row .substep-pending-description {
+    width: 100%;
+    margin-top: 5px;
+    font-size: 0.9em; /* Mantém a consistência do tamanho da fonte */
+}
+
+/* CORREÇÃO: Aplica estilos de formulário aos inputs e selects das sub-etapas */
+.substep-input-row input[type="text"],
+.substep-input-row select {
+    padding: 10px;
+    border: 1px solid var(--progress-bar-bg);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1em;
+    height: 45px;
 }
 
 /* Animações do Modal */
@@ -1180,14 +1270,13 @@ body.detail-view-active .header-content {
 .dashboard-card {
     position: relative; /* MUDANÇA: Para posicionar o selo */
     background-color: var(--card-bg);
-    border-radius: 10px;
-    box-shadow: 0 4px 15px var(--shadow-color);
+    border-radius: 10px;    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dashboard-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px var(--shadow-color);
+    box-shadow: 0 8px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais suave no hover */
 }
 
 .dashboard-card a {
@@ -1274,8 +1363,29 @@ body.detail-view-active .header-content {
     background-color: var(--card-bg);
     padding: 25px;
     border-radius: 10px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 15px var(--shadow-color);
+    margin-bottom: 30px;    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
+}
+
+/* MUDANÇA: Estilos para o footer fixo do modal */
+.modal-footer {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--card-bg);
+    padding: 15px 30px; /* Ajusta o padding para corresponder ao modal-content */
+    border-top: 1px solid var(--progress-bar-bg);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    z-index: 1001; /* Acima do conteúdo do modal */
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;    box-shadow: 0 -4px 12px var(--shadow-color); /* CORREÇÃO: Sombra para cima */
+}
+
+/* MUDANÇA: Remove a sombra quando o formulário está inline para um visual mais limpo */
+.detail-section form {
+    box-shadow: none;
 }
 
 .detail-section h3 {
@@ -1283,6 +1393,34 @@ body.detail-view-active .header-content {
     margin-bottom: 20px;
     border-bottom: 1px solid var(--progress-bar-bg);
     padding-bottom: 10px;
+}
+
+/* MUDANÇA: Adiciona espaçamento entre as linhas de informação na página de detalhes */
+.detail-section p {
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+/* MUDANÇA: Estilos para o footer fixo na edição in-loco */
+.detail-sticky-footer {
+    position: fixed; /* CORREÇÃO: Usa 'fixed' para fixar na janela de visualização */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background-color: var(--card-bg);
+    padding: 20px 40px; /* Padding para corresponder ao padding da view */
+    border-top: 1px solid var(--progress-bar-bg);
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    z-index: 999; /* Abaixo dos modais, mas acima do conteúdo da página */
+    box-shadow: 0 -4px 12px var(--shadow-color); /* CORREÇÃO: Sombra mais suave e padronizada */
+}
+
+/* MUDANÇA: Ajusta o padding da view de detalhes para acomodar o footer */
+#task-detail-view {
+    padding-bottom: 80px; /* Altura aproximada do footer + padding */
 }
 
 .steps-list-detailed {
@@ -1306,13 +1444,23 @@ body.detail-view-active .header-content {
 .step-group-title {
     font-weight: 700;
     font-size: 1.1em;
-    margin-bottom: 15px;
-    /* cursor: pointer; O cursor agora é aplicado apenas no nome da etapa */
-    position: relative;
-    padding-left: 25px;
+    margin-bottom: 15px;    position: relative;
+    padding-left: 25px;    cursor: pointer; /* MUDANÇA: Torna toda a área do título clicável */
     user-select: none; /* Impede a seleção de texto ao clicar */
     display: flex; /* MUDANÇA: Transforma em flex container para alinhar o botão */
     transition: color 0.2s;
+}
+
+.step-title-content {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    gap: 15px;
+}
+
+.step-name-toggle {
+    flex-grow: 1; /* Permite que o nome da etapa cresça */
+    word-break: break-word; /* Quebra palavras longas se necessário */
 }
 
 .step-group-title .btn-delete-step-detail {
@@ -1323,10 +1471,6 @@ body.detail-view-active .header-content {
 
 .step-group-title:hover {
     color: var(--accent-color);
-}
-
-.step-group-title .step-name-toggle {
-    cursor: pointer;
 }
 
 .step-group-title:hover .btn-delete-step-detail,
@@ -1349,6 +1493,64 @@ body.detail-view-active .header-content {
     font-weight: 400; /* Normal, não negrito */
     opacity: 0.7;
     cursor: default;
+}
+
+.step-progress-container {
+    width: 150px; /* Largura fixa para a barra de progresso */
+    flex-shrink: 0; /* Impede que encolha */
+    margin-left: auto; /* Empurra para a direita, antes do responsável */
+}
+
+.step-progress-container .progress-info {
+    margin-bottom: 2px;
+    justify-content: flex-end; /* Alinha o texto da porcentagem à direita */
+    font-size: 0.8em;
+}
+
+.step-progress-container .progress-bar {
+    height: 8px; /* Barra mais fina */
+}
+
+/* MUDANÇA: Estilos para o ícone de alerta de pendência */
+.alert-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    color: #c78100; /* Amarelo para alerta */
+    margin-left: 0; /* Reseta a margem, pois o 'gap' do flex container já cuida do espaçamento */
+    flex-shrink: 0; /* CORREÇÃO: Impede que o ícone encolha e garante o alinhamento vertical. */
+    vertical-align: middle;
+}
+
+/* MUDANÇA: Esconde o ícone de alerta da etapa quando ela está expandida */
+.step-group-title:not(.collapsed) .step-alert {
+    display: none;
+}
+
+
+.alert-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+
+/* MUDANÇA: Estilo para o texto da descrição da pendência */
+.pending-description-text {
+    /* CORREÇÃO: Cor mais escura para melhor contraste no tema claro */
+    font-size: 0.85em;
+    color: #c78100; /* Âmbar escuro */
+    margin: 0; /* CORREÇÃO: Remove todas as margens para garantir o alinhamento perfeito. */
+    display: flex; /* MUDANÇA: Transforma o parágrafo em um container flex */
+    align-items: center; /* MUDANÇA: Alinha o ícone e o texto verticalmente */
+    gap: 8px; /* MUDANÇA: Adiciona espaço entre o ícone e o texto */
+    margin-top: 5px; /* MUDANÇA: Adiciona um espaço acima da linha de pendência */
+}
+
+/* CORREÇÃO: No tema escuro, a cor amarela original funciona bem */
+body.dark-theme .pending-description-text {
+    color: #FFC107;
 }
 
 .step-group-title.collapsed::before {
@@ -1406,6 +1608,19 @@ body.detail-view-active .header-content {
     flex: 1 1 70%; /* Ocupa 70% do espaço */
 }
 
+/* CORREÇÃO: Aplica estilos de formulário aos inputs de adicionar arquivo */
+#add-file-form input[type="text"],
+#add-file-form input[type="url"] {
+    padding: 12px;
+    border: 1px solid var(--progress-bar-bg);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1em;
+    height: 45px;
+}
+
 @media (max-width: 600px) { /* MUDANÇA: Ajusta o breakpoint para telas um pouco maiores */
     #add-file-form {
         flex-direction: column;
@@ -1419,6 +1634,17 @@ body.detail-view-active .header-content {
     .file-upload-actions {
         flex-direction: column;
         align-items: stretch;
+    }
+
+/* MUDANÇA: Ajusta o formulário de comentários no mobile */
+#comment-form {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+    /* CORREÇÃO: Reduz o padding da caixa de login em telas muito pequenas */
+    .auth-box {
+        padding: 30px 25px;
     }
 }
 
@@ -1512,18 +1738,26 @@ body.detail-view-active .header-content {
     padding-top: 20px;
     border-top: 1px solid var(--progress-bar-bg);
     display: flex;
-    align-items: center;
-    gap: 15px;
+    flex-direction: column; /* MUDANÇA: Empilha os itens verticalmente */
+    gap: 15px; /* MUDANÇA: Adiciona espaço vertical entre os itens */
 }
 
 .upload-separator {
     font-weight: 600;
     opacity: 0.7;
+    text-align: center; /* MUDANÇA: Centraliza o texto "ou" */
 }
 
 .upload-button-wrapper label {
     width: 100%;
     text-align: center;
+}
+
+.upload-button-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px; /* MUDANÇA: Adiciona espaço entre o "ou" e o botão */
 }
 
 .upload-button-wrapper .btn-secondary {
@@ -1607,8 +1841,7 @@ body.dark-theme .due-date-info.overdue {
 .request-card {
     background-color: var(--card-bg);
     border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 4px 15px var(--shadow-color);
+    padding: 25px;    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
     margin-bottom: 20px;
     border-left: 4px solid; /* Será definido pelo status */
     transition: background-color 0.3s ease, box-shadow 0.2s ease;
@@ -1713,6 +1946,11 @@ body.dark-theme .request-card[data-status="rejected"] {
     align-items: center;
     margin-bottom: 30px; /* MUDANÇA: Ajustado no media query */
 }
+/* MUDANÇA: Unifica o estilo do header da lista de serviços */
+.service-list-header {
+    display: flex;
+    justify-content: space-between;
+}
 
 @media (max-width: 768px) {
     .detail-header, .requests-header {
@@ -1722,10 +1960,33 @@ body.dark-theme .request-card[data-status="rejected"] {
         text-align: center;
     }
 
+    /* CORREÇÃO: Reduz o tamanho do título principal na página de detalhes */
+    .detail-header h2 {
+        font-size: 1.6em;
+    }
+
     .detail-header-actions {
         justify-content: center;
     }
 
+    /* MUDANÇA: Reduz o padding das views de detalhe/gerenciamento no mobile */
+    #task-detail-view, #profile-view, #user-management-view, #category-management-view {
+        padding: 30px 20px;
+    }
+    /* MUDANÇA: Ajusta o padding do footer sticky no mobile */
+    .detail-sticky-footer {
+        padding: 15px 20px;
+        justify-content: center; /* Centraliza os botões no mobile */
+    }
+
+    /* MUDANÇA: Ajusta o layout do título da etapa no mobile */
+    .step-title-content {
+        flex-wrap: wrap; /* Permite que os itens quebrem a linha */
+    }
+    .step-progress-container {
+        width: 100%; /* Ocupa a largura toda */
+        margin-left: 0; /* Reseta a margem */
+    }
     /* MUDANÇA: Ajusta o padding das views de lista no mobile */
     #service-container, #requests-view {
         padding: 30px 20px;

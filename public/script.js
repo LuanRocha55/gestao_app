@@ -56,6 +56,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginBox = document.getElementById("login-box");
   const registerBox = document.getElementById("register-box");
   const emailLoginForm = document.getElementById("email-login-form");
+  const continueAsBox = document.getElementById("continue-as-box"); // MUDANÇA
+  const continueAsBtn = document.getElementById("continue-as-btn"); // MUDANÇA
+  const switchAccountLink = document.getElementById("switch-account-link"); // MUDANÇA
   const googleLoginBtn = document.getElementById("google-login-btn");
   const registerForm = document.getElementById("register-form");
   const toggleToRegister = document.getElementById("toggle-to-register");
@@ -83,6 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const stepsContainer = document.getElementById("steps-container");
   const makeRequestModal = document.getElementById("make-request-modal");
   const makeRequestForm = document.getElementById("make-request-form");
+  const editSubtaskModal = document.getElementById("edit-subtask-modal");
   const loadingOverlay = document.getElementById("loading-overlay");
   const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
   const headerMenuItems = document.getElementById("header-menu-items");
@@ -90,6 +94,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const notificationBell = document.getElementById("notification-bell");
   const notificationCount = document.getElementById("notification-count");
   const notificationPanel = document.getElementById("notification-panel");
+
+  // MUDANÇA: Opções pré-definidas para o select de pendências.
+  const pendingOptions = [
+    "Aguardando material do cliente",
+    "Revisão interna necessária",
+    "Bloqueado por outra tarefa",
+    "Aguardando aprovação",
+    "Dúvida técnica",
+  ];
 
   // --- MUDANÇA: Lógica para o seletor de tema ---
   // Verifica o tema salvo no localStorage ao carregar a página
@@ -614,6 +627,19 @@ document.addEventListener("DOMContentLoaded", () => {
           const card = document.createElement("div");
           card.className = "service-card";
           card.dataset.id = service.id;
+
+          // MUDANÇA: Adiciona ícone de alerta se houver pendências
+          let pendingAlertHtml = '';
+          if (hasPendingIssuesInService(service)) {
+            pendingAlertHtml = `
+              <span class="alert-icon" title="Este serviço possui pendências em sub-etapas.">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L1 21H23L12 2ZM13 8V14H11V8H13ZM13 16V18H11V16H13Z"/></svg>
+              </span>
+            `;
+          }
+
+
+
           // MUDANÇA: O progresso agora é baseado nas sub-tarefas
           const progress = calculateOverallProgress(service);
 
@@ -634,44 +660,36 @@ document.addEventListener("DOMContentLoaded", () => {
           const priority = service.priority || "Média";
           const priorityTagHtml = `<span class="priority-tag ${priority.toLowerCase()}">${priority}</span>`;
 
-          // MUDANÇA: Adiciona um ID único ao container de etapas para o SortableJS
+          // CORREÇÃO: Restaura a inicialização do sortable para as etapas do card
           const stepsListId = `steps-list-${service.id}`;
           card.addEventListener('mouseenter', () => {
               initializeCardStepSorting(stepsListId, service.id);
           });
-
+ 
           // MUDANÇA: Adiciona classe se o serviço estiver completo
           if (progress.percentage === 100) {
               card.classList.add('service-completed');
           }
 
-          const stepsHtml = service.steps
-            .map((step, index) => {
-              const isStepCompleted =
-                step.subtasks &&
-                step.subtasks.length > 0 &&
-                step.subtasks.every((st) => st.completed);
-
-              // MUDANÇA: Adiciona o nome do responsável da etapa, se houver
-              const stepResponsibleName = step.responsibleId ? teamMemberMap.get(step.responsibleId) : null;
-              const stepResponsibleHtml = stepResponsibleName ? `<span class="step-assignee">(${stepResponsibleName})</span>` : '';
-
-              return `<li class="step-item" data-step-name="${step.name}" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};"> 
-                        <input type="checkbox" id="step-${
-                          service.id
-                        }-${index}" data-step-index="${index}" ${
-                isStepCompleted ? "checked" : ""
-              }>
-                        <label for="step-${service.id}-${index}">${step.name} ${stepResponsibleHtml}</label>
-                    </li>`;
-            })
-            .join("");
+          // MUDANÇA: Gera o HTML para as pendências que aparecerão no card.
+          let cardPendingIssuesHtml = '';
+          const pendingSteps = service.steps.filter(step => hasPendingIssuesInStep(step));
+          if (pendingSteps.length > 0) {
+              const issuesList = pendingSteps.map(step => `
+                  <div class="card-pending-item">
+                      <span class="alert-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L1 21H23L12 2ZM13 8V14H11V8H13ZM13 16V18H11V16H13Z"/></svg>
+                      </span>
+                      <span style="color: var(--pending-color, #c78100); font-weight: 600;">${step.name}</span>
+                  </div>
+              `).join('');
+              cardPendingIssuesHtml = `<div class="card-pending-issues">${issuesList}</div>`;
+          }
 
           card.innerHTML = `
                     <div class="card-header">
                         <div class="card-title-wrapper">
                             <h2><a href="#/service/${service.id}">${service.name}</a></h2>
-                            ${priorityTagHtml}
                         </div>
                         <div class="card-actions">
                             <button class="btn-icon btn-edit" title="Editar Serviço" data-service-id="${
@@ -681,6 +699,9 @@ document.addEventListener("DOMContentLoaded", () => {
                               service.id
                             }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
                         </div>
+                    </div>
+                    <div class="card-meta-info">
+                        ${priorityTagHtml}
                     </div>
                     <p class="responsible">Responsável: ${responsibleName}</p>
                     ${dueDateHtml}
@@ -695,9 +716,10 @@ document.addEventListener("DOMContentLoaded", () => {
                           progress.percentage
                         }%;"></div>
                     </div>
-                    ${progress.percentage === 100 ? 
+                    ${cardPendingIssuesHtml}
+                    ${progress.percentage === 100 ?
                         `<button class="btn-secondary btn-reopen" data-service-id="${service.id}" style="width: 100%; margin-top: 15px;">Reabrir Serviço</button>` :
-                        `<ul class="steps-list" id="${stepsListId}">${stepsHtml}</ul>`
+                        '' // Remove a lista de etapas do card
                     }
                 `;
           cardContainer.appendChild(card);
@@ -722,75 +744,49 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Inicializa o SortableJS para todos os containers de categoria
     initializeServiceCardSorting();
   }
-/*
-            const progress = calculateOverallProgress(service);
-            const dueDateStatus = getDueDateStatus(service.dueDate);
-            let dueDateHtml = '';
-            if (dueDateStatus.text) {
-                dueDateHtml = `
-                    <div class="due-date-info ${dueDateStatus.className}">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z" /></svg>
-                        <span>${dueDateStatus.text}</span>
-                    </div>`;
-            }
-            const responsibleName = teamMemberMap.get(service.responsible) || "Não atribuído";
-            const priority = service.priority || "Média";
-            const priorityTagHtml = `<span class="priority-tag ${priority.toLowerCase()}">${priority}</span>`;
 
-            // MUDANÇA: Adiciona um botão de reabrir para serviços concluídos
-            const reopenButtonHtml = `
-                <button class="btn-secondary btn-reopen" data-service-id="${service.id}" style="width: 100%; margin-top: 15px;">Reabrir Serviço</button>
-            `;
+  // MUDANÇA: Nova função para verificar se há pendências em uma sub-tarefa
+  function hasPendingIssues(subtask) {
+    return subtask.pendingDescription && subtask.pendingDescription.trim() !== '';
+  }
 
-            const card = document.createElement("div");
-            card.className = "service-card service-completed"; // Adiciona a classe para estilo
-            card.dataset.id = service.id;
+  // MUDANÇA: Nova função para verificar se há pendências em uma etapa
+  function hasPendingIssuesInStep(step) {
+    return (step.subtasks || []).some(hasPendingIssues);
+  }
 
-            const stepsHtml = service.steps
-                .map((step, index) => {
-                    const isStepCompleted = step.subtasks && step.subtasks.length > 0 && step.subtasks.every((st) => st.completed);
-                    const stepResponsibleName = step.responsibleId ? teamMemberMap.get(step.responsibleId) : null;
-                    const stepResponsibleHtml = stepResponsibleName ? `<span class="step-assignee">(${stepResponsibleName})</span>` : '';
+  // MUDANÇA: Nova função para verificar se há pendências em um serviço
+  function hasPendingIssuesInService(service) {
+    return (service.steps || []).some(hasPendingIssuesInStep);
+  }
 
-                    return `<li class="step-item" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};"> 
-                                <input type="checkbox" id="step-${service.id}-${index}" data-step-index="${index}" ${isStepCompleted ? "checked" : ""}>
-                                <label for="step-${service.id}-${index}">${step.name} ${stepResponsibleHtml}</label>
-                            </li>`;
-                })
-                .join("");
 
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="card-title-wrapper">
-                        <h2><a href="#/service/${service.id}">${service.name}</a></h2>
-                        ${priorityTagHtml}
-                    </div>
-                    <div class="card-actions">
-                        <button class="btn-icon btn-edit" title="Editar Serviço" data-service-id="${service.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg>
-                        </button>
-                        <button class="btn-icon btn-delete" title="Deletar Serviço" data-service-id="${service.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
-                        </button>
-                    </div>
-                </div>
-                <p class="responsible">Responsável: ${responsibleName}</p>
-                ${dueDateHtml}
-                <div class="progress-info">
-                    <span>Progresso</span>
-                    <span class="progress-text">${Math.round(progress.percentage)}%</span>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${progress.percentage}%;"></div>
-                </div>
-                ${reopenButtonHtml}
-            `;
-            mainFragment.appendChild(card);
-        });
-    }*/
-
+  // MUDANÇA: Nova função para calcular o progresso de uma única etapa
+  function calculateStepProgress(step) {
+    const subtasks = step.subtasks || [];
+    if (subtasks.length === 0) {
+      return { completed: 0, total: 0, percentage: 0 };
+    }
+    const completedSubtasks = subtasks.filter((st) => st.completed).length;
+    const totalSubtasks = subtasks.length;
+    return {
+      completed: completedSubtasks,
+      total: totalSubtasks,
+      percentage: totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0,
+    };
+  }
   // --- Funções da Página de Detalhes do Serviço ---
-  function renderServiceDetail(service, openSteps = []) {
+  function renderServiceDetail(service, openSteps = [], isEditing = false) {
+    // MUDANÇA: Seleciona os containers que serão atualizados
+    const serviceNameEl = document.getElementById('detail-service-name');
+    const headerActionsContainer = taskDetailView.querySelector('.detail-header-actions');
+    const generalInfoContent = document.getElementById('detail-general-info-content');
+    const stepsList = document.getElementById('detailed-steps-list');
+    const fileList = document.getElementById('file-list');
+    const stickyFooterContainer = document.getElementById('detail-sticky-footer-container');
+
+    if (!serviceNameEl || !headerActionsContainer || !generalInfoContent || !stepsList || !fileList || !stickyFooterContainer) return;
+
     const responsibleName =
       teamMemberMap.get(service.responsible) || "Não atribuído";
     const progress = calculateOverallProgress(service);
@@ -806,44 +802,136 @@ document.addEventListener("DOMContentLoaded", () => {
     const priority = service.priority || "Média";
     const priorityDetailHtml = `<p><strong>Prioridade:</strong> <span class="priority-tag-detail ${priority.toLowerCase()}">${priority}</span></p>`;
 
-    // MUDANÇA: Renderização aninhada para etapas e sub-tarefas
-    const stepsHtml = service.steps
-      .map((step, stepIndex) => {
-        const subtasksHtml = (step.subtasks || [])
-          .map(
-            (subtask, subtaskIndex) => `
+    // --- MUDANÇA: Lógica para renderizar modo de visualização ou edição ---
+    let generalInfoHtml;
+    let stepsHtml;
+    let headerActionsHtml;
+
+    // Atualiza o título do serviço
+    serviceNameEl.innerHTML = `${service.name} ${progress.percentage === 100 ? '<span class="completion-badge">Concluído</span>' : ''}`;
+
+    if (isEditing) {
+        // MODO EDIÇÃO
+        headerActionsHtml = ``; // Botões movidos para o footer sticky
+
+        // Formulário para Informações Gerais
+        const responsibleOptions = teamMembers.map(member => `<option value="${member.id}" ${service.responsible === member.id ? 'selected' : ''}>${member.name}</option>`).join('');
+        const categoryOptions = predefinedCategories.map(cat => `<option value="${cat.name}" ${service.category === cat.name ? 'selected' : ''}>${cat.name}</option>`).join('');
+
+        generalInfoHtml = `
+            <form id="inline-edit-general-form">
+                <div class="form-group">
+                    <label for="inline-edit-category">Categoria</label>
+                    <select id="inline-edit-category" name="serviceCategory">${categoryOptions}</select>
+                </div>
+                <div class="form-group">
+                    <label for="inline-edit-responsible">Responsável Geral</label>
+                    <select id="inline-edit-responsible" name="responsibleName">${responsibleOptions}</select>
+                </div>
+                <div class="form-group">
+                    <label for="inline-edit-priority">Prioridade</label>
+                    <select id="inline-edit-priority" name="servicePriority">
+                        <option value="Baixa" ${service.priority === 'Baixa' ? 'selected' : ''}>Baixa</option>
+                        <option value="Média" ${service.priority === 'Média' ? 'selected' : ''}>Média</option>
+                        <option value="Alta" ${service.priority === 'Alta' ? 'selected' : ''}>Alta</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="inline-edit-due-date">Data de Entrega</label>
+                    <input type="date" id="inline-edit-due-date" name="serviceDueDate" value="${service.dueDate || ''}">
+                </div>
+            </form>
+        `;
+
+        // Formulário para Etapas (reutilizando a lógica do modal)
+        stepsHtml = `
+            <div id="inline-steps-container">
+                ${service.steps.map(step => createStepGroupElement(step).outerHTML).join('')}
+            </div>
+            <button type="button" id="add-step-btn-inline" class="btn-secondary" style="margin-top: 15px;">+ Adicionar Etapa</button>
+        `;
+
+    } else {
+        // MODO VISUALIZAÇÃO (Padrão)
+        headerActionsHtml = `
+            <button class="btn-primary btn-start-inline-edit" data-service-id="${service.id}">Editar</button>
+            <a href="#/services" class="btn-secondary">Voltar</a>
+        `;
+
+        generalInfoHtml = `
+            <p><strong>Categoria:</strong> ${service.category || "Não definida"}</p>
+            <p><strong>Responsável Geral:</strong> ${responsibleName}</p>
+            ${priorityDetailHtml}
+            ${dueDateDetailHtml}
+            <!-- MUDANÇA: Adiciona a barra de progresso -->
+            <div class="progress-info">
+                <span>Progresso</span>
+                <span class="progress-text">${Math.round(progress.percentage)}%</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" style="width: ${progress.percentage}%;"></div>
+            </div>
+        `;
+
+        stepsHtml = service.steps.map((step, stepIndex) => {
+            const stepProgress = calculateStepProgress(step);
+            const stepProgressBarHtml = `
+          <div class="step-progress-container">
+              <div class="progress-info">
+                  <span class="progress-text">${Math.round(stepProgress.percentage)}%</span>
+              </div>
+              <div class="progress-container">
+                  <div class="progress-bar" style="width: ${stepProgress.percentage}%; background-color: ${step.color || 'var(--accent-color)'};"></div>
+              </div>
+          </div>`;
+
+            const subtasksHtml = (step.subtasks || []).map((subtask, subtaskIndex) => {
+                const subtaskPendingAlertHtml = hasPendingIssues(subtask) ?
+              `<span class="alert-icon subtask-alert" title="${subtask.pendingDescription}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L1 21H23L12 2ZM13 8V14H11V8H13ZM13 16V18H11V16H13Z"/></svg>
+              </span>` : '';
+            
+            // MUDANÇA: Coloca o ícone e a descrição da pendência dentro da mesma tag <p>.
+            const pendingDescriptionHtml = hasPendingIssues(subtask) ?
+              `<p class="pending-description-text">${subtaskPendingAlertHtml} ${subtask.pendingDescription}</p>` : '';
+
+                return `
                 <li class="step-item subtask-item">
                     <input type="checkbox" id="subtask-${
                       service.id
                     }-${stepIndex}-${subtaskIndex}" data-step-index="${stepIndex}" data-subtask-index="${subtaskIndex}" ${
               subtask.completed ? "checked" : ""
             }>
-                    <label for="subtask-${
-                      service.id
-                    }-${stepIndex}-${subtaskIndex}">${subtask.name}</label>
+                    <label for="subtask-${service.id}-${stepIndex}-${subtaskIndex}">
+                        ${subtask.name}
+                    </label>
+                    ${pendingDescriptionHtml}
                     <button class="btn-icon btn-delete-subtask-detail" title="Deletar Sub-etapa" data-step-index="${stepIndex}" data-subtask-index="${subtaskIndex}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
                     </button>
                 </li>
             `
-          )
-          .join("");
+            }).join("");
 
-        // MUDANÇA: Adiciona o responsável da etapa no título
-        const stepResponsibleName = step.responsibleId ? teamMemberMap.get(step.responsibleId) : "Ninguém";
-        const stepResponsibleHtml = `<span class="step-assignee-detail">Responsável: ${stepResponsibleName}</span>`;
+            const stepResponsibleName = step.responsibleId ? teamMemberMap.get(step.responsibleId) : "Ninguém";
+            const stepResponsibleHtml = `<span class="step-assignee-detail">Responsável: ${stepResponsibleName}</span>`;
 
-        // MUDANÇA: Verifica se a etapa deve começar recolhida ou não
-        const startCollapsed = !openSteps.includes(stepIndex);
+            const stepPendingAlertHtml = hasPendingIssuesInStep(step) ?
+          `<span class="alert-icon step-alert" title="Esta etapa possui sub-etapas com pendências.">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L1 21H23L12 2ZM13 8V14H11V8H13ZM13 16V18H11V16H13Z"/></svg>
+          </span>` : ''; // Este é o ícone que vamos controlar
 
-        return `
+            const startCollapsed = !openSteps.includes(stepIndex);
+
+            return `
                 <li class="step-group" data-step-name="${step.name}" data-step-index="${stepIndex}" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};">
                     <h4 class="step-group-title ${
                       startCollapsed ? "collapsed" : ""
-                    }">
+                    }"> 
                         <div class="step-title-content">
-                            <span class="step-name-toggle">${step.name}</span>
+                            <span class="step-name-toggle">${step.name} ${stepPendingAlertHtml}</span>
                             ${stepResponsibleHtml}
+                            ${stepProgressBarHtml}
                         </div>
                         <button class="btn-icon btn-delete-step-detail" title="Deletar Etapa" data-step-index="${stepIndex}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
@@ -853,9 +941,9 @@ document.addEventListener("DOMContentLoaded", () => {
                       startCollapsed ? "hidden" : ""
                     }">${subtasksHtml}</ul>
                 </li>`;
-      })
-      .join("");
-
+        }).join("");
+    }
+    
     const filesHtml = (service.files || []).map((file, index) => {
         // Se for um arquivo local, adiciona o atributo 'download'
         const downloadAttr = file.isLocal ? `download="${file.name}"` : "";
@@ -870,64 +958,26 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .join("");
 
-    taskDetailView.innerHTML = `
-            <div class="detail-header">
-                <h2>${service.name} ${progress.percentage === 100 ? '<span class="completion-badge">Concluído</span>' : ''}</h2>
-                <div class="detail-header-actions">
-                    <button class="btn-primary btn-edit" data-service-id="${service.id}">Editar</button>
-                    <a href="#/services" class="btn-secondary">Voltar</a>
-                </div>
-            </div>
-            <div class="detail-section">
-                <h3>Informações Gerais</h3>
-                <p><strong>Categoria:</strong> ${
-                  service.category || "Não definida"
-                }</p>
-                <p><strong>Responsável Geral:</strong> ${responsibleName}</p>
-                ${priorityDetailHtml}
-                ${dueDateDetailHtml}
-                <!-- MUDANÇA: Adiciona a barra de progresso -->
-                <div class="progress-info">
-                    <span>Progresso</span>
-                    <span class="progress-text">${Math.round(
-                      progress.percentage
-                    )}%</span>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${progress.percentage}%;"></div>
-                </div>
-            </div>
-            <div class="detail-section">
-                            <h3>Etapas e Sub-etapas</h3>
-                <ul id="detailed-steps-list" class="steps-list-detailed">${stepsHtml}</ul>
-            </div>
-            <div class="detail-section">
-                <h3>Arquivos</h3>
-                <ul id="file-list" class="file-list">${filesHtml}</ul>
-                <div class="file-upload-actions">
-                    <form id="add-file-form" class="form-inline">
-                        <input type="text" id="file-name-input" placeholder="Nome do link/arquivo" required>
-                        <input type="url" id="file-url-input" placeholder="Cole a URL do arquivo aqui..." required>
-                        <button type="submit" class="btn-primary">Adicionar Link</button>
-                    </form>
-                    <span class="upload-separator">ou</span>
-                    <div class="upload-button-wrapper">
-                        <label for="file-upload-input" class="btn-secondary">Carregar Arquivo</label>
-                        <input type="file" id="file-upload-input" class="hidden">
-                    </div>
-                </div>
-            </div>
-            <div class="detail-section">
-                <h3>Comentários</h3>
-                <ul id="comments-list" class="comments-list">
-                    <!-- Comentários serão carregados aqui -->
-                </ul>
-                <form id="comment-form">
-                    <input type="text" id="comment-input" placeholder="Adicione um comentário..." required>
-                    <button type="submit" class="btn-primary">Enviar</button>
-                </form>
-            </div>
-        `;
+    // MUDANÇA: Atualiza o conteúdo dos containers em vez de recriar tudo
+    headerActionsContainer.innerHTML = headerActionsHtml;
+    generalInfoContent.innerHTML = generalInfoHtml;
+    stepsList.innerHTML = stepsHtml;
+    fileList.innerHTML = filesHtml;
+
+    // MUDANÇA: Atualiza o footer fixo
+    stickyFooterContainer.innerHTML = isEditing ? `
+        <div class="detail-sticky-footer">
+            <button class="btn-primary btn-save-inline-edit" data-service-id="${service.id}">Salvar</button>
+            <button class="btn-secondary btn-cancel-inline-edit">Cancelar</button>
+        </div>` : '';
+
+    // MUDANÇA: Inicializa o sortable para as etapas se estiver em modo de edição
+    if (isEditing) {
+        const stepsContainer = document.getElementById('inline-steps-container'); // Este é o container dentro do formulário
+        if (stepsContainer) {
+            new Sortable(stepsContainer, { animation: 150, handle: ".drag-handle", ghostClass: "sortable-ghost" });
+        }
+    }
   }
 
   // --- MUDANÇA: Função para renderizar a página de perfil ---
@@ -961,7 +1011,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <form id="profile-form">
                     <div class="form-group">
                         <label for="profile-name">Nome de Exibição</label>
-                        <input type="text" id="profile-name" value="${
+                        <input type="text" id="profile-name" maxlength="30" value="${
                           currentUser.displayName || ""
                         }" required>
                     </div>
@@ -1195,9 +1245,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.toggle("detail-view-active", isSubPage);
 
     // Carrega o conteúdo da view ativa
-    if (isDashboard) {
-      // Nenhuma ação necessária, o HTML é estático
-    } else if (isServiceDetail) {
+    if (isServiceDetail) {
       const taskId = hash.substring("#/service/".length);
       const service = services.find((s) => s.id === taskId);
       if (service) {
@@ -1220,6 +1268,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.warn(`Serviço com ID ${taskId} não encontrado.`);
         window.location.hash = "#/services";
       }
+    } else if (isDashboard) {
+      // Nenhuma ação necessária, o HTML é estático
     } else if (isProfile) {
       renderProfilePage();
     } else if (isRequests) {
@@ -1272,15 +1322,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Título de um grupo de etapas (para expandir/recolher)
-    if (e.target.classList.contains("step-name-toggle")) {
-      // CORREÇÃO: Busca o elemento 'h4' pai para garantir que a lógica funcione
-      const titleElement = e.target.closest(".step-group-title");
-      if (titleElement) titleElement.classList.toggle("collapsed");
-      const subtaskList = titleElement.nextElementSibling;
-      if (subtaskList && subtaskList.classList.contains("subtask-list")) {
-        subtaskList.classList.toggle("hidden");
-      }
+    // MUDANÇA: Agora o clique pode ser em toda a área do título da etapa.
+    const stepGroupTitle = e.target.closest(".step-group-title");
+    if (stepGroupTitle && !e.target.closest('button')) { // Ignora cliques nos botões dentro do título
+        stepGroupTitle.classList.toggle("collapsed");
+        const subtaskList = stepGroupTitle.nextElementSibling;
+        if (subtaskList && subtaskList.classList.contains("subtask-list")) {
+            subtaskList.classList.toggle("hidden");
+        }
     }
+
 
     // Botão de deletar serviço
     const deleteBtn = e.target.closest(".btn-delete");
@@ -1427,6 +1478,61 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // MUDANÇA: Botão para iniciar a edição inline na página de detalhes
+    const startInlineEditBtn = e.target.closest(".btn-start-inline-edit");
+    if (startInlineEditBtn) {
+        const serviceId = startInlineEditBtn.dataset.serviceId;
+        const service = services.find(s => s.id === serviceId);
+        if (service) {
+            renderServiceDetail(service, [], true); // Renderiza em modo de edição
+        }
+    }
+
+    // MUDANÇA: Botão para cancelar a edição inline
+    const cancelInlineEditBtn = e.target.closest(".btn-cancel-inline-edit");
+    if (cancelInlineEditBtn) {
+        const serviceId = window.location.hash.substring("#/service/".length);
+        const service = services.find(s => s.id === serviceId);
+        if (service) {
+            renderServiceDetail(service, [], false); // Renderiza em modo de visualização
+        }
+    }
+
+    // MUDANÇA: Botão para salvar a edição inline
+    const saveInlineEditBtn = e.target.closest(".btn-save-inline-edit");
+    if (saveInlineEditBtn) {
+        const serviceId = saveInlineEditBtn.dataset.serviceId;
+        
+        // CORREÇÃO: Busca o formulário dentro da view de detalhes
+        const generalForm = taskDetailView.querySelector('#inline-edit-general-form');
+        const category = generalForm.querySelector('[name="serviceCategory"]').value;
+        const responsible = generalForm.querySelector('[name="responsibleName"]').value;
+        const priority = generalForm.querySelector('[name="servicePriority"]').value;
+        const dueDate = generalForm.querySelector('[name="serviceDueDate"]').value;
+
+        // CORREÇÃO: Busca os grupos de etapas dentro da view de detalhes
+        const serviceToUpdate = services.find(s => s.id === serviceId);
+        // CORREÇÃO: Passa o serviço original para a função collectStepsFromForm para preservar o status 'completed'.
+        const stepGroups = taskDetailView.querySelectorAll('#inline-steps-container .step-group-modal');
+        const steps = collectStepsFromForm(stepGroups, serviceToUpdate);
+
+        if (serviceToUpdate) {
+            showLoading();
+            try {
+                const serviceRef = doc(db, "services", serviceId);
+                await updateDoc(serviceRef, { category, responsible, priority, dueDate, steps });
+                alert("Serviço atualizado com sucesso!");
+                // CORREÇÃO: Redesenha a página no modo de visualização após salvar.
+                renderServiceDetail(serviceToUpdate, [], false);
+            } catch (error) {
+                console.error("Erro ao salvar serviço:", error);
+                alert("Falha ao salvar as alterações.");
+            } finally {
+                hideLoading();
+            }
+        }
+    }
+
     // MUDANÇA: Botão de deletar arquivo na página de detalhes
     const deleteFileBtn = e.target.closest(".btn-delete-file");
     if (deleteFileBtn) {
@@ -1523,18 +1629,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Botão de editar serviço
     const editBtn = e.target.closest(".btn-edit");
     if (editBtn) {
-      const serviceId = editBtn.dataset.serviceId;
-      const serviceToEdit = services.find((s) => s.id === serviceId);
-      if (serviceToEdit) {
-        openEditModal(serviceToEdit);
-      }
+        const serviceId = editBtn.dataset.serviceId;
+        const serviceToEdit = services.find((s) => s.id === serviceId);
+        if (serviceToEdit) {
+            // MUDANÇA: Verifica se a edição é a partir do card ou da página de detalhes
+            const isOnDetailPage = editBtn.closest('#task-detail-view');
+            if (isOnDetailPage) {
+                // Inicia a edição inline
+                renderServiceDetail(serviceToEdit, [], true);
+            } else {
+                // Abre o modal (comportamento antigo)
+                openEditModal(serviceToEdit);
+            }
+        }
     }
 
     // MUDANÇA: Botão de remover etapa no modal de adicionar serviço
     const deleteStepBtn = e.target.closest(".btn-delete-step");
     if (deleteStepBtn) {
-      // Remove a linha da etapa (o elemento pai do botão)
-      deleteStepBtn.parentElement.remove();
+      // CORREÇÃO: Garante que todo o grupo da etapa seja removido, não apenas a linha do nome.
+      deleteStepBtn.closest(".step-group-modal").remove();
     }
 
     // MUDANÇA: Botão de adicionar sub-etapa no modal
@@ -1545,10 +1659,24 @@ document.addEventListener("DOMContentLoaded", () => {
       substepsContainer.appendChild(createSubstepInputRow());
     }
 
+    // MUDANÇA: Botão de adicionar sub-etapa na edição inline
+    const addSubstepBtnInline = e.target.closest(".btn-add-substep-inline");
+    if (addSubstepBtnInline) {
+        const substepsContainer = addSubstepBtnInline.previousElementSibling;
+        substepsContainer.appendChild(createSubstepInputRow());
+    }
+
     // MUDANÇA: Botão de remover sub-etapa no modal
     const deleteSubstepBtn = e.target.closest(".btn-delete-substep");
     if (deleteSubstepBtn) {
       deleteSubstepBtn.parentElement.remove();
+    }
+
+    // MUDANÇA: Botão de adicionar etapa na edição inline
+    const addStepBtnInline = e.target.closest("#add-step-btn-inline");
+    if (addStepBtnInline) {
+        const container = document.getElementById('inline-steps-container');
+        container.appendChild(createStepGroupElement());
     }
 
     // MUDANÇA: Lógica para aprovar/rejeitar solicitações
@@ -1813,6 +1941,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target.id === "profile-form") {
       e.preventDefault();
       const newName = document.getElementById("profile-name").value;
+
+      // MUDANÇA: Validação do tamanho do nome
+      if (newName.length > 30) {
+          alert("O nome de exibição não pode ter mais de 30 caracteres.");
+          return;
+      }
+
       const successMessage = document.getElementById("profile-success");
 
       showLoading();
@@ -1831,6 +1966,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // MUDANÇA: Lógica para o botão "Continuar como"
+  continueAsBtn.addEventListener("click", () => {
+      if (currentUser) {
+          // O usuário já está autenticado, apenas procedemos para o app
+          initializeAppUI(currentUser);
+      }
+  });
+
+  // MUDANÇA: Lógica para "Entrar com outra conta"
+  switchAccountLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      signOut(auth); // Desloga o usuário atual para mostrar a tela de login padrão
+  });
+
   // --- LÓGICA PRINCIPAL DE AUTENTICAÇÃO E EVENTOS ---
 
   onAuthStateChanged(auth, async (user) => {
@@ -1838,58 +1987,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (user) {
       // Garante que o perfil do usuário no Firestore está atualizado com nome, email, etc.
       await updateUserInFirestore(user);
-      
-      // --- O USUÁRIO ESTÁ LOGADO ---
-      console.log("Usuário logado:", user.uid);
-      
-      // MUDANÇA: Busca o perfil completo do usuário, incluindo o cargo (role), APÓS a atualização.
+
+      // MUDANÇA: Busca o perfil completo para ter os dados mais recentes
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
       if (userDocSnap.exists()) {
           currentUser = { ...user, ...userDocSnap.data() };
       } else {
-          currentUser = user; // Fallback para o usuário do Auth
+          currentUser = user;
       }
 
-      // MUDANÇA: Carrega a lista de membros da equipe para usar na aplicação
-      await loadTeamMembers();
-
-      // MUDANÇA: Carrega as categorias pré-definidas
-      await loadPredefinedCategories();
-
-      // Atualiza a UI para o estado "logado"
-      userNameEl.textContent = currentUser.displayName || currentUser.email;
-      userPhotoEl.src = currentUser.photoURL || "./assets/default-avatar.png"; // Use um avatar padrão se não houver foto
-
-      // MUDANÇA: Mostra o card de gerenciamento de usuários se for admin
-      const adminCard = document.getElementById('admin-user-management-card');
-      const adminCategoryCard = document.getElementById('admin-category-management-card');
-      if (currentUser.role === 'admin') {
-          adminCard.classList.remove('hidden');
-          adminCategoryCard.classList.remove('hidden');
-      } else {
-          adminCard.classList.add('hidden');
-          adminCategoryCard.classList.add('hidden');
-      }
-
-      loginContainer.classList.add("hidden");
-      appHeader.classList.remove("hidden");
-      userProfile.classList.remove("hidden");
-      // serviceContainer.classList.remove("hidden"); // O roteador vai decidir isso
-      dashboardView.classList.remove("hidden");
-
-      // Começa a ouvir por atualizações nos serviços do usuário em tempo real
-      listenForServices(user);
-
-      // MUDANÇA: Começa a ouvir as solicitações para atualizar o selo do dashboard
-      listenForRequests();
-
-      // MUDANÇA: Começa a ouvir por notificações
-      listenForNotifications(user.uid);
-
-      // Verifica a URL (ex: #/task/some-id) para mostrar a view correta no carregamento
-      handleRouteChange(); // MUDANÇA: Chamada inicial ao roteador
-      window.addEventListener("hashchange", handleRouteChange); // MUDANÇA: Ouve por mudanças na URL
+      // MUDANÇA: Em vez de logar direto, mostra a tela "Continuar como"
+      showContinueAsScreen(currentUser);
     } else {
       // --- O USUÁRIO ESTÁ DESLOGADO ---
       currentUser = null;
@@ -1925,6 +2034,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // Atualiza a UI para o estado "deslogado", mostrando a tela de login
       loginContainer.classList.remove("hidden");
       appHeader.classList.add("hidden");
+      // CORREÇÃO: Garante que a caixa de login principal seja exibida.
+      loginBox.classList.remove("hidden");
+      registerBox.classList.add("hidden");
+      continueAsBox.classList.add("hidden"); // Garante que a tela "Continuar como" esteja oculta
       userProfile.classList.add("hidden");
       serviceContainer.classList.add("hidden");
       taskDetailView.classList.add("hidden");
@@ -1940,6 +2053,63 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // MUDANÇA: Nova função para mostrar a tela "Continuar como"
+  function showContinueAsScreen(user) {
+      const photoEl = document.getElementById('continue-as-photo');
+      const nameEl = document.getElementById('continue-as-name');
+
+      photoEl.src = user.photoURL || "./assets/default-avatar.png";
+      nameEl.textContent = user.displayName || user.email;
+
+      loginBox.classList.add("hidden");
+      registerBox.classList.add("hidden");
+      continueAsBox.classList.remove("hidden");
+  }
+
+  // MUDANÇA: Nova função para inicializar a UI após o login confirmado
+  async function initializeAppUI(user) {
+      // --- O USUÁRIO ESTÁ LOGADO ---
+      console.log("Usuário logado:", user.uid);
+
+      // Carrega a lista de membros da equipe para usar na aplicação
+      await loadTeamMembers();
+
+      // Carrega as categorias pré-definidas
+      await loadPredefinedCategories();
+
+      // Atualiza a UI para o estado "logado"
+      userNameEl.textContent = user.displayName || user.email;
+      userPhotoEl.src = user.photoURL || "./assets/default-avatar.png";
+
+      // Mostra o card de gerenciamento de usuários se for admin
+      const adminCard = document.getElementById('admin-user-management-card');
+      const adminCategoryCard = document.getElementById('admin-category-management-card');
+      if (user.role === 'admin') {
+          adminCard.classList.remove('hidden');
+          adminCategoryCard.classList.remove('hidden');
+      } else {
+          adminCard.classList.add('hidden');
+          adminCategoryCard.classList.add('hidden');
+      }
+
+      loginContainer.classList.add("hidden");
+      appHeader.classList.remove("hidden");
+      userProfile.classList.remove("hidden");
+      dashboardView.classList.remove("hidden");
+
+      // Começa a ouvir por atualizações nos serviços do usuário em tempo real
+      listenForServices(user);
+
+      // Começa a ouvir as solicitações para atualizar o selo do dashboard
+      listenForRequests();
+
+      // Começa a ouvir por notificações
+      listenForNotifications(user.uid);
+
+      // Verifica a URL para mostrar a view correta
+      handleRouteChange();
+      window.addEventListener("hashchange", handleRouteChange);
+  }
   // Evento de login com E-mail e Senha
   emailLoginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1992,6 +2162,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = registerForm["register-email"].value;
     const password = registerForm["register-password"].value;
     registerErrorEl.classList.add("hidden");
+
+    // MUDANÇA: Validação do tamanho do nome
+    if (name.length > 30) {
+        registerErrorEl.textContent = "O nome de usuário não pode ter mais de 30 caracteres.";
+        registerErrorEl.classList.remove("hidden");
+        hideLoading();
+        return;
+    }
 
     showLoading();
     try {
@@ -2203,7 +2381,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Altera o título e o botão do modal
     modal.querySelector("h2").textContent = "Editar Serviço";
-    modal.querySelector('button[type="submit"]').textContent =
+    modal.querySelector('.modal-footer button[type="submit"]').textContent =
       "Salvar Alterações";
 
     modal.style.display = "block";
@@ -2219,9 +2397,9 @@ document.addEventListener("DOMContentLoaded", () => {
     populateCategorySuggestions(); // MUDANÇA: Popula as categorias
 
     // MUDANÇA: Garante que o modal esteja em modo de "adição"
-    currentEditServiceId = null;
+    currentEditServiceId = null; // Reset currentEditServiceId for new service
     modal.querySelector("h2").textContent = "Adicionar Novo Serviço";
-    modal.querySelector('button[type="submit"]').textContent = "Criar Serviço";
+    modal.querySelector('.modal-footer button[type="submit"]').textContent = "Criar Serviço"; // Target the button in the footer
 
     modal.style.display = "block";
   }
@@ -2282,19 +2460,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const priority = formData.get("servicePriority"); // MUDANÇA: Pega a prioridade
 
     // MUDANÇA: Lógica para coletar etapas e sub-etapas
-    const stepGroups = stepsContainer.querySelectorAll(".step-group-modal");
-    const steps = Array.from(stepGroups).map((group) => {
-      const stepName = group.querySelector('[name="stepName"]').value;
-      const stepColor = group.querySelector('[name="stepColor"]').value;
-      const stepResponsibleId = group.querySelector('[name="stepResponsible"]').value; // MUDANÇA: Pega o responsável da etapa
-      const substepInputs = group.querySelectorAll('[name="substepName"]');
-      const subtasks = Array.from(substepInputs).map((input) => ({
-        name: input.value,
-        completed: false,
-      }));
-      // Garante que haja pelo menos uma sub-etapa se nenhuma for adicionada
-      return { name: stepName, color: stepColor, responsibleId: stepResponsibleId || null, subtasks: subtasks.length > 0 ? subtasks : [{ name: "Tarefa Padrão", completed: false }] };
-    });
+    const stepGroups = stepsContainer.querySelectorAll(".step-group-modal");    
+    const steps = collectStepsFromForm(stepGroups, currentEditServiceId ? services.find(s => s.id === currentEditServiceId) : null);
 
     const serviceData = {
       name: serviceName,
@@ -2400,6 +2567,37 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // MUDANÇA: Função movida para o escopo global para ser reutilizável.
+  // Coleta dados das etapas de um formulário (modal ou inline) e preserva o estado 'completed'.
+  function collectStepsFromForm(stepGroups, originalService = null) {
+      return Array.from(stepGroups).map((group, stepIndex) => {
+          const stepName = group.querySelector('[name="stepName"]').value;
+          const stepColor = group.querySelector('[name="stepColor"]').value;
+          const stepResponsibleId = group.querySelector('[name="stepResponsible"]').value;
+          const substepInputs = group.querySelectorAll('[name="substepName"]');
+
+          const subtasks = Array.from(substepInputs).map((input, subtaskIndex) => {
+              // --- LÓGICA DE MESCLAGEM CORRIGIDA ---
+              const subtaskId = input.dataset.id;
+              const newName = input.value.trim();              const newPendingDescription = group.querySelector(`select[data-id="${subtaskId}"]`)?.value.trim() || '';
+
+              // Tenta encontrar a sub-etapa original pelo índice. Isso é seguro porque a ordem não muda durante a edição.
+              const originalSubtask = originalService?.steps[stepIndex]?.subtasks[subtaskIndex];
+
+              // Preserva o status 'completed' da sub-etapa original, se ela existir.
+              const isCompleted = originalSubtask ? originalSubtask.completed : false;
+
+              return {
+                  name: newName,
+                  completed: isCompleted,
+                  pendingDescription: newPendingDescription,
+              };
+          });
+
+          return { name: stepName, color: stepColor, responsibleId: stepResponsibleId || null, subtasks };
+      });
+  }
+
   // --- MUDANÇA: Funções para o sistema de notificação ---
   function listenForNotifications(userId) {
       notificationContainer.classList.remove("hidden");
@@ -2463,13 +2661,30 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- MUDANÇA: Funções auxiliares para criar elementos do formulário ---
 
   // Cria uma linha de input para uma sub-etapa
-  function createSubstepInputRow(name = "") {
+  function createSubstepInputRow(name = "", pendingDescription = "") {
+    // MUDANÇA: Gera um ID único para o textarea de pendingDescription
+    const uniqueId = `substep-id-${Math.random().toString(36).substr(2, 9)}`;
+
     const row = document.createElement("div");
     row.className = "substep-input-row";
     row.innerHTML = `
-      <input type="text" name="substepName" placeholder="Nome da sub-etapa" value="${name}" required />
+      <input type="text" name="substepName" placeholder="Nome da sub-etapa" value="${name}" data-id="${uniqueId}" required />
       <button type="button" class="btn-icon btn-delete-substep" title="Remover Sub-etapa"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
     `;
+    // MUDANÇA: Substitui o textarea por um select com opções pré-definidas.
+    const pendingSelect = document.createElement('select');
+    pendingSelect.name = `substepPendingDescription`;
+    pendingSelect.dataset.id = uniqueId;
+    pendingSelect.classList.add('substep-pending-description');
+
+    const options = ['<option value="">Nenhuma pendência</option>'];
+    pendingOptions.forEach(opt => {
+        const isSelected = (pendingDescription === opt) ? 'selected' : '';
+        options.push(`<option value="${opt}" ${isSelected}>${opt}</option>`);
+    });
+    pendingSelect.innerHTML = options.join('');
+
+    row.appendChild(pendingSelect);
     return row;
   }
 
@@ -2481,8 +2696,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const stepName = step ? step.name : "";
     const stepColor = step ? step.color : "#808080"; // Cinza como padrão
     const stepResponsibleId = step ? step.responsibleId : null; // MUDANÇA
-    const subtasks = step
-      ? step.subtasks
+    const subtasks = step // CORREÇÃO: Garante que a lista de sub-etapas seja sempre um array
+      ? step.subtasks || []
       : [{ name: "Tarefa Padrão", completed: false }];
 
     // MUDANÇA: Cria as opções para o select de responsáveis da etapa
@@ -2521,7 +2736,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </select>
       </div>
       <div class="substeps-container-modal">
-        ${subtasks.map(st => createSubstepInputRow(st.name).outerHTML).join("")}
+        ${subtasks.map(st => createSubstepInputRow(st.name, st.pendingDescription).outerHTML).join("")}
       </div>
       <button type="button" class="btn-secondary btn-add-substep" style="width: auto; padding: 5px 10px; font-size: 0.9em; margin-top: 10px; display: ${initialType === 'units' ? 'none' : 'inline-block'};">+ Sub-etapa</button>
     `;
