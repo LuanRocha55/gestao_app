@@ -36,6 +36,10 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s ease, color 0.3s ease;
+    /* MUDANÇA: Adiciona layout flex para o rodapé fixo */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 /* --- Cabeçalho e Título --- */
@@ -55,6 +59,11 @@ header {
     flex-grow: 1; /* Permite que este container ocupe o espaço disponível */
     min-width: 0; /* Previne que o flex item cause overflow */
     justify-content: space-between;
+}
+
+/* MUDANÇA: Faz o conteúdo principal crescer para empurrar o rodapé para baixo */
+.app-content {
+    flex-grow: 1;
 }
 
 header h1 a {
@@ -282,8 +291,8 @@ body.dark-theme #logout-btn {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 80px); /* Garante que o conteúdo seja centralizado verticalmente */
     text-align: center;
+    flex-grow: 1; /* CORREÇÃO: Faz o container de login ocupar o espaço disponível */
 }
 
 .auth-box {
@@ -291,7 +300,7 @@ body.dark-theme #logout-btn {
     padding: 40px 50px;
     border-radius: 10px;    box-shadow: 0 6px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais pronunciada para a caixa de login */
     width: 90%;
-    max-width: 400px;
+    max-width: 450px; /* MUDANÇA: Aumenta a largura da caixa de login */
     text-align: center;
 }
 
@@ -367,13 +376,6 @@ a.auth-toggle {
     color: var(--accent-color); 
     text-decoration: none; 
     font-weight: 600; 
-}
-.auth-error { color: #D8000C; background-color: #FFD2D2; border-radius: 5px; padding: 10px; margin-bottom: 15px; }
-
-/* --- MUDANÇA: Estilos de Alerta para o Modo Escuro --- */
-body.dark-theme .auth-error {
-    background-color: #5d1a1a;
-    color: #ffc2c2;
 }
 
 body.dark-theme .auth-success {
@@ -1173,7 +1175,7 @@ body.detail-view-active .header-content {
 }
 
 /* MUDANÇA: Aplica o mesmo layout para a view de detalhes e de perfil */
-#task-detail-view, #profile-view, #user-management-view, #category-management-view {
+#service-container, #task-detail-view, #profile-view, #user-management-view, #category-management-view, #production-status-view {
     padding: 40px;
     max-width: 900px;
     margin: 0 auto;
@@ -1181,7 +1183,7 @@ body.detail-view-active .header-content {
 
 /* MUDANÇA: Padroniza as views de lista */
 #service-container,
-#requests-view {
+#requests-view, #dashboard-view {
     padding: 40px;
     max-width: 1200px;
     margin: 0 auto;
@@ -1192,7 +1194,6 @@ body.detail-view-active .header-content {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 30px;
-    padding: 40px;
     max-width: 1100px;
     margin: 0 auto;
 }
@@ -1900,7 +1901,7 @@ body.dark-theme .request-card[data-status="rejected"] {
     }
 
     /* MUDANÇA: Reduz o padding das views de detalhe/gerenciamento no mobile */
-    #task-detail-view, #profile-view, #user-management-view, #category-management-view {
+    #service-container, #task-detail-view, #profile-view, #user-management-view, #category-management-view, #production-status-view, #requests-view, #dashboard-view {
         padding: 30px 20px;
     }
     /* MUDANÇA: Ajusta o padding do footer sticky no mobile */
@@ -1916,10 +1917,6 @@ body.dark-theme .request-card[data-status="rejected"] {
     .step-progress-container {
         width: 100%; /* Ocupa a largura toda */
         margin-left: 0; /* Reseta a margem */
-    }
-    /* MUDANÇA: Ajusta o padding das views de lista no mobile */
-    #service-container, #requests-view {
-        padding: 30px 20px;
     }
 }
 /* --- MUDANÇA: Estilos para o Indicador de Carregamento (Spinner) --- */
@@ -2044,4 +2041,130 @@ body.dark-theme .request-card[data-status="rejected"] {
     }
 
     .user-list-actions { width: 100%; }
+}
+
+/* --- MUDANÇA: Estilos para a Tabela de Status da Produção --- */
+.table-container {
+    overflow-x: auto; /* Permite scroll horizontal em telas pequenas */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 0.9em;
+    table-layout: fixed;
+}
+
+table th, table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: px solid var(--progress-bar-bg);
+    word-break: break-word; /* MUDANÇA: Quebra palavras longas para evitar overflow */
+    vertical-align: middle; /* Garante alinhamento vertical consistente */
+}
+/* MUDANÇA: Efeito zebrado para melhor legibilidade */
+table tbody tr:nth-child(odd) {
+    background-color: transparent; /* A base é a cor do card */
+}
+
+table thead th {
+    background-color: transparent; /* Remove fundo desnecessário */
+    font-weight: 700;
+    color: var(--accent-color);
+    text-align: center; /* MUDANÇA: Centraliza o texto dos cabeçalhos */
+    border-bottom-width: 2px; /* Destaca a linha do cabeçalho */
+}
+/* MUDANÇA: Estilos para cabeçalhos de tabela ordenáveis */
+table thead th[data-sort] {
+    cursor: pointer;
+    position: relative;
+    padding-right: 30px; /* Espaço para a seta */
+}
+
+table thead th[data-sort]::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 4px solid transparent;
+    opacity: 0.3;
+}
+
+table thead th.sort-active {
+    color: var(--accent-color); /* REVISÃO: Usa a cor de destaque para a coluna ativa */
+}
+
+table thead th.sort-active::after { opacity: 1; }
+table thead th.sort-asc::after { border-bottom-color: var(--accent-color); }
+table thead th.sort-desc::after { border-top-color: var(--accent-color); }
+
+/* REVISÃO: Reajusta a largura de todas as colunas para uma distribuição ideal */
+table th:nth-child(1), table td:nth-child(1) { width: 30%; padding-left: 25px; } /* Material */
+table th:nth-child(2), table td:nth-child(2) { width: 17%; } /* Categoria */
+table th:nth-child(3), table td:nth-child(3) { width: 18%; } /* Responsável */
+table th:nth-child(4), table td:nth-child(4) { width: 18%; } /* Etapa Atual */
+table th:nth-child(5), table td:nth-child(5) { width: 16%; } /* Progresso */
+
+/* MUDANÇA: Estilos para o indicador de progresso */
+.progress-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap; /* CORREÇÃO: Impede que o conteúdo da célula quebre a linha */
+}
+.progress-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.progress-dot.progress-yellow { background-color: #FFB300; } /* Amarelo */
+.progress-dot.progress-green { background-color: #43A047; } /* Verde */
+.progress-dot.progress-blue { background-color: #007bff; } /* Azul */
+
+table tbody tr:hover {
+    background-color: var(--bg-color); /* REVISÃO: Usa a cor de fundo principal para o hover */
+}
+
+table td a {
+    color: var(--text-color);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+table td a:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+    #production-status-view {
+        max-width: 100%; /* Permite que a tabela ocupe mais espaço */
+    }
+}
+
+/* --- MUDANÇA: Estilos do Rodapé --- */
+footer {
+    /* MUDANÇA: Usa a mesma cor de fundo do header */
+    background-color: var(--header-bg-color);
+    color: #ffffff; /* MUDANÇA: Define a cor do texto para combinar com o header */
+    padding: 20px 40px;
+    margin-top: auto; /* Empurra o rodapé para o final do flex container */
+    flex-shrink: 0; /* Impede que o rodapé encolha */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+body.dark-theme footer {
+    color: #000000;
 }

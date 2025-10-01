@@ -81,6 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const requestsView = document.getElementById("requests-view");
   const userManagementView = document.getElementById("user-management-view");
   const categoryManagementView = document.getElementById("category-management-view");
+  const productionStatusView = document.getElementById("production-status-view"); // MUDANÇA
   const addStepBtn = document.getElementById("add-step-btn");
   const dashboardView = document.getElementById("dashboard-view");
   const stepsContainer = document.getElementById("steps-container");
@@ -94,6 +95,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const notificationBell = document.getElementById("notification-bell");
   const notificationCount = document.getElementById("notification-count");
   const notificationPanel = document.getElementById("notification-panel");
+  // MUDANÇA: Estado para a ordenação da tabela de status
+  let productionStatusSort = {
+    column: 'name',
+    direction: 'asc'
+  };
 
   // MUDANÇA: Opções pré-definidas para o select de pendências.
   const pendingOptions = [
@@ -850,7 +856,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div id="inline-steps-container">
                 ${service.steps.map(step => createStepGroupElement(step).outerHTML).join('')}
             </div>
-            <button type="button" id="add-step-btn-inline" class="btn-secondary" style="margin-top: 15px;">+ Adicionar Etapa</button>
+            <button type="button" id="add-step-btn-inline" class="btn-secondary" style="margin-top: 15px;">Adicionar Etapa</button>
         `;
 
     } else {
@@ -1114,7 +1120,7 @@ document.addEventListener("DOMContentLoaded", () => {
     categoryManagementView.innerHTML = `
         <div class="detail-header">
             <h2>Gerenciamento de Categorias</h2>
-            <a href="#/" class="btn-secondary">Voltar</a>
+            <a href="#/services" class="btn-secondary">Voltar</a>
         </div>
         <div class="detail-section">
             <h3>Adicionar Nova Categoria</h3>
@@ -1163,6 +1169,179 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+  }
+
+  // MUDANÇA: Função para renderizar a página de Status da Produção
+  function renderProductionStatusPage() {
+    // CORREÇÃO: Função para atualizar apenas o corpo da tabela, evitando recarregar a página inteira.
+    const updateTable = () => {
+        const filterCategory = document.getElementById('status-filter-category').value;
+        const filterStatus = document.getElementById('status-filter-status').value;
+        const searchTerm = document.getElementById('status-search-input').value;
+
+    const filteredServices = services.filter(service => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        const categoryMatch = filterCategory === 'all' || service.category === filterCategory;
+        const progress = calculateOverallProgress(service);
+        let statusMatch = true;
+        if (filterStatus === 'ready') {
+        statusMatch = progress.percentage === 100;
+        } else if (filterStatus === 'in-progress') {
+        statusMatch = progress.percentage < 100;
+        }
+
+        if (!categoryMatch || !statusMatch) return false;
+        if (searchTerm === '') return true;
+
+        // MUDANÇA: Expande a busca para incluir múltiplas colunas
+        const name = service.name.toLowerCase();
+        const category = (service.category || '').toLowerCase();
+        const responsible = (teamMemberMap.get(service.responsible) || '').toLowerCase();
+        
+        let currentStepName = "n/a";
+        if (progress.percentage < 100) {
+            const firstUnfinishedStep = service.steps.find(step => (step.subtasks || []).some(st => !st.completed));
+            currentStepName = firstUnfinishedStep ? firstUnfinishedStep.name.toLowerCase() : "revisão final";
+        } else {
+            currentStepName = "finalizado";
+        }
+
+        return name.includes(lowerCaseSearchTerm) || category.includes(lowerCaseSearchTerm) || responsible.includes(lowerCaseSearchTerm) || currentStepName.includes(lowerCaseSearchTerm);
+    });
+
+    // MUDANÇA: Lógica de ordenação
+    filteredServices.sort((a, b) => {
+        const dir = productionStatusSort.direction === 'asc' ? 1 : -1;
+        const col = productionStatusSort.column;
+        let valA, valB;
+
+        // Atribui valores para comparação com base na coluna
+        if (col === 'name') { valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); }
+        else if (col === 'category') { valA = (a.category || '').toLowerCase(); valB = (b.category || '').toLowerCase(); }
+        else if (col === 'responsible') { valA = (teamMemberMap.get(a.responsible) || '').toLowerCase(); valB = (teamMemberMap.get(b.responsible) || '').toLowerCase(); }
+        else if (col === 'progress') { valA = calculateOverallProgress(a).percentage; valB = calculateOverallProgress(b).percentage; }
+        else { valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); }
+
+        if (valA < valB) return -1 * dir;
+        if (valA > valB) return 1 * dir;
+        return 0;
+    });
+
+    const tableRowsHtml = filteredServices
+      .map(service => {
+        const progress = calculateOverallProgress(service);
+        const responsibleName = teamMemberMap.get(service.responsible) || "Não atribuído";
+        
+        // MUDANÇA: Lógica de cor para o indicador de progresso
+        let progressColorClass = '';
+        if (progress.percentage === 0) {
+            progressColorClass = 'progress-yellow';
+        } else if (progress.percentage === 100) {
+            progressColorClass = 'progress-blue';
+        } else {
+            progressColorClass = 'progress-green';
+        }
+
+        let currentStepName = "N/A";
+        if (progress.percentage === 100) {
+            currentStepName = "Finalizado";
+        } else {
+            // Encontra a primeira etapa que tenha sub-etapas não concluídas
+            const firstUnfinishedStep = service.steps.find(step => 
+                (step.subtasks || []).some(st => !st.completed)
+            );
+            if (firstUnfinishedStep) {
+                currentStepName = firstUnfinishedStep.name;
+            } else {
+                currentStepName = "Revisão Final"; // Caso todas as sub-etapas estejam marcadas, mas o progresso não seja 100%
+            }
+        }
+
+        return `
+            <tr>
+                <td><a href="#/service/${service.id}">${service.name}</a></td>
+                <td>${service.category || "N/A"}</td>
+                <td>${responsibleName}</td>
+                <td>${currentStepName}</td>
+                <td class="progress-cell">
+                    <span class="progress-dot ${progressColorClass}"></span>
+                    <span>${Math.round(progress.percentage)}%</span>
+                </td>
+            </tr>
+        `;
+      }).join('');
+        const tableBody = productionStatusView.querySelector('tbody');
+        if (tableBody) tableBody.innerHTML = tableRowsHtml;
+    };
+
+    const categoryOptions = ['<option value="all">Todas as Categorias</option>', ...predefinedCategories.map(cat => `<option value="${cat.name}">${cat.name}</option>`)].join('');
+
+    productionStatusView.innerHTML = `
+        <div class="detail-header">
+            <h2>Status da Produção</h2>
+            <a href="#/" class="btn-secondary">Voltar</a>
+        </div>
+        <div class="detail-section">
+            <!-- MUDANÇA: Filtros para a tabela -->
+            <div class="table-filters">
+                <div class="form-group">
+                    <label for="status-search-input">Buscar Informação</label>
+                    <input type="search" id="status-search-input" placeholder="Digite a pesquisa aqui...">
+                </div>
+                <div class="form-group">
+                    <label for="status-filter-category">Filtrar por Categoria</label>
+                    <select id="status-filter-category">${categoryOptions}</select>
+                </div>
+                <div class="form-group">
+                    <label for="status-filter-status">Filtrar por Status</label>
+                    <select id="status-filter-status">
+                        <option value="all">Todos</option>
+                        <option value="in-progress">Em Produção</option>
+                        <option value="ready">Pronto</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-sort="name">Material</th>
+                            <th data-sort="category">Categoria</th>
+                            <th data-sort="responsible">Responsável</th>
+                            <th data-sort="step">Etapa Atual</th>
+                            <th data-sort="progress">Progresso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- O conteúdo será inserido pela função updateTable -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    // CORREÇÃO: Adiciona um único listener ao container dos filtros para chamar a atualização da tabela.
+    productionStatusView.querySelector('.table-filters').addEventListener('input', updateTable);
+
+    // MUDANÇA: Adiciona listeners para os cabeçalhos da tabela para ordenação
+    productionStatusView.querySelectorAll('thead th[data-sort]').forEach(th => {
+        // Adiciona indicador visual de ordenação
+        if (th.dataset.sort === productionStatusSort.column) {
+            th.classList.add('sort-active', `sort-${productionStatusSort.direction}`);
+        }
+
+        th.addEventListener('click', () => {
+            const newSortColumn = th.dataset.sort;
+            if (productionStatusSort.column === newSortColumn) {
+                productionStatusSort.direction = productionStatusSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                productionStatusSort.column = newSortColumn;
+                productionStatusSort.direction = 'asc';
+            }
+            renderProductionStatusPage(); // Redesenha a página inteira para atualizar os cabeçalhos
+        });
+    });
+    updateTable(); // Chama a função uma vez para popular a tabela inicialmente.
   }
 
   // MUDANÇA: Função para ouvir e renderizar comentários em tempo real
@@ -1233,6 +1412,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isRequests = hash.startsWith("#/requests");
     const isUserManagement = hash.startsWith("#/users");
     const isCategoryManagement = hash.startsWith("#/categories");
+    const isProductionStatus = hash.startsWith("#/production-status"); // MUDANÇA
 
     // MUDANÇA: Limpa o listener de comentários se não estiver na página de detalhes
     if (!isServiceDetail && unsubscribeFromComments) { 
@@ -1248,9 +1428,10 @@ document.addEventListener("DOMContentLoaded", () => {
     requestsView.classList.toggle("hidden", !isRequests);
     userManagementView.classList.toggle("hidden", !isUserManagement);
     categoryManagementView.classList.toggle("hidden", !isCategoryManagement);
+    productionStatusView.classList.toggle("hidden", !isProductionStatus); // MUDANÇA
 
     // Adiciona uma classe ao body para estilizar o header de forma diferente
-    const isSubPage = isServiceDetail || isProfile || isRequests || isServices || isUserManagement || isCategoryManagement;
+    const isSubPage = isServiceDetail || isProfile || isRequests || isServices || isUserManagement || isCategoryManagement || isProductionStatus;
     document.body.classList.toggle("detail-view-active", isSubPage);
 
     // Carrega o conteúdo da view ativa
@@ -1286,7 +1467,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (isUserManagement) {
       renderUserManagementPage();
     } else if (isCategoryManagement) {
-      renderCategoryManagementPage();
+      renderCategoryManagementPage(); // MUDANÇA
+    } else if (isProductionStatus) { // MUDANÇA
+      renderProductionStatusPage();
     } else if (isServices) {
       // A view padrão é a lista de serviços
       // MUDANÇA: Adiciona o botão de gerenciar categorias apenas para admins
@@ -1299,7 +1482,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <h2>Gerenciar Serviços</h2>
             <div class="detail-header-actions">
                 ${adminCategoryButton}
-                <button id="add-service-btn" class="btn-primary">+ Adicionar Serviço</button>
+                <button id="add-service-btn" class="btn-primary">Adicionar Serviço</button>
                 <a href="#/" class="btn-secondary">Voltar</a>
             </div>
         </div>
@@ -2049,7 +2232,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Atualiza a UI para o estado "deslogado", mostrando a tela de login
       loginContainer.classList.remove("hidden");
-      appHeader.classList.add("hidden");
+      appHeader.classList.remove("hidden"); // MUDANÇA: Mantém o header visível
+      document.querySelector('footer').style.display = 'block'; // MUDANÇA: Mantém o footer visível
+
+      // MUDANÇA: Esconde os controles específicos do usuário no header
+      document.getElementById('home-btn').style.display = 'none';
+      document.getElementById('notification-container').style.display = 'none';
+      document.getElementById('user-profile').style.display = 'none';
+      document.getElementById('mobile-menu-toggle').style.display = 'none';
+      document.querySelector('.app-content').style.display = 'none'; // CORREÇÃO: Esconde o main content
+
+
       // CORREÇÃO: Garante que a caixa de login principal seja exibida.
       loginBox.classList.remove("hidden");
       registerBox.classList.add("hidden");
@@ -2107,6 +2300,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       loginContainer.classList.add("hidden");
       appHeader.classList.remove("hidden");
+      // MUDANÇA: Mostra os controles do usuário ao logar
+      document.getElementById('home-btn').style.display = 'inline-flex';
+      document.getElementById('notification-container').style.display = 'block';
+      document.getElementById('user-profile').style.display = 'flex';
+      // O botão de menu mobile é controlado por CSS, então não precisa de 'display: block' aqui.
+
+      document.querySelector('footer').style.display = 'block';
+      document.querySelector('.app-content').style.display = 'block'; // CORREÇÃO: Mostra o main content
+
       userProfile.classList.remove("hidden");
       dashboardView.classList.remove("hidden");
 
@@ -2147,7 +2349,7 @@ document.addEventListener("DOMContentLoaded", () => {
   googleLoginBtn.addEventListener("click", async () => {
     const provider = new GoogleAuthProvider();
     try {
-      showLoading(); // Mostra o carregamento
+      // showLoading(); // CORREÇÃO: Removido para evitar que a tela de carregamento persista.
       await signInWithPopup(auth, provider);
       // O onAuthStateChanged cuidará de atualizar a UI.
       // O hideLoading() será chamado dentro do onAuthStateChanged após a UI ser montada.
