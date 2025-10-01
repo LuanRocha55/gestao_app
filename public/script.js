@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userNameEl = document.getElementById("user-name");
   const userPhotoEl = document.getElementById("user-photo");
   const serviceContainer = document.getElementById("service-container");
-  const themeToggle = document.getElementById("theme-toggle");
+  const themeToggleBtn = document.getElementById("theme-toggle-btn"); // MUDANÇA: Referência para o novo botão
   const modal = document.getElementById("add-service-modal");
   const addServiceForm = document.getElementById("add-service-form");
   const serviceListWrapper = document.getElementById("service-list-wrapper");
@@ -108,17 +108,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Verifica o tema salvo no localStorage ao carregar a página
   if (localStorage.getItem("theme") === "dark") {
     document.body.classList.add("dark-theme");
-    themeToggle.checked = true;
   }
 
   // Adiciona o evento de clique para o seletor de tema
-  themeToggle.addEventListener("change", () => {
-    if (themeToggle.checked) {
-      document.body.classList.add("dark-theme");
-      localStorage.setItem("theme", "dark"); // Salva a preferência
-    } else {
+  themeToggleBtn.addEventListener("click", () => {
+    // MUDANÇA: Lógica de clique para o novo botão
+    if (document.body.classList.contains("dark-theme")) {
       document.body.classList.remove("dark-theme");
       localStorage.setItem("theme", "light"); // Salva a preferência
+    } else {
+      document.body.classList.add("dark-theme");
+      localStorage.setItem("theme", "dark"); // Salva a preferência
     }
   });
 
@@ -341,8 +341,10 @@ document.addEventListener("DOMContentLoaded", () => {
     requestsView.innerHTML = `
             <div class="detail-header requests-header">
                 <h2>Gerenciar Solicitações</h2>
-                <button id="make-request-btn" class="btn-primary">Fazer Solicitação</button>
-                <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
+                <div class="detail-header-actions">
+                    <button id="make-request-btn" class="btn-primary">Fazer Solicitação</button>
+                    <a href="#/" class="btn-secondary">Voltar</a>
+                </div>
             </div>
             <div class="search-bar-wrapper">
                 <input type="search" id="requests-search-input" placeholder="Pesquisar por título, solicitante, descrição...">
@@ -1004,7 +1006,7 @@ document.addEventListener("DOMContentLoaded", () => {
     profileView.innerHTML = `
             <div class="detail-header">
                 <h2>Meu Perfil</h2>
-                <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
+                <a href="#/" class="btn-secondary">Voltar</a>
             </div>
             <div class="detail-section">
                 <h3>Informações da Conta</h3>
@@ -1074,7 +1076,7 @@ document.addEventListener("DOMContentLoaded", () => {
     userManagementView.innerHTML = `
         <div class="detail-header">
             <h2>Gerenciamento de Usuários</h2>
-            <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
+            <a href="#/" class="btn-secondary">Voltar</a>
         </div>
         <div class="detail-section">
             <h3>Membros da Equipe</h3>
@@ -1112,16 +1114,23 @@ document.addEventListener("DOMContentLoaded", () => {
     categoryManagementView.innerHTML = `
         <div class="detail-header">
             <h2>Gerenciamento de Categorias</h2>
-            <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
+            <a href="#/" class="btn-secondary">Voltar</a>
         </div>
         <div class="detail-section">
             <h3>Adicionar Nova Categoria</h3>
-            <form id="add-category-form" class="form-inline">
-                <div class="form-group">
-                    <input type="text" id="new-category-name" placeholder="Nome da Categoria" required>
-                    <input type="color" id="new-category-color" title="Cor da Categoria" value="#001f3f">
+            <!-- MUDANÇA: Melhora a clareza do formulário de adicionar categoria -->
+            <form id="add-category-form" class="category-add-form">
+                <div class="form-group" style="flex-grow: 1;">
+                    <label for="new-category-name">Nome da Categoria</label>
+                    <input type="text" id="new-category-name" placeholder="Ex: Desenvolvimento" required>
                 </div>
-                <button type="submit" class="btn-primary">Adicionar</button>
+                <div class="form-group">
+                    <label for="new-category-color">Cor</label>
+                    <input type="color" id="new-category-color" title="Escolher cor da categoria" value="#001f3f">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn-primary">Adicionar</button>
+                </div>
             </form>
         </div>
         <div class="detail-section">
@@ -1280,12 +1289,19 @@ document.addEventListener("DOMContentLoaded", () => {
       renderCategoryManagementPage();
     } else if (isServices) {
       // A view padrão é a lista de serviços
+      // MUDANÇA: Adiciona o botão de gerenciar categorias apenas para admins
+      const adminCategoryButton = currentUser.role === 'admin' 
+        ? `<a href="#/categories" class="btn-primary">Gerenciar Categorias</a>` 
+        : '';
       // MUDANÇA: Renderiza a estrutura da página e depois os cards
       serviceContainer.innerHTML = `
         <div class="detail-header requests-header">
             <h2>Gerenciar Serviços</h2>
-            <button id="add-service-btn" class="btn-primary">+ Adicionar Serviço</button>
-            <a href="#/" class="btn-secondary">Voltar ao Dashboard</a>
+            <div class="detail-header-actions">
+                ${adminCategoryButton}
+                <button id="add-service-btn" class="btn-primary">+ Adicionar Serviço</button>
+                <a href="#/" class="btn-secondary">Voltar</a>
+            </div>
         </div>
         <div class="search-bar-wrapper">
             <input type="search" id="services-search-input" placeholder="Pesquisar por nome, responsável, categoria...">
@@ -2083,13 +2099,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Mostra o card de gerenciamento de usuários se for admin
       const adminCard = document.getElementById('admin-user-management-card');
-      const adminCategoryCard = document.getElementById('admin-category-management-card');
       if (user.role === 'admin') {
           adminCard.classList.remove('hidden');
-          adminCategoryCard.classList.remove('hidden');
       } else {
           adminCard.classList.add('hidden');
-          adminCategoryCard.classList.add('hidden');
       }
 
       loginContainer.classList.add("hidden");

@@ -18,26 +18,17 @@
     <header>
         <div id="app-header" class="header-content hidden">
             <!-- MUDANÇA: Agrupa o botão Home e o Título à esquerda -->
-            <div class="header-left">
-                <a href="#/" class="btn-icon" id="home-btn" title="Início">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
-                </a>
-                <h1><a href="#/">Painel de Gestão</a></h1>
-            </div>
-
-            <!-- MUDANÇA: Itens do Menu à direita (classe 'header-right' removida por ser redundante) -->
-            <div id="header-menu-items">
-                <div id="user-profile" class="user-profile-container hidden">
-                    <img id="user-photo" src="" alt="Foto do usuário">
-                    <a href="#/profile" class="user-profile-link">
-                        <span id="user-name"></span>
-                    </a>
-                    <button id="logout-btn" class="btn-secondary">Sair</button>
-                </div>
-            </div>
+            <h1><a href="#/">Painel de Gestão</a></h1>
 
             <!-- MUDANÇA: Agrupa os controles do canto direito (visíveis no mobile) -->
             <div class="header-controls">
+                <!-- MUDANÇA: Itens do Menu que serão mostrados/escondidos no mobile -->
+                <div id="header-menu-items"></div>
+
+                <!-- MUDANÇA: Botão Home movido para a direita -->
+                <a href="#/" class="btn-icon" id="home-btn" title="Início">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                </a>
                 <!-- MUDANÇA: Container para o sino de notificação -->
                 <div id="notification-container"> <!-- CORREÇÃO: Removida a classe 'hidden' para que o sino sempre apareça -->
                     <div id="notification-bell" class="btn-icon">
@@ -51,12 +42,17 @@
                         <ul id="notification-list"></ul>
                     </div>
                 </div>
-                <div class="theme-switcher-container">
-                    <span>Modo Escuro</span>
-                    <label class="theme-switcher" title="Alternar tema">
-                        <input type="checkbox" id="theme-toggle">
-                        <span class="slider"></span>
-                    </label>
+                <!-- MUDANÇA: Botão de troca de tema com ícones de sol/lua -->
+                <button id="theme-toggle-btn" class="btn-icon" title="Alternar tema">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 0 1 20 12A8 8 0 0 1 12 20V4Z"/></svg>
+                </button>
+                <!-- MUDANÇA: Perfil do usuário movido para o final dos controles -->
+                <div id="user-profile" class="user-profile-container hidden">
+                    <img id="user-photo" src="" alt="Foto do usuário">
+                    <a href="#/profile" class="user-profile-link">
+                        <span id="user-name"></span>
+                    </a>
+                    <button id="logout-btn" class="btn-secondary">Sair</button>
                 </div>
                 <button id="mobile-menu-toggle" class="btn-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>
@@ -209,16 +205,6 @@
                 </div>
                 <h2>Gerenciar Usuários</h2>
                 <p>Altere cargos e permissões dos membros da equipe.</p>
-            </a>
-        </div>
-        <!-- MUDANÇA: Card de admin para categorias, oculto por padrão -->
-        <div class="dashboard-card hidden" id="admin-category-management-card">
-            <a href="#/categories">
-                <div class="dashboard-card-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.41,11.58L12.41,2.58C12.05,2.22 11.55,2 11,2H4C2.89,2 2,2.89 2,4V11C2,11.55 2.22,12.05 2.59,12.41L11.58,21.41C11.95,21.78 12.45,22 13,22C13.55,22 14.05,21.78 14.41,21.41L21.41,14.41C21.78,14.05 22,13.55 22,13C22,12.45 21.78,11.95 21.41,11.58M13,20L4,11V4H11L20,13L13,20M6.5,5.5A1.5,1.5 0 1,1 5,7A1.5,1.5 0 0,1 6.5,5.5Z"/></svg>
-                </div>
-                <h2>Gerenciar Categorias</h2>
-                <p>Adicione ou remova categorias pré-definidas para serviços.</p>
             </a>
         </div>
     </section>

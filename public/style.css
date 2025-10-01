@@ -7,6 +7,7 @@
     --bg-color: #f4f7fa;
     --text-color: #333;
     --card-bg: #ffffff;
+    --header-bg-color: #001f3f; /* MUDANÇA: Variável para a cor do header */
     --primary-color: #001f3f; /* Azul Marinho */
     --accent-color: #001f3f; /* Cor de destaque para títulos e barras */
     --progress-bar-bg: #e0e0e0;
@@ -18,6 +19,7 @@ body.dark-theme {
     --bg-color: #121212;
     --text-color: #f0f0f0;
     --card-bg: #1e1e1e;
+    --header-bg-color: #87CEFA; /* MUDANÇA: Header no tema escuro usa o azul claro */
     --accent-color: #87CEFA; /* Azul claro para destaque no tema escuro */
     --progress-bar-bg: #333; /* Cinza escuro para bordas e fundos de progresso */
     --shadow-color: rgba(0, 0, 0, 0.3); /* CORREÇÃO: Suaviza a sombra no tema escuro */
@@ -39,7 +41,7 @@ body {
 /* --- Cabeçalho e Título --- */
 header {
     padding: 20px 40px;
-    background-color: var(--primary-color);
+    background-color: var(--header-bg-color); /* MUDANÇA: Usa a nova variável */
     box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Sombra mais suave e padronizada */
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
     display: flex;
@@ -55,82 +57,11 @@ header {
     justify-content: space-between;
 }
 
-/* MUDANÇA: Ajusta os containers do cabeçalho */
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-#header-menu-items {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-header h1 {
-    color: #ffffff;
-    font-weight: 700;
-    transition: color 0.3s ease;
-}
-
 header h1 a {
     color: #ffffff;
     text-decoration: none;
 }
 
-/* MUDANÇA: Adiciona opacidade padrão para os ícones do header */
-#home-btn, #notification-bell {
-    opacity: 0.8;
-    transition: opacity 0.2s ease, background-color 0.2s ease;
-    border-radius: 50%; /* Garante o fundo circular no hover */
-}
-
-/* MUDANÇA: Aumenta a opacidade no hover */
-#home-btn:hover, #notification-bell:hover {
-    opacity: 1;
-}
-
-#home-btn svg {
-    fill: #ffffff;
-    width: 28px; /* Aumenta o tamanho do ícone */
-    height: 28px;
-    display: block; /* Remove espaço extra abaixo do svg */
-}
-
-/* MUDANÇA: Garante que o ícone de notificação seja sempre branco */
-#notification-bell svg {
-    fill: #ffffff;
-}
-
-/* --- Barra de Pesquisa --- */
-.search-bar-wrapper input {
-    width: 350px; /* Define um tamanho padrão e previsível */
-    padding: 10px 15px;
-    border-radius: 5px;
-    border: 1px solid transparent;
-    background-color: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1em;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.search-bar-wrapper input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.search-bar-wrapper input:focus {
-    outline: none;
-    background-color: rgba(255, 255, 255, 0.3);
-    border-color: var(--accent-color);
-}
-
-.header-content a.btn-secondary {
-    color: #ffffff;
-    border-color: #ffffff;
-    text-decoration: none;
-    padding: 8px 15px;
-}
 /* MUDANÇA: Estilos para a barra de pesquisa em seu novo local */
 .search-bar-wrapper {
     margin-bottom: 30px;
@@ -139,9 +70,15 @@ header h1 a {
 .search-bar-wrapper input {
     width: 100%;
     max-width: 500px; /* Limita a largura em telas grandes */
+    /* CORREÇÃO: Adiciona padding, borda e fonte para consistência visual */
+    padding: 12px 15px;
+    border-radius: 5px;
     background-color: var(--card-bg);
     color: var(--text-color);
     border: 1px solid var(--progress-bar-bg);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1em;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .search-bar-wrapper input::placeholder {
@@ -150,6 +87,7 @@ header h1 a {
 }
 
 .search-bar-wrapper input:focus {
+    outline: none; /* CORREÇÃO: Remove a borda de foco padrão do navegador */
     background-color: var(--bg-color);
     border-color: var(--accent-color);
 }
@@ -166,17 +104,15 @@ input[type="color"] {
     height: 45px; /* Alinha altura com outros inputs */
 }
 
-
-
-/* --- Botão de Troca de Tema --- */
-.theme-switcher-container {
+/* MUDANÇA: Estilos para o formulário de adicionar categoria */
+.category-add-form {
     display: flex;
-    align-items: center;
-    margin-left: 10px; /* MUDANÇA: Adiciona um respiro entre o sino e o tema */
-    gap: 10px;
-    color: #f0f0f0;
-    font-weight: 600;
+    align-items: flex-end; /* Alinha os itens na base */
+    gap: 15px;
+    flex-wrap: wrap; /* Permite quebrar a linha em telas menores */
 }
+
+
 
 /* MUDANÇA: Container para os controles que ficam visíveis no mobile */
 .header-controls {
@@ -185,16 +121,54 @@ input[type="color"] {
     gap: 20px;
 }
 
+/* MUDANÇA: Estilo de destaque para botões de ícone importantes */
+/* REVISÃO: Unifica o estilo de hover para todos os ícones do header */
+.header-controls .btn-icon:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .header-controls .btn-icon:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+
+/* --- REVISÃO: Cores do Header por Tema (Simplificado) --- */
+/* Tema Claro: Texto e ícones brancos */
+header {
+    color: #ffffff;
+}
+header h1 a,
+header .user-profile-link {
+    color: inherit; /* Herda a cor do header */
+}
+
+/* REVISÃO: Garante que os ícones do header sejam brancos no tema claro */
+header .btn-icon {
+    color: #ffffff;
+}
+
+/* MUDANÇA: Aumenta ligeiramente o ícone de Início para destaque */
+#home-btn svg {
+    width: 26px;
+    height: 26px;
+}
+
+/* Tema Escuro: Texto e ícones pretos */
+body.dark-theme header, /* REVISÃO: Define a cor base para o header no tema escuro */
+body.dark-theme header h1 a,
+body.dark-theme header .btn-icon, /* CORREÇÃO: Garante que todos os ícones fiquem pretos */
+body.dark-theme header .user-profile-link,
+body.dark-theme #logout-btn {
+    color: #000000;
+    border-color: #000000; /* CORREÇÃO: Garante que a borda do botão Sair seja preta */
+}
+
 /* --- MUDANÇA: Estilos do Sistema de Notificação --- */
 #notification-container {
     position: relative;
 }
 
-/* MUDANÇA: Estilo de destaque para botões de ícone importantes */
-#notification-bell:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
+/* MUDANÇA: Estilos do Sistema de Notificação --- */
 #notification-count { /* CORREÇÃO: Simplificado o seletor para ser mais robusto */
     position: absolute;
     top: -5px;
@@ -209,7 +183,7 @@ input[type="color"] {
     align-items: center;
     font-size: 0.75em;
     font-weight: 700;
-    border: 2px solid var(--primary-color);
+    border: 2px solid var(--header-bg-color); /* CORREÇÃO: Usa a cor do header como borda */
     transform: scale(0);
     transition: transform 0.2s ease;
 }
@@ -268,58 +242,11 @@ input[type="color"] {
     opacity: 0.6;
 }
 
-.theme-switcher {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 26px;
-    cursor: pointer;
-}
-
-.theme-switcher input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.4s;
-    border-radius: 26px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.4s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: var(--primary-color);
-}
-
-input:checked + .slider:before {
-    transform: translateX(24px);
-}
-
 /* --- Perfil do Usuário no Cabeçalho --- */
 .user-profile-container {
     display: flex;
     align-items: center;
     gap: 10px;
-    color: #ffffff;
 }
 
 .user-profile-container img {
@@ -333,17 +260,15 @@ input:checked + .slider:before {
     font-weight: 600;
 }
 
+/* CORREÇÃO: Garante que o botão Sair herde a cor corretamente */
 .user-profile-container .btn-secondary {
-    color: #ffffff;
-    border-color: #ffffff;
-    margin-top: 0;
-    padding: 5px 10px;
-    width: auto;
+    color: inherit;
+    border-color: currentColor;
 }
 
 /* --- Link do Perfil do Usuário --- */
 .user-profile-link {
-    color: #ffffff;
+    color: inherit; /* Herda a cor do container */
     text-decoration: none;
     transition: text-decoration 0.2s;
 }
@@ -723,11 +648,16 @@ main {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1.2rem;
-    padding: 0;
+    /* CORREÇÃO: Define um tamanho fixo para o botão e centraliza o ícone */
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; /* Garante o fundo circular no hover */
     color: var(--text-color);
-    opacity: 0.6;
-    transition: opacity 0.2s ease, color 0.3s ease;
+    opacity: 0.8; /* REVISÃO: Aumenta a opacidade padrão para melhor visibilidade */
+    transition: opacity 0.2s ease, color 0.3s ease, background-color 0.2s ease;
 }
 
 .step-item .btn-delete-subtask-detail {
@@ -736,9 +666,9 @@ main {
 }
 
 .btn-icon svg {
-    width: 18px;
-    height: 18px;
-    fill: currentColor;
+    width: 24px;
+    height: 24px;
+    fill: currentColor; /* CORREÇÃO: Garante que o SVG use a cor do texto do botão pai */
 }
 
 .btn-icon:hover {
@@ -2064,6 +1994,21 @@ body.dark-theme .request-card[data-status="rejected"] {
     border-radius: 5px;
     border: 1px solid var(--progress-bar-bg);
     flex-shrink: 0;
+}
+
+/* CORREÇÃO: Ajusta o alinhamento do formulário de categoria */
+.category-add-form .form-group:has(input[type="color"]) {
+    text-align: center; /* Centraliza o label 'Cor' */
+}
+.category-add-form button {
+    height: 45px; /* Garante que o botão tenha a mesma altura dos inputs */
+}
+
+/* MUDANÇA: Melhora a aparência do input de cor no formulário de categoria */
+.category-add-form input[type="color"] {
+    border: 1px solid var(--progress-bar-bg);
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 /* MUDANÇA: Estilos para o modo de edição da categoria */
