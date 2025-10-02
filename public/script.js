@@ -440,6 +440,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- MUDANÇA: Funções para a página de solicitações ---
   function renderRequestsPage() {
     // MUDANÇA: Adiciona a barra de pesquisa à página de solicitações
+    // CORREÇÃO: Adiciona as abas de filtro e seus listeners.
     requestsView.innerHTML = `
             <div class="detail-header requests-header">
                 <h2>Gerenciar Solicitações</h2>
@@ -451,11 +452,27 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="search-bar-wrapper">
                 <input type="search" id="requests-search-input" placeholder="Pesquisar por título, solicitante, descrição...">
             </div>
+            <!-- MUDANÇA: Adiciona as abas de filtro -->
+            <div class="requests-tabs">
+                <button class="request-tab active" data-status="all">Todas</button>
+                <button class="request-tab" data-status="pending">Pendentes</button>
+                <button class="request-tab" data-status="approved">Em Atendimento</button>
+                <button class="request-tab" data-status="resolved">Resolvidas</button>
+                <button class="request-tab" data-status="rejected">Rejeitadas</button>
+            </div>
             <div id="requests-list-container"></div>
         `;
 
     listenForRequests();
 
+    // Adiciona listeners para as abas e a barra de pesquisa
+    requestsView.querySelector('.requests-tabs').addEventListener('click', (e) => {
+        if (e.target.matches('.request-tab')) {
+            requestsView.querySelector('.request-tab.active').classList.remove('active');
+            e.target.classList.add('active');
+            listenForRequests();
+        }
+    });
     // MUDANÇA: Adiciona o listener para a nova barra de pesquisa
     document.getElementById('requests-search-input').addEventListener('input', listenForRequests);
   }
@@ -475,9 +492,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById('requests-search-input');
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
+    // MUDANÇA: Pega o status da aba ativa
+    const activeTab = requestsView.querySelector('.request-tab.active');
+    const filterStatus = activeTab ? activeTab.dataset.status : 'all';
+
     // MUDANÇA: Armazena a função de unsubscribe
     unsubscribeFromRequests = onSnapshot(q, (querySnapshot) => {
-      const allRequests = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let allRequests = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // CORREÇÃO: Filtra as solicitações para membros, permitindo que admins vejam tudo.
+      if (currentUser.role !== 'admin') {
+          allRequests = allRequests.filter(req => 
+              req.requesterId === currentUser.uid || req.mentionedUserId === currentUser.uid
+          );
+      }
+
       updateDashboardBadges(allRequests); // MUDANÇA: Atualiza o selo no dashboard
 
       if (querySnapshot.empty) {
@@ -485,40 +514,51 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Filtra as solicitações com base no termo de busca
-      const filteredRequests = allRequests.filter(request => {
-          if (!searchTerm) return true;
-          return request.title.toLowerCase().includes(searchTerm) ||
+      // Filtra as solicitações com base no termo de busca e na aba ativa
+      let filteredRequests = allRequests.filter(request => {
+          const searchMatch = !searchTerm || 
+                 request.title.toLowerCase().includes(searchTerm) ||
                  request.description.toLowerCase().includes(searchTerm) ||
                  request.requesterName.toLowerCase().includes(searchTerm);
+          
+          const statusMatch = filterStatus === 'all' || request.status === filterStatus;
+
+          return searchMatch && statusMatch;
       });
 
       if (filteredRequests.length === 0) {
-        listContainer.innerHTML = `<p class="no-results">Nenhuma solicitação encontrada para "${searchTerm}".</p>`;
+        const message = searchTerm ? `Nenhuma solicitação encontrada para "${searchTerm}".` : `Nenhuma solicitação nesta categoria.`;
+        listContainer.innerHTML = `<p class="no-results">${message}</p>`;
         return;
       }
 
+      // MUDANÇA: A lógica de agrupar por status só é usada se a aba "Todas" estiver ativa
       const requestsByStatus = {
         pending: [],
         approved: [],
+        resolved: [],
         rejected: [],
       };
 
       filteredRequests.forEach((request) => {
-        requestsByStatus[request.status].push(request);
+        (requestsByStatus[request.status] || []).push(request);
       });
 
       listContainer.innerHTML = ""; // Limpa antes de renderizar
 
       // Renderiza as pendentes primeiro
-      ["pending", "approved", "rejected"].forEach((status) => {
+      // CORREÇÃO: Adiciona 'resolved' ao array para que as solicitações resolvidas sejam exibidas.
+      ["pending", "approved", "resolved", "rejected"].forEach((status) => {
         if (requestsByStatus[status].length > 0) {
+          // CORREÇÃO: Cria o elemento de título que estava faltando.
           const statusTitle = document.createElement("h3");
           statusTitle.className = "category-title";
-          statusTitle.textContent =
-            {
+          statusTitle.textContent = {
               pending: "Pendentes",
-              approved: "Aprovadas",
+              // MUDANÇA: Renomeia a seção de 'Aprovadas' para 'Em Atendimento'
+              approved: "Em Atendimento",
+              // MUDANÇA: Adiciona a seção 'Resolvidas'
+              resolved: "Resolvidas",
               rejected: "Rejeitadas",
             }[status] || "Outras";
           listContainer.appendChild(statusTitle);
@@ -537,9 +577,27 @@ document.addEventListener("DOMContentLoaded", () => {
               ? `<div class="request-mention">Mencionado: <span>${teamMemberMap.get(request.mentionedUserId) || 'Usuário desconhecido'}</span></div>` 
               : '';
 
+            // MUDANÇA: Adiciona um link para o serviço criado, se existir
+            const serviceLinkHtml = request.createdServiceId
+              ? `<a href="#/service/${request.createdServiceId}" class="btn-secondary btn-view-service">Ver Serviço</a>`
+              : '';
+
+            // MUDANÇA: Lógica de botões de ação baseada no novo status
+            let actionsHtml = '';
+            if (request.status === 'pending') {
+                actionsHtml = `
+                    <button class="btn-primary btn-approve">Aprovar</button>
+                    <button class="btn-primary btn-reject">Rejeitar</button>
+                `;
+            } else if (request.status === 'approved') {
+                actionsHtml = `<button class="btn-primary btn-resolve">Marcar como Resolvido</button>`;
+            }
+
+
             const statusIconsSvg = {
                 pending: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/></svg>', // Ícone de relógio
                 approved: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"/></svg>', // Ícone de check
+                resolved: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M10,17L5,12L6.41,10.59L10,14.17L17.59,6.58L19,8L10,17Z"/></svg>', // Ícone de check (igual ao de aprovado)
                 rejected: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C17.5,2 22,6.5 22,12S17.5,22 12,22 2,17.5 2,12 6.5,2 12,2M17,15.59L15.59,17L12,13.41L8.41,17L7,15.59L10.59,12L7,8.41L8.41,7L12,10.59L15.59,7L17,8.41L13.41,12L17,15.59Z"/></svg>'  // Ícone de X
             };
             const statusIcon = statusIconsSvg[request.status] || '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>';
@@ -555,12 +613,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="request-meta">Solicitado por <span>${request.requesterName}</span> em <span>${date}</span></div>
                 ${mentionHtml}
                 <p class="request-description">${request.description}</p>
-                ${request.status === "pending" ? `
-                    <div class="request-actions">
-                        <button class="btn-primary btn-approve">Aprovar</button>
-                        <button class="btn-primary btn-reject">Rejeitar</button>
-                    </div>` : ""
-                }`;
+                <div class="request-actions">
+                    ${actionsHtml}
+                </div>
+            `;
+
+
             listContainer.appendChild(card);
           });
         }
@@ -1766,17 +1824,17 @@ document.addEventListener("DOMContentLoaded", () => {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,16C14.21,16 16,14.21 16,12C16,9.79 14.21,8 12,8C9.79,8 8,9.79 8,12C8,14.21 9.79,16 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M10,4L12,2L14,4H10M14,20L12,22L10,20H14M4,10L2,12L4,14V10M20,10V14L22,12L20,10M17.66,6.34L19.07,4.93L20.5,6.34L19.07,7.75L17.66,6.34M6.34,17.66L4.93,19.07L6.34,20.5L7.75,19.07L6.34,17.66M4.93,6.34L6.34,4.93L7.75,6.34L6.34,7.75L4.93,6.34M19.07,17.66L17.66,19.07L19.07,20.5L20.5,19.07L19.07,17.66Z" /></svg>
                   </div>
                   <div class="summary-item-content">
-                      <span class="summary-value" style="font-size: 2em;">${averageProgress}%</span>
+                      <span class="summary-value summary-value-small">${averageProgress}%</span>
                       <span class="summary-label">Progresso Médio</span>
                   </div>
               </div>
-              <div class="summary-item" style="grid-column: span 2;">
+              <div class="summary-item summary-item-double">
                   <div class="summary-item-content">
-                      <span class="summary-value" style="font-size: 1.5em; line-height: 1.2;">${topCategoryText}</span>
+                      <span class="summary-value summary-value-tiny">${topCategoryText}</span>
                       <span class="summary-label">Top Categoria</span>
                   </div>
                   <div class="summary-item-content">
-                      <span class="summary-value" style="font-size: 1.5em; line-height: 1.2;">${topResponsibleText}</span>
+                      <span class="summary-value summary-value-tiny">${topResponsibleText}</span>
                       <span class="summary-label">Top Responsável</span>
                   </div>
               </div>
@@ -2572,41 +2630,14 @@ document.addEventListener("DOMContentLoaded", () => {
       showLoading();
       const requestId = approveBtn.closest(".request-card").dataset.id;
       try {
+        // MUDANÇA: A aprovação agora apenas atualiza o status da solicitação.
         const requestDocRef = doc(db, "requests", requestId);
-        const requestDoc = await getDoc(requestDocRef);
-
-        if (requestDoc.exists()) {
-          const requestData = requestDoc.data();
-
-          // Prepara os dados para o novo serviço
-          const newServiceData = {
-            name: requestData.title,
-            responsible: requestData.requesterId, // O solicitante se torna o responsável
-            category: "Solicitações Aprovadas",
-            steps: [
-              {
-                name: "Execução da Tarefa",
-                subtasks: [{ name: requestData.description, completed: false }],
-              },
-            ],
-            ownerId: currentUser.uid, // Quem aprovou é o "dono"
-            files: [],
-            createdAt: serverTimestamp(),
-          };
-
-          // Cria o novo serviço e atualiza a solicitação em uma única transação
-          const batch = writeBatch(db);
-          const newServiceRef = doc(servicesCollection);
-          batch.set(newServiceRef, newServiceData);
-          batch.update(requestDocRef, { status: "approved" });
-          await batch.commit();
-
-          alert("Solicitação aprovada e convertida em um novo serviço!");
-          window.location.hash = "#/services"; // Navega para a lista de serviços
-        }
+        await updateDoc(requestDocRef, { status: "approved" });
+        // O onSnapshot cuidará de redesenhar a UI.
+        alert("Solicitação aprovada e movida para 'Em Atendimento'.");
       } catch (error) {
         console.error("Erro ao aprovar solicitação:", error);
-        alert("Falha ao aprovar a solicitação e criar o serviço.");
+        alert("Falha ao aprovar a solicitação.");
       } finally {
         hideLoading();
       }
@@ -2623,6 +2654,23 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         console.error("Erro ao rejeitar solicitação:", error);
         alert("Falha ao rejeitar a solicitação.");
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // MUDANÇA: Nova lógica para o botão "Marcar como Resolvido"
+    const resolveBtn = e.target.closest(".btn-resolve");
+    if (resolveBtn) {
+      const requestId = resolveBtn.closest(".request-card").dataset.id;
+      showLoading();
+      try {
+        const requestRef = doc(db, "requests", requestId);
+        await updateDoc(requestRef, { status: "resolved" });
+        alert("Solicitação marcada como resolvida!");
+      } catch (error) {
+        console.error("Erro ao resolver solicitação:", error);
+        alert("Falha ao resolver a solicitação.");
       } finally {
         hideLoading();
       }

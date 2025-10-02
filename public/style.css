@@ -1900,6 +1900,10 @@ body.dark-theme .due-date-info.overdue {
   border-left-color: #43a047; /* Verde */
   background-color: rgba(67, 160, 71, 0.05);
 }
+/* MUDANÇA: Estilo para solicitações resolvidas */
+.request-card[data-status="resolved"] {
+  border-left-color: #007bff; /* Azul */
+}
 .request-card[data-status="rejected"] {
   border-left-color: #e53935; /* Vermelho */
   background-color: rgba(229, 57, 53, 0.05);
@@ -1972,6 +1976,7 @@ body.dark-theme .request-card[data-status="rejected"] {
 .request-actions {
   display: flex;
   gap: 10px;
+  justify-content: flex-end; /* MUDANÇA: Alinha os botões à direita */
   margin-top: auto; /* Empurra as ações para o final do card */
 }
 
@@ -1983,6 +1988,36 @@ body.dark-theme .request-card[data-status="rejected"] {
 .request-actions .btn-reject {
   background-color: #e53935;
   border-color: #e53935;
+}
+
+/* MUDANÇA: Estilo para o botão de resolver */
+.request-actions .btn-resolve {
+  background-color: #007bff; /* Azul */
+}
+
+/* --- MUDANÇA: Estilos para as abas da página de solicitações --- */
+.requests-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--progress-bar-bg);
+}
+
+.request-tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-color);
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+  font-size: 1em;
+  transition: color 0.2s, border-color 0.2s;
+}
+.request-tab.active {
+  color: var(--accent-color);
+  border-bottom-color: var(--accent-color);
 }
 
 .requests-header {
@@ -2484,6 +2519,19 @@ body.dark-theme footer {
   flex-grow: 1;
 }
 
+/* MUDANÇA: Classes para tamanhos de fonte diferentes no resumo */
+.summary-value-small {
+  font-size: 2em !important; /* Usa !important para sobrescrever o estilo base */
+}
+
+.summary-value-tiny {
+  font-size: 1.5em !important;
+  line-height: 1.2 !important;
+}
+.summary-item-double {
+  grid-column: span 2; /* Ocupa duas colunas */
+}
+
 /* MUDANÇA: Estilo para destacar os números no resumo */
 .summary-value {
   font-size: 2.5em; /* Torna o número bem maior */
@@ -2519,11 +2567,4 @@ body.dark-theme .summary-item.has-overdue .summary-value {
   opacity: 0.6;
   text-align: center;
   padding: 20px;
-}
-
-@media (max-width: 768px) {
-  /* MUDANÇA: Ajusta o grid do card de resumo para uma única coluna no mobile */
-  .summary-card-container {
-    grid-template-columns: 1fr;
-  }
 }
