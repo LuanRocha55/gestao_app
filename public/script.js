@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let unsubscribeFromNotifications = null; // MUDANÇA: Listener para notificações
   let unsubscribeFromServices = null; // Para parar de ouvir os dados ao fazer logout
 
+
   // --- MUDANÇA: Elementos de Autenticação expandidos ---
   const loginContainer = document.getElementById("login-container"); // Container principal
   const loginBox = document.getElementById("login-box");
@@ -155,6 +156,74 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // MUDANÇA: Nova função para configurar os estilos globais dos gráficos (Chart.js)
+  function setupChartStyles() {
+    // Obtém as cores do tema diretamente do CSS para garantir consistência
+    const style = getComputedStyle(document.body);
+    const textColor = style.getPropertyValue('--text-color').trim();
+    const gridColor = style.getPropertyValue('--progress-bar-bg').trim();
+
+    // Define padrões para todos os gráficos
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = "'Montserrat', sans-serif";
+    Chart.defaults.font.size = 13;
+
+    // Personaliza os tooltips (balões de informação)
+    Chart.defaults.plugins.tooltip.backgroundColor = style.getPropertyValue('--card-bg').trim();
+    Chart.defaults.plugins.tooltip.titleColor = textColor;
+    Chart.defaults.plugins.tooltip.bodyColor = textColor;
+    Chart.defaults.plugins.tooltip.borderColor = gridColor;
+    Chart.defaults.plugins.tooltip.borderWidth = 1;
+    Chart.defaults.plugins.tooltip.padding = 10;
+    Chart.defaults.plugins.tooltip.cornerRadius = 8;
+    Chart.defaults.plugins.tooltip.displayColors = true; // Mostra a caixinha de cor
+
+    // Personaliza as legendas
+    Chart.defaults.plugins.legend.labels.color = textColor;
+    Chart.defaults.plugins.legend.labels.usePointStyle = true; // Usa círculos em vez de quadrados
+    Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+
+    // Personaliza os eixos (escalas) para gráficos de barra, linha, etc.
+    Chart.defaults.scale.grid.color = gridColor;
+    Chart.defaults.scale.grid.borderColor = 'transparent'; // Esconde a linha principal do eixo
+    Chart.defaults.scale.grid.borderDash = [5, 5]; // Linhas pontilhadas
+    Chart.defaults.scale.ticks.color = textColor;
+  }
+
+  // MUDANÇA: Plugin customizado para adicionar cor de fundo a um gráfico específico
+  const chartAreaBackgroundColorPlugin = {
+    id: 'chartAreaBackgroundColor',
+    beforeDraw: (chart, args, options) => {
+      if (options.color) {
+        const {ctx} = chart;
+        const {top, left, width, height} = chart.chartArea;
+        const x = left;
+        const y = top;
+
+        ctx.save();
+        ctx.fillStyle = options.color;
+        ctx.fillRect(x, y, width, height);
+        ctx.restore();
+      }
+    }
+  };
+  // Registra o plugin globalmente para que possa ser usado
+  Chart.register(chartAreaBackgroundColorPlugin);
+
+  // MUDANÇA: Chama a função de estilização de gráficos uma vez
+  setupChartStyles();
+
+  // MUDANÇA: Atualiza os estilos dos gráficos quando o tema muda
+  themeToggleBtn.addEventListener("click", () => {
+    // Adiciona um pequeno delay para garantir que as variáveis CSS foram atualizadas
+    setTimeout(() => {
+        setupChartStyles();
+        // Redesenha os gráficos existentes para aplicar as novas cores
+        if (window.myCharts) {
+            Object.values(window.myCharts).forEach(chart => chart.update());
+        }
+    }, 50);
+  });
   // --- Funções Utilitárias ---
   const emailRegex =
     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -1201,22 +1270,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // MUDANÇA: Função para renderizar a página de Status da Produção
   function renderProductionStatusPage() {
     // MUDANÇA: Função para salvar a ordem das colunas no localStorage
-    const saveColumnOrder = (newOrder) => {
-        productionStatusColumnOrder = newOrder;
-        localStorage.setItem('productionStatusColumnOrder', JSON.stringify(newOrder));
-    };
-
-    // MUDANÇA: Função para inicializar o SortableJS no cabeçalho da tabela
-    const initializeColumnSorting = () => {
-        const headerRow = productionStatusView.querySelector('thead tr');
-        if (headerRow) {
-            new Sortable(headerRow, { animation: 150, onEnd: (evt) => { 
-                const newOrder = Array.from(evt.target.children).map(th => th.dataset.columnKey); 
-                saveColumnOrder(newOrder); 
-                renderProductionStatusPage(); 
-            }});
-        }
-    };
 
     // CORREÇÃO: Função para atualizar apenas o corpo da tabela, evitando recarregar a página inteira.
     const updateTable = () => {
@@ -1463,6 +1516,45 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeColumnSorting(); // MUDANÇA: Ativa o drag-and-drop nas colunas
   }
 
+  // MUDANÇA: Função movida para o escopo global para ser acessível por outras funções.
+  const saveColumnOrder = (newOrder) => {
+      productionStatusColumnOrder = newOrder;
+      localStorage.setItem('productionStatusColumnOrder', JSON.stringify(newOrder));
+  };
+
+  // MUDANÇA: Função movida para o escopo global e tornada mais robusta.
+  const initializeColumnSorting = () => {
+      if (!productionStatusView) return; // Garante que a view exista
+      const headerRow = productionStatusView.querySelector('thead tr');
+      if (headerRow && !headerRow.classList.contains('sortable-initialized')) { // Evita reinicialização
+          new Sortable(headerRow, { animation: 150, onEnd: (evt) => {
+              const newOrder = Array.from(evt.target.children).map(th => th.dataset.columnKey);
+              saveColumnOrder(newOrder);
+              renderProductionStatusPage();
+          }});
+          headerRow.classList.add('sortable-initialized');
+      }
+  };
+
+  // MUDANÇA: Função auxiliar para gerar cores para os gráficos
+  function generateChartColors(count) {
+      const colors = [
+          '#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1',
+          '#e83e8c', '#fd7e14', '#20c997', '#6610f2', '#001f3f', '#87CEFA'
+      ];
+      const generatedColors = [];
+      for (let i = 0; i < count; i++) {
+          // Repete as cores se houver mais itens do que cores predefinidas
+          generatedColors.push(colors[i % colors.length]);
+      }
+      return generatedColors;
+  }
+
+  // MUDANÇA: Função para criar um placeholder de gráfico (skeleton)
+  function createChartPlaceholder(message = "Carregando dados do gráfico...") {
+      return `<div class="chart-placeholder">${message}</div>`;
+  }
+
   // MUDANÇA: Nova função para renderizar a página de Estatísticas
   function renderStatisticsPage() {
     // Limpa gráficos existentes para evitar sobreposição
@@ -1481,23 +1573,23 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="statistic-card" id="status-chart-card">
                 <h3>Serviços por Status</h3>
                 <div class="chart-container">
-                    <canvas id="status-chart"></canvas>
+                    ${createChartPlaceholder()}
                 </div>
             </div>
             <div class="statistic-card" id="summary-card">
                 <h3>Resumo Geral</h3>
-                <div class="summary-card-container" id="statistics-summary"></div>
+                <div class="summary-card-container" id="statistics-summary">${createChartPlaceholder("Carregando resumo...")}</div>
             </div>
             <div class="statistic-card" id="category-chart-card">
                 <h3>Serviços por Categoria</h3>
                 <div class="chart-container">
-                    <canvas id="category-chart"></canvas>
+                    ${createChartPlaceholder()}
                 </div>
             </div>
             <div class="statistic-card" id="responsible-chart-card">
                 <h3>Serviços por Responsável</h3>
                 <div class="chart-container">
-                    <canvas id="responsible-chart"></canvas>
+                    ${createChartPlaceholder()}
                 </div>
             </div>
         </div>
@@ -1505,6 +1597,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 1. Dados para o gráfico de Status
     const completedCount = services.filter(s => calculateOverallProgress(s).percentage === 100).length;
+    // CORREÇÃO: Garante que a renderização dos gráficos aconteça após o DOM ser atualizado.
+    setTimeout(() => {
+
+    // Se não houver serviços, exibe mensagens nos placeholders
+    if (services.length === 0) {
+        document.querySelectorAll('.chart-container').forEach(c => c.innerHTML = createChartPlaceholder("Nenhum serviço para exibir."));
+        document.getElementById('statistics-summary').innerHTML = createChartPlaceholder("Nenhum dado para resumir.");
+        return;
+    }
     const inProgressCount = services.length - completedCount;
 
     // 2. Dados para o gráfico de Categoria
@@ -1533,58 +1634,95 @@ document.addEventListener("DOMContentLoaded", () => {
     // Renderiza o resumo
     document.getElementById('statistics-summary').innerHTML = `
         <div class="summary-item">
-            <div class="summary-item-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" /></svg></div>
-            <div class="summary-item-content">
-                <span class="summary-value">${totalServices}</span>
-                <span class="summary-label">Total de Serviços</span>
-            </div>
+            <span class="summary-value">${totalServices}</span>
+            <span class="summary-label">Total de Serviços</span>
         </div>
         <div class="summary-item ${overdueHighlightClass}">
-            <div class="summary-item-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" /></svg></div>
-            <div class="summary-item-content">
-                <span class="summary-value">${overdueServices}</span>
-                <span class="summary-label">Serviços Atrasados</span>
-            </div>
+            <span class="summary-value">${overdueServices}</span>
+            <span class="summary-label">Serviços Atrasados</span>
         </div>
-        <div class="summary-item summary-item-full-width">
-            <div class="summary-item-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z" /></svg></div>
-            <div class="summary-item-content">
-                <span class="summary-value">${averageProgress}%</span>
-                <span class="summary-label">Progresso Médio</span>
-            </div>
+        <div class="summary-item" style="grid-column: 1 / -1;">
+            <span class="summary-value">${averageProgress}%</span>
+            <span class="summary-label">Progresso Médio</span>
         </div>
     `;
 
     // Cria os gráficos
-    createChart('status-chart', 'pie', {
+    const statusChartContainer = document.querySelector('#status-chart-card .chart-container');
+    statusChartContainer.innerHTML = '<canvas id="status-chart"></canvas>';
+    // MUDANÇA: Alterado para 'doughnut' e adicionado espaçamento para um visual mais moderno
+    createChart('status-chart', 'doughnut', {
         labels: ['Em Produção', 'Concluídos'],
         datasets: [{
-            label: 'Serviços',
             data: [inProgressCount, completedCount],
-            backgroundColor: ['#FFB300', '#43A047'],
+            // MUDANÇA: Cores ajustadas para Verde (Em Progresso) e Azul (Concluído)
+            backgroundColor: ['#43A047', '#007bff'],
+            borderColor: 'var(--card-bg)', // Cor de fundo do card para criar o espaçamento
+            borderWidth: 2, // CORREÇÃO: Reduz a largura da borda para um visual mais sutil
+            hoverBorderColor: 'var(--card-bg)',
+            cutout: '70%', // Transforma o gráfico de pizza em rosca (doughnut)
         }]
+    },
+    // MUDANÇA: Opções individuais para este gráfico (adiciona legenda na parte inferior)
+    {
+        plugins: {
+            legend: {
+                display: true,
+                position: 'bottom'
+            }
+        }
     });
 
+    const categoryChartContainer = document.querySelector('#category-chart-card .chart-container');
+    categoryChartContainer.innerHTML = '<canvas id="category-chart"></canvas>';
+    // MUDANÇA: Usa as cores das categorias ou gera cores aleatórias
+    const categoryLabels = Object.keys(servicesByCategory);
+    const categoryColors = categoryLabels.map(label => {
+        const category = predefinedCategories.find(c => c.name === label);
+        return category?.color || generateChartColors(1)[0]; // Usa a cor da categoria ou uma cor padrão
+    });
+
+    // MUDANÇA: Adicionado 'borderRadius' para barras com cantos arredondados
     createChart('category-chart', 'bar', {
-        labels: Object.keys(servicesByCategory),
+        labels: categoryLabels,
         datasets: [{
             label: 'Nº de Serviços',
             data: Object.values(servicesByCategory),
-            backgroundColor: '#007bff',
-        }]
+            backgroundColor: categoryColors,
+            borderRadius: 6,
+            barThickness: 'flex'
+        }],
+    },
+    // MUDANÇA: Opções individuais para este gráfico (adiciona cor de fundo na área do gráfico)
+    {
+        plugins: {
+            chartAreaBackgroundColor: { color: 'rgba(0, 0, 0, 0.03)' },
+            legend: { display: false }
+        }
     });
 
+    const responsibleChartContainer = document.querySelector('#responsible-chart-card .chart-container');
+    responsibleChartContainer.innerHTML = '<canvas id="responsible-chart"></canvas>';
+    const responsibleLabels = Object.keys(servicesByResponsible);
     createChart('responsible-chart', 'bar', {
-        labels: Object.keys(servicesByResponsible),
+        labels: responsibleLabels,
         datasets: [{
             label: 'Nº de Serviços Atribuídos',
             data: Object.values(servicesByResponsible),
-            backgroundColor: '#87CEFA',
-        }]
-    }, { indexAxis: 'y' }); // Opção para gráfico de barras horizontal
+            backgroundColor: generateChartColors(responsibleLabels.length),
+            borderRadius: 6,
+        }],
+    },
+    // MUDANÇA: Opções individuais para o gráfico de barras horizontal
+    {
+        indexAxis: 'y', // Torna o gráfico horizontal
+        plugins: {
+            legend: { display: false } // Remove a legenda, pois é redundante
+        },
+        layout: { padding: { left: 20 } } // Adiciona espaço à esquerda para os rótulos
+    });
+    }, 0); // CORREÇÃO: Fecha o setTimeout aqui, englobando toda a lógica do gráfico.
   }
-
-  // MUDANÇA: Função auxiliar para criar gráficos com Chart.js
   function createChart(canvasId, type, data, options = {}) {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return;

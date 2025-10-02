@@ -1,165 +1,172 @@
 /* Importa a fonte Montserrat */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap");
 
 /* --- Variáveis de Cor e Estilos Globais --- */
 :root {
-    /* Tema Claro (Padrão) */
-    --bg-color: #f4f7fa;
-    --text-color: #333;
-    --card-bg: #ffffff;
-    --header-bg-color: #001f3f; /* MUDANÇA: Variável para a cor do header */
-    --primary-color: #001f3f; /* Azul Marinho */
-    --accent-color: #001f3f; /* Cor de destaque para títulos e barras */
-    --progress-bar-bg: #e0e0e0;
-    --shadow-color: rgba(0, 31, 63, 0.1); /* CORREÇÃO: Sombra baseada no azul primário */
+  /* Tema Claro (Padrão) */
+  --bg-color: #f4f7fa;
+  --text-color: #333;
+  --card-bg: #ffffff;
+  --header-bg-color: #001f3f; /* MUDANÇA: Variável para a cor do header */
+  --primary-color: #001f3f; /* Azul Marinho */
+  --accent-color: #001f3f; /* Cor de destaque para títulos e barras */
+  --progress-bar-bg: #e0e0e0;
+  --shadow-color: rgba(
+    0,
+    31,
+    63,
+    0.1
+  ); /* CORREÇÃO: Sombra baseada no azul primário */
 }
 
 body.dark-theme {
-    /* Tema Escuro */
-    --bg-color: #121212;
-    --text-color: #f0f0f0;
-    --card-bg: #1e1e1e;
-    --header-bg-color: #87CEFA; /* MUDANÇA: Header no tema escuro usa o azul claro */
-    --accent-color: #87CEFA; /* Azul claro para destaque no tema escuro */
-    --progress-bar-bg: #333; /* Cinza escuro para bordas e fundos de progresso */
-    --shadow-color: rgba(0, 0, 0, 0.3); /* CORREÇÃO: Suaviza a sombra no tema escuro */
+  /* Tema Escuro */
+  --bg-color: #121212;
+  --text-color: #f0f0f0;
+  --card-bg: #1e1e1e;
+  --header-bg-color: #87cefa; /* MUDANÇA: Header no tema escuro usa o azul claro */
+  --accent-color: #87cefa; /* Azul claro para destaque no tema escuro */
+  --progress-bar-bg: #333; /* Cinza escuro para bordas e fundos de progresso */
+  --shadow-color: rgba(
+    0,
+    0,
+    0,
+    0.3
+  ); /* CORREÇÃO: Suaviza a sombra no tema escuro */
 }
 
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    font-family: 'Montserrat', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition: background-color 0.3s ease, color 0.3s ease;
-    /* MUDANÇA: Adiciona layout flex para o rodapé fixo */
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+  font-family: "Montserrat", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  /* MUDANÇA: Adiciona layout flex para o rodapé fixo */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* --- Cabeçalho e Título --- */
 header {
-    padding: 20px 40px;
-    background-color: var(--header-bg-color); /* MUDANÇA: Usa a nova variável */
-    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Sombra mais suave e padronizada */
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  padding: 20px 40px;
+  background-color: var(--header-bg-color); /* MUDANÇA: Usa a nova variável */
+  box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Sombra mais suave e padronizada */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .header-content {
-    display: flex;
-    align-items: center;
-    flex-grow: 1; /* Permite que este container ocupe o espaço disponível */
-    min-width: 0; /* Previne que o flex item cause overflow */
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  flex-grow: 1; /* Permite que este container ocupe o espaço disponível */
+  min-width: 0; /* Previne que o flex item cause overflow */
+  justify-content: space-between;
 }
 
 /* MUDANÇA: Faz o conteúdo principal crescer para empurrar o rodapé para baixo */
 .app-content {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 header h1 a {
-    color: #ffffff;
-    text-decoration: none;
+  color: #ffffff;
+  text-decoration: none;
 }
 
 /* MUDANÇA: Estilos para a barra de pesquisa em seu novo local */
 .search-bar-wrapper {
-    margin-bottom: 30px;
+  margin-bottom: 30px;
 }
 
 .search-bar-wrapper input {
-    width: 100%;
-    max-width: 500px; /* Limita a largura em telas grandes */
-    /* CORREÇÃO: Adiciona padding, borda e fonte para consistência visual */
-    padding: 12px 15px;
-    border-radius: 5px;
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    border: 1px solid var(--progress-bar-bg);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1em;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+  width: 100%;
+  max-width: 500px; /* Limita a largura em telas grandes */
+  /* CORREÇÃO: Adiciona padding, borda e fonte para consistência visual */
+  padding: 12px 15px;
+  border-radius: 5px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--progress-bar-bg);
+  font-family: "Montserrat", sans-serif;
+  font-size: 1em;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .search-bar-wrapper input::placeholder {
-    color: var(--text-color);
-    opacity: 0.6;
+  color: var(--text-color);
+  opacity: 0.6;
 }
 
 .search-bar-wrapper input:focus {
-    outline: none; /* CORREÇÃO: Remove a borda de foco padrão do navegador */
-    background-color: var(--bg-color);
-    border-color: var(--accent-color);
+  outline: none; /* CORREÇÃO: Remove a borda de foco padrão do navegador */
+  background-color: var(--bg-color);
+  border-color: var(--accent-color);
 }
 
 .form-inline .form-group {
-    display: flex;
-    flex-grow: 1;
-    gap: 10px;
+  display: flex;
+  flex-grow: 1;
+  gap: 10px;
 }
 
 input[type="color"] {
-    padding: 5px;
-    min-width: 45px;
-    height: 45px; /* Alinha altura com outros inputs */
+  padding: 5px;
+  min-width: 45px;
+  height: 45px; /* Alinha altura com outros inputs */
 }
 
 /* MUDANÇA: Estilos para o formulário de adicionar categoria */
 .category-add-form {
-    display: flex;
-    align-items: flex-end; /* Alinha os itens na base */
-    gap: 15px;
-    flex-wrap: wrap; /* Permite quebrar a linha em telas menores */
+  display: flex;
+  align-items: flex-end; /* Alinha os itens na base */
+  gap: 15px;
+  flex-wrap: wrap; /* Permite quebrar a linha em telas menores */
 }
-
-
 
 /* MUDANÇA: Container para os controles que ficam visíveis no mobile */
 .header-controls {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 /* MUDANÇA: Estilo de destaque para botões de ícone importantes */
 /* REVISÃO: Unifica o estilo de hover para todos os ícones do header */
 .header-controls .btn-icon:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 body.dark-theme .header-controls .btn-icon:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.1);
 }
-
 
 /* --- REVISÃO: Cores do Header por Tema (Simplificado) --- */
 /* Tema Claro: Texto e ícones brancos */
 header {
-    color: #ffffff;
+  color: #ffffff;
 }
 header h1 a,
 header .user-profile-link {
-    color: inherit; /* Herda a cor do header */
+  color: inherit; /* Herda a cor do header */
 }
 
 /* REVISÃO: Garante que os ícones do header sejam brancos no tema claro */
 header .btn-icon {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 /* MUDANÇA: Aumenta ligeiramente o ícone de Início para destaque */
 #home-btn svg {
-    width: 26px;
-    height: 26px;
+  width: 26px;
+  height: 26px;
 }
 
 /* Tema Escuro: Texto e ícones pretos */
@@ -168,2078 +175,2306 @@ body.dark-theme header h1 a,
 body.dark-theme header .btn-icon, /* CORREÇÃO: Garante que todos os ícones fiquem pretos */
 body.dark-theme header .user-profile-link,
 body.dark-theme #logout-btn {
-    color: #000000;
-    border-color: #000000; /* CORREÇÃO: Garante que a borda do botão Sair seja preta */
+  color: #000000;
+  border-color: #000000; /* CORREÇÃO: Garante que a borda do botão Sair seja preta */
 }
 
 /* --- MUDANÇA: Estilos do Sistema de Notificação --- */
 #notification-container {
-    position: relative;
+  position: relative;
 }
 
 /* MUDANÇA: Estilos do Sistema de Notificação --- */
-#notification-count { /* CORREÇÃO: Simplificado o seletor para ser mais robusto */
-    position: absolute;
-    top: -5px;
-    right: -8px;
-    background-color: #E53935;
-    color: white;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 0.75em;
-    font-weight: 700;
-    border: 2px solid var(--header-bg-color); /* CORREÇÃO: Usa a cor do header como borda */
-    transform: scale(0);
-    transition: transform 0.2s ease;
+#notification-count {
+  /* CORREÇÃO: Simplificado o seletor para ser mais robusto */
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background-color: #e53935;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.75em;
+  font-weight: 700;
+  border: 2px solid var(--header-bg-color); /* CORREÇÃO: Usa a cor do header como borda */
+  transform: scale(0);
+  transition: transform 0.2s ease;
 }
 
 #notification-count:not(.hidden) {
-    transform: scale(1);
+  transform: scale(1);
 }
 
 #notification-panel {
-    position: absolute;
-    top: calc(100% + 15px);
-    right: 0;
-    width: 350px;
-    max-height: 400px;
-    overflow-y: auto;
-    background-color: var(--card-bg);
-    border-radius: 8px;
-    box-shadow: 0 5px 20px var(--shadow-color);
-    z-index: 1100;
-    border: 1px solid var(--progress-bar-bg);
+  position: absolute;
+  top: calc(100% + 15px);
+  right: 0;
+  width: 350px;
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 5px 20px var(--shadow-color);
+  z-index: 1100;
+  border: 1px solid var(--progress-bar-bg);
 }
 
 .notification-panel-header {
-    padding: 15px;
-    border-bottom: 1px solid var(--progress-bar-bg);
+  padding: 15px;
+  border-bottom: 1px solid var(--progress-bar-bg);
 }
 
 .notification-panel-header h3 {
-    margin: 0;
-    font-size: 1.1em;
+  margin: 0;
+  font-size: 1.1em;
 }
 
 #notification-list {
-    list-style: none;
+  list-style: none;
 }
 
 .notification-item {
-    border-bottom: 1px solid var(--progress-bar-bg);
+  border-bottom: 1px solid var(--progress-bar-bg);
 }
 .notification-item.empty {
-    padding: 20px;
-    text-align: center;
-    opacity: 0.7;
+  padding: 20px;
+  text-align: center;
+  opacity: 0.7;
 }
 .notification-item a {
-    display: block;
-    padding: 15px;
-    color: var(--text-color);
-    text-decoration: none;
-    transition: background-color 0.2s ease;
+  display: block;
+  padding: 15px;
+  color: var(--text-color);
+  text-decoration: none;
+  transition: background-color 0.2s ease;
 }
 .notification-item a:hover {
-    background-color: var(--bg-color);
+  background-color: var(--bg-color);
 }
 .notification-item.read a {
-    opacity: 0.6;
+  opacity: 0.6;
 }
 
 /* --- Perfil do Usuário no Cabeçalho --- */
 .user-profile-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .user-profile-container img {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 2px solid #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #fff;
 }
 
 .user-profile-container span {
-    font-weight: 600;
+  font-weight: 600;
 }
 
 /* CORREÇÃO: Garante que o botão Sair herde a cor corretamente */
 .user-profile-container .btn-secondary {
-    color: inherit;
-    border-color: currentColor;
+  color: inherit;
+  border-color: currentColor;
 }
 
 /* --- Link do Perfil do Usuário --- */
 .user-profile-link {
-    color: inherit; /* Herda a cor do container */
-    text-decoration: none;
-    transition: text-decoration 0.2s;
+  color: inherit; /* Herda a cor do container */
+  text-decoration: none;
+  transition: text-decoration 0.2s;
 }
 
 .user-profile-link:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 /* --- Tela de Login --- */
 #login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    flex-grow: 1; /* CORREÇÃO: Faz o container de login ocupar o espaço disponível */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  flex-grow: 1; /* CORREÇÃO: Faz o container de login ocupar o espaço disponível */
 }
 
 .auth-box {
-    background-color: var(--card-bg);
-    padding: 40px 50px;
-    border-radius: 10px;    box-shadow: 0 6px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais pronunciada para a caixa de login */
-    width: 90%;
-    max-width: 450px; /* MUDANÇA: Aumenta a largura da caixa de login */
-    text-align: center;
+  background-color: var(--card-bg);
+  padding: 40px 50px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais pronunciada para a caixa de login */
+  width: 90%;
+  max-width: 450px; /* MUDANÇA: Aumenta a largura da caixa de login */
+  text-align: center;
 }
 
 .auth-box h1 {
-    color: var(--accent-color);
-    margin-bottom: 10px;
+  color: var(--accent-color);
+  margin-bottom: 10px;
 }
 
 .auth-box p {
-    margin-bottom: 30px;
-    font-size: 1.1em;
-    opacity: 0.8;
+  margin-bottom: 30px;
+  font-size: 1.1em;
+  opacity: 0.8;
 }
 
 .auth-box form input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid var(--progress-bar-bg);
-    border-radius: 5px;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1em;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid var(--progress-bar-bg);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Montserrat", sans-serif;
+  font-size: 1em;
 }
 
 .auth-separator {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 20px 0;
-    color: var(--text-color);
-    opacity: 0.6;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+  color: var(--text-color);
+  opacity: 0.6;
 }
 
 .auth-separator::before,
 .auth-separator::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid var(--progress-bar-bg);
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--progress-bar-bg);
 }
 
 .auth-separator:not(:empty)::before {
-    margin-right: .25em;
+  margin-right: 0.25em;
 }
 
 .auth-separator:not(:empty)::after {
-    margin-left: .25em;
+  margin-left: 0.25em;
 }
 
 .btn-google {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    padding: 10px;
-    background-color: #4285F4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
-.btn-google:hover { background-color: #357ae8; }
-.btn-google svg { width: 18px; height: 18px; fill: white; }
-.auth-toggle { margin-top: 25px; }
+.btn-google:hover {
+  background-color: #357ae8;
+}
+.btn-google svg {
+  width: 18px;
+  height: 18px;
+  fill: white;
+}
+.auth-toggle {
+  margin-top: 25px;
+}
 /* CORREÇÃO: Aplica o estilo tanto para links dentro de .auth-toggle quanto para o próprio .auth-toggle se for um link. */
 .auth-toggle a,
-a.auth-toggle { 
-    color: var(--accent-color); 
-    text-decoration: none; 
-    font-weight: 600; 
+a.auth-toggle {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 600;
 }
 
 body.dark-theme .auth-success {
-    background-color: #1a5d1a;
-    color: #c2ffc2;
+  background-color: #1a5d1a;
+  color: #c2ffc2;
 }
 .form-extra-links {
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: 0.9em;
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 0.9em;
 }
 
 .form-extra-links a {
-    color: var(--accent-color);
-    text-decoration: none;
+  color: var(--accent-color);
+  text-decoration: none;
 }
 .form-extra-links a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 /* MUDANÇA: Estilos para a tela "Continuar como" */
 #continue-as-user-profile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 #continue-as-photo {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 15px;
-    border: 3px solid var(--accent-color);
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+  border: 3px solid var(--accent-color);
 }
 
 #continue-as-name {
-    font-size: 1.5em;
+  font-size: 1.5em;
 }
 body.dark-theme .btn-primary:hover {
-    background-color: #aee1fa; /* Um pouco mais claro no hover */
+  background-color: #aee1fa; /* Um pouco mais claro no hover */
 }
 
 body.dark-theme .btn-secondary {
-    color: var(--accent-color);
-    border-color: var(--accent-color);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 /* --- MUDANÇA: Estilos de Botões para o Modo Escuro --- */
 body.dark-theme .btn-primary {
-    background-color: var(--accent-color);
-    color: var(--primary-color); /* Texto escuro para contraste */
+  background-color: var(--accent-color);
+  color: var(--primary-color); /* Texto escuro para contraste */
 }
 
 /* --- Conteúdo Principal e Cartões de Serviço --- */
 .profile-picture-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
 }
 
 .profile-picture-wrapper {
-    position: relative;
-    cursor: pointer;
+  position: relative;
+  cursor: pointer;
 }
 
 .profile-picture-wrapper img {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid var(--card-bg);
-    box-shadow: 0 2px 8px var(--shadow-color);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--card-bg);
+  box-shadow: 0 2px 8px var(--shadow-color);
 }
 
 .profile-picture-wrapper:hover::after {
-    content: '✎';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 2em;
+  content: "✎";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
 }
 .preset-avatars-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 15px;
 }
 
 .preset-avatars-container img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition: border-color 0.2s, transform 0.2s;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: border-color 0.2s, transform 0.2s;
 }
 
 .preset-avatars-container img:hover {
-    border-color: var(--accent-color);
-    transform: scale(1.1);
+  border-color: var(--accent-color);
+  transform: scale(1.1);
 }
-.auth-success { color: #270; background-color: #DFF2BF; border-radius: 5px; padding: 10px; margin-bottom: 15px; text-align: center; }
+.auth-success {
+  color: #270;
+  background-color: #dff2bf;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 15px;
+  text-align: center;
+}
 main {
-    /* MUDANÇA: Padding movido para os containers internos para melhor controle */
+  /* MUDANÇA: Padding movido para os containers internos para melhor controle */
 }
 
 #service-list-wrapper {
-    padding: 40px;
+  padding: 40px;
 }
 
 /* MUDANÇA: O grid agora é aplicado ao container de cartões de cada categoria */
 .service-card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
-    margin-bottom: 30px; /* Espaço entre as categorias */
-    min-height: 100px; /* Garante que mesmo categorias vazias tenham uma área para soltar */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+  margin-bottom: 30px; /* Espaço entre as categorias */
+  min-height: 100px; /* Garante que mesmo categorias vazias tenham uma área para soltar */
 }
 
 .category-title {
-    grid-column: 1 / -1; /* Garante que o título ocupe toda a largura da grid */
-    color: var(--accent-color);
-    margin-bottom: 25px; /* CORREÇÃO: Adiciona espaço entre o título e os cartões */
-    border-bottom: 3px solid var(--accent-color); /* MUDANÇA: Aumenta a espessura da borda */
-    margin-top: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--progress-bar-bg);
-    font-size: 1.5em;
+  grid-column: 1 / -1; /* Garante que o título ocupe toda a largura da grid */
+  color: var(--accent-color);
+  margin-bottom: 25px; /* CORREÇÃO: Adiciona espaço entre o título e os cartões */
+  border-bottom: 3px solid var(--accent-color); /* MUDANÇA: Aumenta a espessura da borda */
+  margin-top: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--progress-bar-bg);
+  font-size: 1.5em;
 }
 
 #service-list-wrapper > .category-title:first-of-type {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .no-results {
-    grid-column: 1 / -1;
-    text-align: center;
-    font-size: 1.2em;
-    margin-top: 40px;
-    opacity: 0.8;
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 1.2em;
+  margin-top: 40px;
+  opacity: 0.8;
 }
 
 .service-card {
-    background-color: var(--card-bg);
-    border-radius: 10px;
-    padding: 25px;    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra dos cards */
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra dos cards */
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    background-color 0.3s ease;
 }
 
 .service-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais suave no hover */
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais suave no hover */
 }
 
 .service-card h2 {
-    color: var(--accent-color);
-    font-weight: 700;
-    /* MUDANÇA: Reduz o tamanho da fonte do título do card */
-    font-size: 1.2em;
-    transition: color 0.3s ease;
-    /* Garante que o título não empurre os botões para fora */
-    flex-grow: 1;
-    margin-right: 10px;
+  color: var(--accent-color);
+  font-weight: 700;
+  /* MUDANÇA: Reduz o tamanho da fonte do título do card */
+  font-size: 1.2em;
+  transition: color 0.3s ease;
+  /* Garante que o título não empurre os botões para fora */
+  flex-grow: 1;
+  margin-right: 10px;
 }
 
 /* MUDANÇA: Wrapper para o título e a tag de prioridade */
 .card-title-wrapper {
-    display: flex;
-    align-items: center;
-    /* CORREÇÃO: Impede que o wrapper do título cresça indefinidamente e empurre os botões para fora */
-    min-width: 0;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  /* CORREÇÃO: Impede que o wrapper do título cresça indefinidamente e empurre os botões para fora */
+  min-width: 0;
+  gap: 10px;
 }
 
 /* MUDANÇA: Container para a prioridade e o alerta de pendência */
 .card-meta-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 5px; /* Espaço abaixo do header */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px; /* Espaço abaixo do header */
 }
 /* MUDANÇA: Estilos para o indicador de data de entrega */
 .due-date-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.9em;
-    font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 5px;
-    margin-top: 10px; /* Reduz um pouco a margem */
-    margin-bottom: 5px; /* Espaço antes da barra de progresso */
-    background-color: var(--bg-color);
-    border: 1px solid var(--progress-bar-bg);
-    width: fit-content; /* Ajusta a largura ao conteúdo */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 5px;
+  margin-top: 10px; /* Reduz um pouco a margem */
+  margin-bottom: 5px; /* Espaço antes da barra de progresso */
+  background-color: var(--bg-color);
+  border: 1px solid var(--progress-bar-bg);
+  width: fit-content; /* Ajusta a largura ao conteúdo */
 }
 
 .due-date-info svg {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
-    flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  flex-shrink: 0;
 }
 
 .due-date-info.due-soon {
-    color: #856404;
-    background-color: #fff3cd;
+  color: #856404;
+  background-color: #fff3cd;
 }
 .due-date-info.overdue {
-    color: #721c24;
-    background-color: #f8d7da;
+  color: #721c24;
+  background-color: #f8d7da;
 }
 
 .service-card h2 a {
-    color: inherit;
-    text-decoration: none;
+  color: inherit;
+  text-decoration: none;
 }
 
 .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
 }
 
 /* MUDANÇA: Estilos para a tag de prioridade */
 .priority-tag {
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 0.75em;
-    font-weight: 700;
-    color: #fff;
-    flex-shrink: 0; /* Impede que a tag encolha */
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0; /* Impede que a tag encolha */
 }
 
-.priority-tag.alta { background-color: #E53935; } /* Vermelho */
-.priority-tag.média { background-color: #FFB300; } /* Âmbar */
-.priority-tag.baixa { background-color: #43A047; } /* Verde */
+.priority-tag.alta {
+  background-color: #e53935;
+} /* Vermelho */
+.priority-tag.média {
+  background-color: #ffb300;
+} /* Âmbar */
+.priority-tag.baixa {
+  background-color: #43a047;
+} /* Verde */
 
 /* MUDANÇA: Estilo para a tag de prioridade na tabela */
 .priority-tag-table {
-    padding: 4px 12px;
-    border-radius: 15px;
-    font-size: 0.85em;
-    font-weight: 700;
-    color: #fff;
-    white-space: nowrap;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.85em;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
 }
-.priority-tag-table.alta { background-color: #E53935; } .priority-tag-table.média { background-color: #FFB300; } .priority-tag-table.baixa { background-color: #43A047; }
+.priority-tag-table.alta {
+  background-color: #e53935;
+}
+.priority-tag-table.média {
+  background-color: #ffb300;
+}
+.priority-tag-table.baixa {
+  background-color: #43a047;
+}
 
 /* MUDANÇA: Estilo da tag na página de detalhes */
 .priority-tag-detail {
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 5px;
-    color: #fff;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 5px;
+  color: #fff;
 }
-.priority-tag-detail.alta { background-color: #E53935; }
-.priority-tag-detail.média { background-color: #FFB300; }
-.priority-tag-detail.baixa { background-color: #43A047; }
+.priority-tag-detail.alta {
+  background-color: #e53935;
+}
+.priority-tag-detail.média {
+  background-color: #ffb300;
+}
+.priority-tag-detail.baixa {
+  background-color: #43a047;
+}
 .card-actions {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0; /* Impede que os botões encolham */
-    position: relative;
-    top: -2px;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0; /* Impede que os botões encolham */
+  position: relative;
+  top: -2px;
 }
 
 .btn-icon {
-    background: none;
-    border: none;
-    cursor: pointer;
-    /* CORREÇÃO: Define um tamanho fixo para o botão e centraliza o ícone */
-    width: 36px;
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%; /* Garante o fundo circular no hover */
-    color: var(--text-color);
-    opacity: 0.8; /* REVISÃO: Aumenta a opacidade padrão para melhor visibilidade */
-    transition: opacity 0.2s ease, color 0.3s ease, background-color 0.2s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+  /* CORREÇÃO: Define um tamanho fixo para o botão e centraliza o ícone */
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* Garante o fundo circular no hover */
+  color: var(--text-color);
+  opacity: 0.8; /* REVISÃO: Aumenta a opacidade padrão para melhor visibilidade */
+  transition: opacity 0.2s ease, color 0.3s ease, background-color 0.2s ease;
 }
 
 .step-item .btn-delete-.summary-item-icon svg {
-    width: 36px;
-    height: 36px;
-    fill: var(--accent-color);
-    opacity: 0.8;
+  width: 36px;
+  height: 36px;
+  fill: var(--accent-color);
+  opacity: 0.8;
 }
 btask-detail {
-    visibility: hidden;
-    opacity: 0;
+  visibility: hidden;
+  opacity: 0;
 }
 
 .btn-icon svg {
-    width: 24px;
-    height: 24px;
-    fill: currentColor; /* CORREÇÃO: Garante que o SVG use a cor do texto do botão pai */
+  width: 24px;
+  height: 24px;
+  fill: currentColor; /* CORREÇÃO: Garante que o SVG use a cor do texto do botão pai */
 }
 
 .btn-icon:hover {
-    opacity: 1;
+  opacity: 1;
 }
 
 .btn-icon.btn-delete {
-    color: #E53935; /* Vermelho para deletar */
+  color: #e53935; /* Vermelho para deletar */
 }
 
 .btn-icon.btn-delete:hover {
-    color: #C62828; /* Vermelho mais escuro no hover */
-    opacity: 1;
+  color: #c62828; /* Vermelho mais escuro no hover */
+  opacity: 1;
 }
 
-.responsible > a, .step-assignee > a {
-    color: var(--text-color);
-    text-decoration: underline;
-    text-decoration-color: var(--accent-color);
-    text-decoration-thickness: 1px;
-    transition: color 0.2s ease;
+.responsible > a,
+.step-assignee > a {
+  color: var(--text-color);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-color);
+  text-decoration-thickness: 1px;
+  transition: color 0.2s ease;
 }
 
-.responsible > a:hover, .step-assignee > a:hover {
-    color: var(--accent-color);
+.responsible > a:hover,
+.step-assignee > a:hover {
+  color: var(--accent-color);
 }
 
 .service-card .responsible {
-    margin-top: 15px; /* Adiciona espaço acima do nome do responsável */
-    margin-bottom: 10px;
+  margin-top: 15px; /* Adiciona espaço acima do nome do responsável */
+  margin-bottom: 10px;
 }
 
 .progress-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 0.9em;
-    font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+  font-weight: 600;
 }
 
 .progress-container {
-    width: 100%;
-    background-color: var(--progress-bar-bg);
-    border-radius: 10px;
-    overflow: hidden;
+  width: 100%;
+  background-color: var(--progress-bar-bg);
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .progress-bar {
-    height: 12px;
-    background-color: var(--accent-color);
-    width: 0%; /* Será definido pelo JS */
-    border-radius: 10px;
-    transition: width 0.5s ease-in-out, background-color 0.3s ease;
+  height: 12px;
+  background-color: var(--accent-color);
+  width: 0%; /* Será definido pelo JS */
+  border-radius: 10px;
+  transition: width 0.5s ease-in-out, background-color 0.3s ease;
 }
 
 /* MUDANÇA: Estilos para a nova seção de pendências no card */
 .card-pending-issues {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid var(--progress-bar-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--progress-bar-bg);
 }
 
 .card-pending-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
 }
-
 
 /* MUDANÇA: Adiciona um espaçamento para a barra de progresso na página de detalhes */
 #task-detail-view .progress-info {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 /* --- Botão Primário --- */
 .btn-primary {
-    background-color: var(--primary-color);
-    color: #ffffff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-    font-size: 1em;
-    cursor: pointer;
-    text-decoration: none; /* CORREÇÃO: Garante que botões nunca sejam sublinhados */
-    white-space: nowrap; /* CORREÇÃO: Impede que o texto do botão quebre a linha */
-    transition: background-color 0.3s ease, transform 0.2s ease;
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+  font-size: 1em;
+  cursor: pointer;
+  text-decoration: none; /* CORREÇÃO: Garante que botões nunca sejam sublinhados */
+  white-space: nowrap; /* CORREÇÃO: Impede que o texto do botão quebre a linha */
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .btn-primary:hover {
-    background-color: #003366; /* Um azul marinho um pouco mais claro */
-    transform: translateY(-2px);
+  background-color: #003366; /* Um azul marinho um pouco mais claro */
+  transform: translateY(-2px);
 }
 
 body.dark-theme .btn-primary:hover {
-    background-color: #004080;
+  background-color: #004080;
 }
 
 /* --- Botão Secundário (para o modal) --- */
 .btn-secondary {
-    background-color: transparent;
-    color: var(--primary-color);
-    border: 2px solid var(--primary-color);
-    padding: 8px 15px;
-    border-radius: 5px;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none; /* CORREÇÃO: Garante que botões nunca sejam sublinhados */
-    white-space: nowrap; /* CORREÇÃO: Impede que o texto do botão quebre a linha */
-    transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none; /* CORREÇÃO: Garante que botões nunca sejam sublinhados */
+  white-space: nowrap; /* CORREÇÃO: Impede que o texto do botão quebre a linha */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* MUDANÇA: Aplica a largura total apenas para botões secundários dentro de formulários */
 .form-group .btn-secondary {
-    width: 100%;
-    margin-top: 10px;
+  width: 100%;
+  margin-top: 10px;
 }
 
 .form-inline {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 }
 
 /* --- Estilos do Modal --- */
 .modal {
-    display: none; /* Oculto por padrão */
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.6);
-    animation: fadeIn 0.3s ease;
+  display: none; /* Oculto por padrão */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.3s ease;
 }
 
 .modal-content {
-    background-color: var(--card-bg);
-    margin: 3vh auto; /* MUDANÇA: Reduz a margem vertical para telas menores */
-    padding: 30px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 600px; /* MUDANÇA: Aumenta um pouco a largura máxima para o modal de serviço */
-    position: relative;
-    box-shadow: 0 5px 20px var(--shadow-color);
-    animation: slideIn 0.4s ease-out;
-    max-height: 94vh; /* MUDANÇA: Garante que o modal não saia da tela */
-    overflow-y: auto; /* MUDANÇA: Adiciona scroll se o conteúdo for maior */
+  background-color: var(--card-bg);
+  margin: 3vh auto; /* MUDANÇA: Reduz a margem vertical para telas menores */
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px; /* MUDANÇA: Aumenta um pouco a largura máxima para o modal de serviço */
+  position: relative;
+  box-shadow: 0 5px 20px var(--shadow-color);
+  animation: slideIn 0.4s ease-out;
+  max-height: 94vh; /* MUDANÇA: Garante que o modal não saia da tela */
+  overflow-y: auto; /* MUDANÇA: Adiciona scroll se o conteúdo for maior */
 }
 
 .close-btn {
-    color: #aaa;
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
+  color: #aaa;
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .close-btn:hover,
 .close-btn:focus {
-    color: var(--text-color);
-    text-decoration: none;
+  color: var(--text-color);
+  text-decoration: none;
 }
 
 .modal-content h2 {
-    color: var(--accent-color);
-    margin-bottom: 25px;
+  color: var(--accent-color);
+  margin-bottom: 25px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--progress-bar-bg);
-    border-radius: 5px;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1em;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--progress-bar-bg);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Montserrat", sans-serif;
+  font-size: 1em;
 }
 
 .form-group textarea {
-    resize: vertical;
-    min-height: 100px;
+  resize: vertical;
+  min-height: 100px;
 }
 
 .form-group select {
-    appearance: none;
-    -webkit-appearance: none;
-    /* Seta personalizada que herda a cor do texto (funciona nos dois temas) */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1em;
-    padding-right: 2.5rem; /* Garante que o texto não fique embaixo da seta */
+  appearance: none;
+  -webkit-appearance: none;
+  /* Seta personalizada que herda a cor do texto (funciona nos dois temas) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+  padding-right: 2.5rem; /* Garante que o texto não fique embaixo da seta */
 }
 
 .step-input-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 /* CORREÇÃO: Aplica os estilos de formulário também aos inputs de edição de etapa. */
 .step-input-row input[type="text"],
 .step-input-row input[type="color"] {
-    padding: 12px;
-    border: 1px solid var(--progress-bar-bg);
-    border-radius: 5px;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1em;
-    height: 45px; /* Garante a mesma altura dos outros campos */
+  padding: 12px;
+  border: 1px solid var(--progress-bar-bg);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Montserrat", sans-serif;
+  font-size: 1em;
+  height: 45px; /* Garante a mesma altura dos outros campos */
 }
 
 .step-input-row input[name="stepName"] {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 .step-input-row .btn-icon {
-    flex-shrink: 0; /* Impede que o botão encolha */
+  flex-shrink: 0; /* Impede que o botão encolha */
 }
 
 /* --- MUDANÇA: Estilos para grupos de etapas no modal --- */
 .step-group-modal {
-    position: relative; /* Necessário para o posicionamento da alça de arrastar */
-    background-color: var(--bg-color);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    border: 1px solid var(--progress-bar-bg);
+  position: relative; /* Necessário para o posicionamento da alça de arrastar */
+  background-color: var(--bg-color);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid var(--progress-bar-bg);
 }
 
 .drag-handle {
-    position: absolute;
-    left: -5px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: grab;
-    color: var(--text-color);
-    opacity: 0.4;
-    padding: 10px;
-    font-size: 1.5em;
-    line-height: 1;
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: grab;
+  color: var(--text-color);
+  opacity: 0.4;
+  padding: 10px;
+  font-size: 1.5em;
+  line-height: 1;
 }
 
 .drag-handle:hover {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 
 .sortable-ghost {
-    opacity: 0.4;
-    background: var(--accent-color);
+  opacity: 0.4;
+  background: var(--accent-color);
 }
 
 .sortable-drag {
-    cursor: grabbing;
+  cursor: grabbing;
 }
 
 /* MUDANÇA: Estilo para o "fantasma" do cartão de serviço ao arrastar */
 .service-card.sortable-ghost {
-    background: var(--accent-color);
-    opacity: 0.3;
+  background: var(--accent-color);
+  opacity: 0.3;
 }
 
 .step-group-modal .form-group {
-    margin-top: 15px;
-    margin-bottom: 15px;
+  margin-top: 15px;
+  margin-bottom: 15px;
 }
 
 .substeps-container-modal {
-    padding-left: 20px;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px dashed var(--progress-bar-bg);
+  padding-left: 20px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed var(--progress-bar-bg);
 }
 
 .substep-input-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    align-items: center;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
 }
 
 /* MUDANÇA: Estilo para o novo select de pendências */
 .substep-input-row .substep-pending-description {
-    width: 100%;
-    margin-top: 5px;
-    font-size: 0.9em; /* Mantém a consistência do tamanho da fonte */
+  width: 100%;
+  margin-top: 5px;
+  font-size: 0.9em; /* Mantém a consistência do tamanho da fonte */
 }
 
 /* CORREÇÃO: Aplica estilos de formulário aos inputs e selects das sub-etapas */
 .substep-input-row input[type="text"],
 .substep-input-row select {
-    padding: 10px;
-    border: 1px solid var(--progress-bar-bg);
-    border-radius: 5px;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1em;
-    height: 45px;
+  padding: 10px;
+  border: 1px solid var(--progress-bar-bg);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Montserrat", sans-serif;
+  font-size: 1em;
+  height: 45px;
 }
 
 /* Animações do Modal */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
 
 /* --- Lista de Etapas (Checklist) --- */
 .steps-list {
-    list-style: none;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid var(--progress-bar-bg);
+  list-style: none;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--progress-bar-bg);
 }
 
 .step-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 /* MUDANÇA: Adiciona uma borda colorida para a etapa */
 .step-item {
-    position: relative;
-    padding-left: 15px; /* Espaço para a barra de cor */
+  position: relative;
+  padding-left: 15px; /* Espaço para a barra de cor */
 }
 .step-item::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 2px;
-    bottom: 2px;
-    width: 5px;
-    background-color: var(--step-color, var(--progress-bar-bg)); /* Usa a variável ou um fallback */
-    border-radius: 3px;
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 5px;
+  background-color: var(
+    --step-color,
+    var(--progress-bar-bg)
+  ); /* Usa a variável ou um fallback */
+  border-radius: 3px;
 }
 .step-item label {
-    margin-left: 10px;
-    cursor: pointer;
-    transition: opacity 0.3s ease;
-    flex-grow: 1; /* MUDANÇA: Empurra o botão de deletar para a direita */
+  margin-left: 10px;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  flex-grow: 1; /* MUDANÇA: Empurra o botão de deletar para a direita */
 }
 
 .step-item label {
-    margin-left: 10px;
-    cursor: pointer;
-    transition: opacity 0.3s ease;
+  margin-left: 10px;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
 }
 
 .step-assignee {
-    font-size: 0.85em;
-    opacity: 0.7;
-    margin-left: 5px;
+  font-size: 0.85em;
+  opacity: 0.7;
+  margin-left: 5px;
 }
 
 .step-item input[type="checkbox"] {
-    /* Esconde o checkbox padrão */
-    appearance: none;
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--accent-color);
-    border-radius: 4px;
-    cursor: pointer;
-    position: relative;
-    flex-shrink: 0; /* MUDANÇA: Impede que o checkbox seja esmagado por textos longos */
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+  /* Esconde o checkbox padrão */
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--accent-color);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0; /* MUDANÇA: Impede que o checkbox seja esmagado por textos longos */
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .step-item input[type="checkbox"]:checked {
-    background-color: var(--accent-color);
-    border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 /* Estilo para o "check" */
 .step-item input[type="checkbox"]:checked::after {
-    content: '✔';
-    font-size: 14px;
-    color: var(--card-bg);
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+  content: "✔";
+  font-size: 14px;
+  color: var(--card-bg);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .step-item input[type="checkbox"]:checked + label {
-    text-decoration: line-through;
-    opacity: 0.6;
+  text-decoration: line-through;
+  opacity: 0.6;
 }
 
 /* --- Responsividade --- */
 
 /* MUDANÇA: Botão de menu mobile, visível apenas em telas menores */
 #mobile-menu-toggle {
-    display: none;
-    color: #fff;
+  display: none;
+  color: #fff;
 }
 
 /* Tablets e telas menores */
 @media (max-width: 768px) {
-    header {
-        padding: 15px 20px;
-    }
+  header {
+    padding: 15px 20px;
+  }
 
-    .header-content {
-        flex-wrap: wrap; /* Permite que os itens quebrem a linha */
-    }
+  .header-content {
+    flex-wrap: wrap; /* Permite que os itens quebrem a linha */
+  }
 
-    #mobile-menu-toggle {
-        display: block;
-    }
+  #mobile-menu-toggle {
+    display: block;
+  }
 
-    /* MUDANÇA: No mobile, o container do menu se torna um bloco que será mostrado/escondido */
-    #header-menu-items {
-        display: none; /* Esconde os itens do menu por padrão */
-        flex-direction: column;
-        gap: 15px;
-        width: 100%;
-        order: 3; /* Garante que o menu apareça abaixo do título e do botão */
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
+  /* MUDANÇA: No mobile, o container do menu se torna um bloco que será mostrado/escondido */
+  #header-menu-items {
+    display: none; /* Esconde os itens do menu por padrão */
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    order: 3; /* Garante que o menu apareça abaixo do título e do botão */
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
 
-    main {
-        padding: 30px 20px;
-    }
+  main {
+    padding: 30px 20px;
+  }
 
-    /* MUDANÇA: Reorganiza o header no mobile */
-    .header-right {
-        order: 3; /* Move para o final */
-        width: 100%;
-        display: none; /* Escondido por padrão */
-        flex-direction: column;
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    #header-menu-items.open {
-        display: flex; /* Mostra quando o menu está aberto */
-    }
+  /* MUDANÇA: Reorganiza o header no mobile */
+  .header-right {
+    order: 3; /* Move para o final */
+    width: 100%;
+    display: none; /* Escondido por padrão */
+    flex-direction: column;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  #header-menu-items.open {
+    display: flex; /* Mostra quando o menu está aberto */
+  }
 
-    /* MUDANÇA: Garante que os itens dentro do menu mobile ocupem a largura total */
-    #header-menu-items > * {
-        width: 100%;
-    }
+  /* MUDANÇA: Garante que os itens dentro do menu mobile ocupem a largura total */
+  #header-menu-items > * {
+    width: 100%;
+  }
 }
 
 /* Celulares */
 @media (max-width: 480px) {
-    main {
-        padding: 20px 15px;
-        gap: 20px;
-    }
+  main {
+    padding: 20px 15px;
+    gap: 20px;
+  }
 
-    .step-input-row {
-        flex-direction: column;
-        align-items: stretch; /* Faz os itens ocuparem a largura total */
-    }
+  .step-input-row {
+    flex-direction: column;
+    align-items: stretch; /* Faz os itens ocuparem a largura total */
+  }
 
-    .modal-content {
-        padding: 20px; /* Reduz o padding do modal em telas muito pequenas */
-    }
+  .modal-content {
+    padding: 20px; /* Reduz o padding do modal em telas muito pequenas */
+  }
 }
 
 /* --- Estilos da Página de Detalhes da Tarefa --- */
 
 .hidden {
-    display: none !important;
+  display: none !important;
 }
 
 /* Esconde o header principal quando o usuário não está logado */
 body:not(.detail-view-active) #app-header.hidden {
-    display: none;
+  display: none;
 }
 
 /* Oculta elementos do header quando na visão de detalhe */
 body.detail-view-active .header-content {
-    /* Não é mais necessário centralizar */
+  /* Não é mais necessário centralizar */
 }
 
 /* MUDANÇA: Aplica o mesmo layout para a view de detalhes e de perfil */
-#task-detail-view, #profile-view, #user-management-view, #category-management-view {
-    padding: 40px;
-    max-width: 900px;
-    margin: 0 auto;
+#task-detail-view,
+#profile-view,
+#user-management-view,
+#category-management-view {
+  padding: 40px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 /* MUDANÇA: Padroniza as views de lista */
-#service-container, #production-status-view,
-#requests-view, #dashboard-view, #statistics-view {
-    padding: 40px;
-    max-width: 1400px;
-    margin: 0 auto;
+#service-container,
+#production-status-view,
+#requests-view,
+#dashboard-view,
+#statistics-view {
+  padding: 40px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* --- MUDANÇA: Estilos para o novo Dashboard --- */
 #dashboard-view {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 30px;
-    max-width: 1100px;
-    margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .dashboard-card {
-    position: relative; /* MUDANÇA: Para posicionar o selo */
-    background-color: var(--card-bg);
-    border-radius: 10px;    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative; /* MUDANÇA: Para posicionar o selo */
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dashboard-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais suave no hover */
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais suave no hover */
 }
 
 .dashboard-card a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 40px 25px;
-    text-decoration: none;
-    color: var(--text-color);
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 25px;
+  text-decoration: none;
+  color: var(--text-color);
+  height: 100%;
 }
 
 .dashboard-card-icon {
-    margin-bottom: 20px;
-    background-color: var(--accent-color);
-    color: var(--card-bg);
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  margin-bottom: 20px;
+  background-color: var(--accent-color);
+  color: var(--card-bg);
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .dashboard-card-icon svg {
-    width: 36px;
-    height: 36px;
-    fill: currentColor;
+  width: 36px;
+  height: 36px;
+  fill: currentColor;
 }
 
 .dashboard-card h2 {
-    color: var(--accent-color);
-    margin-bottom: 10px;
+  color: var(--accent-color);
+  margin-bottom: 10px;
 }
 
 .dashboard-card h2 .beta-tag {
-    color: #E53935;
-    font-size: 0.6em;
-    vertical-align: super;
-    font-weight: 600;
-    margin-left: 5px;
-    text-transform: uppercase;
+  color: #e53935;
+  font-size: 0.6em;
+  vertical-align: super;
+  font-weight: 600;
+  margin-left: 5px;
+  text-transform: uppercase;
 }
 
 .dashboard-badge {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background-color: #E53935;
-    color: white;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 0.8em;
-    font-weight: 700;
-    border: 2px solid var(--card-bg);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    transform: scale(0);
-    transition: transform 0.2s ease;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background-color: #e53935;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8em;
+  font-weight: 700;
+  border: 2px solid var(--card-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transform: scale(0);
+  transition: transform 0.2s ease;
 }
 
 .detail-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid var(--progress-bar-bg);
-    padding-bottom: 15px;
-    margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--progress-bar-bg);
+  padding-bottom: 15px;
+  margin-bottom: 30px;
 }
 
 .detail-header h2 {
-    color: var(--accent-color);
-    font-size: 2em;
+  color: var(--accent-color);
+  font-size: 2em;
 }
 
 .requests-header h2 {
-    font-size: 1.5em; /* MUDANÇA: Reduz o título em telas menores */
-    margin-bottom: 15px;
-    text-align: center;
+  font-size: 1.5em; /* MUDANÇA: Reduz o título em telas menores */
+  margin-bottom: 15px;
+  text-align: center;
 }
 
 .detail-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .detail-section {
-    background-color: var(--card-bg);
-    padding: 25px;
-    border-radius: 10px;
-    /* MUDANÇA: Adiciona uma borda superior colorida para destaque */
-    border-top: 4px solid var(--accent-color);
-    margin-bottom: 30px;    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
+  background-color: var(--card-bg);
+  padding: 25px;
+  border-radius: 10px;
+  /* MUDANÇA: Adiciona uma borda superior colorida para destaque */
+  border-top: 4px solid var(--accent-color);
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
 }
 
 /* MUDANÇA: Estilos para o footer fixo do modal */
 .modal-footer {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: var(--card-bg);
-    padding: 15px 30px; /* Ajusta o padding para corresponder ao modal-content */
-    border-top: 1px solid var(--progress-bar-bg);
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    z-index: 1001; /* Acima do conteúdo do modal */
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;    box-shadow: 0 -4px 12px var(--shadow-color); /* CORREÇÃO: Sombra para cima */
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: var(--card-bg);
+  padding: 15px 30px; /* Ajusta o padding para corresponder ao modal-content */
+  border-top: 1px solid var(--progress-bar-bg);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  z-index: 1001; /* Acima do conteúdo do modal */
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  box-shadow: 0 -4px 12px var(--shadow-color); /* CORREÇÃO: Sombra para cima */
 }
 
 /* MUDANÇA: Remove a sombra quando o formulário está inline para um visual mais limpo */
 .detail-section form {
-    box-shadow: none;
+  box-shadow: none;
 }
 
 .detail-section h3 {
-    color: var(--accent-color);
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--progress-bar-bg);
-    padding-bottom: 10px;
+  color: var(--accent-color);
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--progress-bar-bg);
+  padding-bottom: 10px;
 }
 
 /* MUDANÇA: Adiciona espaçamento entre as linhas de informação na página de detalhes */
 .detail-section p {
-    margin-bottom: 12px;
-    line-height: 1.5;
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
 /* MUDANÇA: Estilos para o footer fixo na edição in-loco */
 .detail-sticky-footer {
-    position: fixed; /* CORREÇÃO: Usa 'fixed' para fixar na janela de visualização */
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    background-color: var(--card-bg);
-    padding: 20px 40px; /* Padding para corresponder ao padding da view */
-    border-top: 1px solid var(--progress-bar-bg);
-    display: flex;
-    justify-content: flex-end;
-    gap: 15px;
-    z-index: 999; /* Abaixo dos modais, mas acima do conteúdo da página */
-    box-shadow: 0 -4px 12px var(--shadow-color); /* CORREÇÃO: Sombra mais suave e padronizada */
+  position: fixed; /* CORREÇÃO: Usa 'fixed' para fixar na janela de visualização */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background-color: var(--card-bg);
+  padding: 20px 40px; /* Padding para corresponder ao padding da view */
+  border-top: 1px solid var(--progress-bar-bg);
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  z-index: 999; /* Abaixo dos modais, mas acima do conteúdo da página */
+  box-shadow: 0 -4px 12px var(--shadow-color); /* CORREÇÃO: Sombra mais suave e padronizada */
 }
 
 /* MUDANÇA: Ajusta o padding da view de detalhes para acomodar o footer */
 #task-detail-view {
-    padding-bottom: 80px; /* Altura aproximada do footer + padding */
+  padding-bottom: 80px; /* Altura aproximada do footer + padding */
 }
 
 .steps-list-detailed {
-    list-style: none;
+  list-style: none;
 }
 
 .step-group {
-    margin-bottom: 25px;
-    padding: 20px;
-    background-color: var(--bg-color);
-    border-radius: 8px;
+  margin-bottom: 25px;
+  padding: 20px;
+  background-color: var(--bg-color);
+  border-radius: 8px;
 }
 
 /* MUDANÇA: Adiciona uma borda colorida para o grupo de etapas */
 .step-group {
-    border-left: 5px solid var(--step-color, var(--progress-bar-bg));
-    padding-left: 20px;
+  border-left: 5px solid var(--step-color, var(--progress-bar-bg));
+  padding-left: 20px;
 }
 
-
 .step-group-title {
-    font-weight: 700;
-    font-size: 1.1em;
-    margin-bottom: 15px;    position: relative;
-    padding-left: 25px;    cursor: pointer; /* MUDANÇA: Torna toda a área do título clicável */
-    user-select: none; /* Impede a seleção de texto ao clicar */
-    display: flex; /* MUDANÇA: Transforma em flex container para alinhar o botão */
-    transition: color 0.2s;
+  font-weight: 700;
+  font-size: 1.1em;
+  margin-bottom: 15px;
+  position: relative;
+  padding-left: 25px;
+  cursor: pointer; /* MUDANÇA: Torna toda a área do título clicável */
+  user-select: none; /* Impede a seleção de texto ao clicar */
+  display: flex; /* MUDANÇA: Transforma em flex container para alinhar o botão */
+  transition: color 0.2s;
 }
 
 .step-title-content {
-    display: flex;
-    align-items: center;
-    flex-grow: 1;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  gap: 15px;
 }
 
 .step-name-toggle {
-    flex-grow: 1; /* Permite que o nome da etapa cresça */
-    word-break: break-word; /* Quebra palavras longas se necessário */
+  flex-grow: 1; /* Permite que o nome da etapa cresça */
+  word-break: break-word; /* Quebra palavras longas se necessário */
 }
 
 .step-group-title .btn-delete-step-detail {
-    margin-left: auto;
-    visibility: hidden; /* Escondido por padrão */
-    opacity: 0;
+  margin-left: auto;
+  visibility: hidden; /* Escondido por padrão */
+  opacity: 0;
 }
 
 .step-group-title:hover {
-    color: var(--accent-color);
+  color: var(--accent-color);
 }
 
 .step-group-title:hover .btn-delete-step-detail,
 .subtask-item:hover .btn-delete-subtask-detail {
-    visibility: visible;
-    opacity: 0.6;
+  visibility: visible;
+  opacity: 0.6;
 }
 .step-group-title::before {
-    content: '▼';
-    position: absolute;
-    left: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    transition: transform 0.2s ease-in-out;
-    font-size: 0.8em;
-    color: var(--accent-color);
+  content: "▼";
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.2s ease-in-out;
+  font-size: 0.8em;
+  color: var(--accent-color);
 }
 .step-assignee-detail {
-    font-size: 0.85em;
-    font-weight: 400; /* Normal, não negrito */
-    opacity: 0.7;
-    cursor: default;
+  font-size: 0.85em;
+  font-weight: 400; /* Normal, não negrito */
+  opacity: 0.7;
+  cursor: default;
 }
 
 .step-progress-container {
-    width: 150px; /* Largura fixa para a barra de progresso */
-    flex-shrink: 0; /* Impede que encolha */
-    margin-left: auto; /* Empurra para a direita, antes do responsável */
+  width: 150px; /* Largura fixa para a barra de progresso */
+  flex-shrink: 0; /* Impede que encolha */
+  margin-left: auto; /* Empurra para a direita, antes do responsável */
 }
 
 .step-progress-container .progress-info {
-    margin-bottom: 2px;
-    justify-content: flex-end; /* Alinha o texto da porcentagem à direita */
-    font-size: 0.8em;
+  margin-bottom: 2px;
+  justify-content: flex-end; /* Alinha o texto da porcentagem à direita */
+  font-size: 0.8em;
 }
 
 .step-progress-container .progress-bar {
-    height: 8px; /* Barra mais fina */
+  height: 8px; /* Barra mais fina */
 }
 
 /* MUDANÇA: Estilos para o ícone de alerta de pendência */
 .alert-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    color: #c78100; /* Amarelo para alerta */
-    margin-left: 0; /* Reseta a margem, pois o 'gap' do flex container já cuida do espaçamento */
-    flex-shrink: 0; /* CORREÇÃO: Impede que o ícone encolha e garante o alinhamento vertical. */
-    vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #c78100; /* Amarelo para alerta */
+  margin-left: 0; /* Reseta a margem, pois o 'gap' do flex container já cuida do espaçamento */
+  flex-shrink: 0; /* CORREÇÃO: Impede que o ícone encolha e garante o alinhamento vertical. */
+  vertical-align: middle;
 }
 
 /* MUDANÇA: Esconde o ícone de alerta da etapa quando ela está expandida */
 .step-group-title:not(.collapsed) .step-alert {
-    display: none;
+  display: none;
 }
 
-
 .alert-icon svg {
-    width: 100%;
-    height: 100%;
-    fill: currentColor;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
 }
 
 /* MUDANÇA: Estilo para o texto da descrição da pendência */
 .pending-description-text {
-    /* CORREÇÃO: Cor mais escura para melhor contraste no tema claro */
-    font-size: 0.85em;
-    color: #c78100; /* Âmbar escuro */
-    margin: 0; /* CORREÇÃO: Remove todas as margens para garantir o alinhamento perfeito. */
-    display: flex; /* MUDANÇA: Transforma o parágrafo em um container flex */
-    align-items: center; /* MUDANÇA: Alinha o ícone e o texto verticalmente */
-    gap: 8px; /* MUDANÇA: Adiciona espaço entre o ícone e o texto */
-    margin-top: 5px; /* MUDANÇA: Adiciona um espaço acima da linha de pendência */
+  /* CORREÇÃO: Cor mais escura para melhor contraste no tema claro */
+  font-size: 0.85em;
+  color: #c78100; /* Âmbar escuro */
+  margin: 0; /* CORREÇÃO: Remove todas as margens para garantir o alinhamento perfeito. */
+  display: flex; /* MUDANÇA: Transforma o parágrafo em um container flex */
+  align-items: center; /* MUDANÇA: Alinha o ícone e o texto verticalmente */
+  gap: 8px; /* MUDANÇA: Adiciona espaço entre o ícone e o texto */
+  margin-top: 5px; /* MUDANÇA: Adiciona um espaço acima da linha de pendência */
 }
 
 /* CORREÇÃO: No tema escuro, a cor amarela original funciona bem */
 body.dark-theme .pending-description-text {
-    color: #FFC107;
+  color: #ffc107;
 }
 
 .step-group-title.collapsed::before {
-    transform: translateY(-50%) rotate(-90deg);
+  transform: translateY(-50%) rotate(-90deg);
 }
 
 .subtask-list {
-    list-style: none;
-    padding-left: 10px;
+  list-style: none;
+  padding-left: 10px;
 }
 
 .file-list {
-    list-style: none;
-    margin-bottom: 20px;
+  list-style: none;
+  margin-bottom: 20px;
 }
 
 .file-item {
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 5px;
-    transition: background-color 0.2s ease;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
 }
 
 .file-item .btn-delete-file {
-    visibility: hidden; /* Escondido por padrão */
-    opacity: 0;
+  visibility: hidden; /* Escondido por padrão */
+  opacity: 0;
 }
 
 .file-item:hover {
-    background-color: var(--bg-color);
+  background-color: var(--bg-color);
 }
 .file-item:hover .btn-delete-file {
-    visibility: visible;
-    opacity: 0.6;
+  visibility: visible;
+  opacity: 0.6;
 }
 
 .file-item a {
-    color: var(--text-color);
-    text-decoration: none;
-    font-weight: 600;
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 600;
 }
 
 .file-item a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 /* MUDANÇA: Melhora a estilização dos inputs de adicionar link */
 #add-file-form #file-name-input {
-    flex: 1 1 30%; /* Ocupa 30% do espaço, mas pode encolher/crescer */
+  flex: 1 1 30%; /* Ocupa 30% do espaço, mas pode encolher/crescer */
 }
 
 #add-file-form #file-url-input {
-    flex: 1 1 70%; /* Ocupa 70% do espaço */
+  flex: 1 1 70%; /* Ocupa 70% do espaço */
 }
 
 /* CORREÇÃO: Aplica estilos de formulário aos inputs de adicionar arquivo */
 #add-file-form input[type="text"],
 #add-file-form input[type="url"] {
-    padding: 12px;
-    border: 1px solid var(--progress-bar-bg);
-    border-radius: 5px;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1em;
-    height: 45px;
+  padding: 12px;
+  border: 1px solid var(--progress-bar-bg);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Montserrat", sans-serif;
+  font-size: 1em;
+  height: 45px;
 }
 
-@media (max-width: 600px) { /* MUDANÇA: Ajusta o breakpoint para telas um pouco maiores */
-    #add-file-form {
-        flex-direction: column;
-    }
+@media (max-width: 600px) {
+  /* MUDANÇA: Ajusta o breakpoint para telas um pouco maiores */
+  #add-file-form {
+    flex-direction: column;
+  }
 
-    .modal-content {
-        margin: 5% auto; /* Ajusta a margem para telas menores */
-        max-width: 95%;
-    }
+  .modal-content {
+    margin: 5% auto; /* Ajusta a margem para telas menores */
+    max-width: 95%;
+  }
 
-    .file-upload-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-/* MUDANÇA: Ajusta o formulário de comentários no mobile */
-#comment-form {
+  .file-upload-actions {
     flex-direction: column;
     align-items: stretch;
-}
+  }
 
-    /* CORREÇÃO: Reduz o padding da caixa de login em telas muito pequenas */
-    .auth-box {
-        padding: 30px 25px;
-    }
+  /* MUDANÇA: Ajusta o formulário de comentários no mobile */
+  #comment-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* CORREÇÃO: Reduz o padding da caixa de login em telas muito pequenas */
+  .auth-box {
+    padding: 30px 25px;
+  }
 }
 
 /* --- MUDANÇA: Estilos para o Painel Kanban --- */
 #kanban-board {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr); /* 6 colunas fixas */
-    gap: 20px;
-    padding-top: 20px;
-    overflow-x: auto; /* Permite scroll horizontal em telas pequenas */
-    min-height: 60vh;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* 6 colunas fixas */
+  gap: 20px;
+  padding-top: 20px;
+  overflow-x: auto; /* Permite scroll horizontal em telas pequenas */
+  min-height: 60vh;
 }
 
 .kanban-column {
-    display: flex;
-    flex-direction: column;
-    background-color: var(--bg-color);
-    border-radius: 8px;
-    padding: 15px;
-    border: 1px solid var(--progress-bar-bg);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-color);
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid var(--progress-bar-bg);
 }
 
 .kanban-column-title {
-    color: var(--accent-color);
-    padding-bottom: 15px;
-    margin-bottom: 15px;
-    border-bottom: 2px solid var(--accent-color);
-    text-align: center;
-    font-size: 1.1em;
+  color: var(--accent-color);
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--accent-color);
+  text-align: center;
+  font-size: 1.1em;
 }
 
 .kanban-cards-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    flex-grow: 1; /* Ocupa o espaço disponível */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex-grow: 1; /* Ocupa o espaço disponível */
 }
 
 .kanban-card {
-    padding: 20px;
+  padding: 20px;
 }
 
 .kanban-card h2 {
-    font-size: 1.1em;
+  font-size: 1.1em;
 }
 
 .kanban-card .responsible {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .kanban-card .progress-info {
-    margin-top: 10px;
+  margin-top: 10px;
 }
 
 @media (max-width: 1200px) {
-    #kanban-board {
-        /* Em telas menores, permite que as colunas tenham um tamanho mínimo */
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
+  #kanban-board {
+    /* Em telas menores, permite que as colunas tenham um tamanho mínimo */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
 }
 
 /* --- MUDANÇA: Estilos para Serviços Concluídos --- */
 .service-completed {
-    opacity: 0.7;
-    transition: opacity 0.3s ease, border-color 0.3s ease;
+  opacity: 0.7;
+  transition: opacity 0.3s ease, border-color 0.3s ease;
 }
 
 .service-completed:hover {
-    opacity: 1; /* Restaura a opacidade no hover para facilitar a interação */
+  opacity: 1; /* Restaura a opacidade no hover para facilitar a interação */
 }
 
 .service-completed .progress-bar {
-    background-color: #43A047; /* Mantém a barra de progresso verde */
+  background-color: #43a047; /* Mantém a barra de progresso verde */
 }
 
 /* MUDANÇA: Estilo para o selo de conclusão na página de detalhes */
 .completion-badge {
-    display: inline-block;
-    background-color: #43A047;
-    color: #fff;
-    padding: 5px 12px;
-    font-size: 0.7em;
-    border-radius: 15px;
-    vertical-align: middle;
-    margin-left: 10px;
-    font-weight: 700;
+  display: inline-block;
+  background-color: #43a047;
+  color: #fff;
+  padding: 5px 12px;
+  font-size: 0.7em;
+  border-radius: 15px;
+  vertical-align: middle;
+  margin-left: 10px;
+  font-weight: 700;
 }
 /* --- Estilos da Área de Upload --- */
 .file-upload-actions {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid var(--progress-bar-bg);
-    display: flex;
-    flex-direction: column; /* MUDANÇA: Empilha os itens verticalmente */
-    gap: 15px; /* MUDANÇA: Adiciona espaço vertical entre os itens */
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--progress-bar-bg);
+  display: flex;
+  flex-direction: column; /* MUDANÇA: Empilha os itens verticalmente */
+  gap: 15px; /* MUDANÇA: Adiciona espaço vertical entre os itens */
 }
 
 .upload-separator {
-    font-weight: 600;
-    opacity: 0.7;
-    text-align: center; /* MUDANÇA: Centraliza o texto "ou" */
+  font-weight: 600;
+  opacity: 0.7;
+  text-align: center; /* MUDANÇA: Centraliza o texto "ou" */
 }
 
 .upload-button-wrapper label {
-    width: 100%;
-    text-align: center;
+  width: 100%;
+  text-align: center;
 }
 
 .upload-button-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px; /* MUDANÇA: Adiciona espaço entre o "ou" e o botão */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px; /* MUDANÇA: Adiciona espaço entre o "ou" e o botão */
 }
 
 .upload-button-wrapper .btn-secondary {
-    width: auto; /* Garante que o botão se ajuste ao conteúdo */
-    margin-top: 0; /* Remove a margem desnecessária */
-    padding: 12px 20px; /* Ajusta o padding para ficar consistente com o botão de link */
+  width: auto; /* Garante que o botão se ajuste ao conteúdo */
+  margin-top: 0; /* Remove a margem desnecessária */
+  padding: 12px 20px; /* Ajusta o padding para ficar consistente com o botão de link */
 }
 
 /* MUDANÇA: Estilos para o indicador de data no tema escuro */
 body.dark-theme .due-date-info.due-soon {
-    color: #ffeeba;
-    background-color: #533f03;
+  color: #ffeeba;
+  background-color: #533f03;
 }
 body.dark-theme .due-date-info.overdue {
-    color: #f5c6cb;
-    background-color: #58151c;
+  color: #f5c6cb;
+  background-color: #58151c;
 }
 
 /* --- Estilos da Seção de Comentários --- */
 .comments-list {
-    list-style: none;
-    margin-top: 20px;
+  list-style: none;
+  margin-top: 20px;
 }
 
 .comment-item {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
 .comment-avatar img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .comment-content {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 .comment-header {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin-bottom: 5px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 5px;
 }
 
 .comment-author {
-    font-weight: 700;
+  font-weight: 700;
 }
 
 .comment-timestamp {
-    font-size: 0.8em;
-    opacity: 0.6;
+  font-size: 0.8em;
+  opacity: 0.6;
 }
 
 .comment-text {
-    line-height: 1.5;
+  line-height: 1.5;
 }
 
 #comment-form {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid var(--progress-bar-bg);
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--progress-bar-bg);
 }
 
 #comment-input {
-    flex-grow: 1;
-    padding: 12px;
-    border: 1px solid var(--progress-bar-bg);
-    border-radius: 5px;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Montserrat', sans-serif;
+  flex-grow: 1;
+  padding: 12px;
+  border: 1px solid var(--progress-bar-bg);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Montserrat", sans-serif;
 }
 
 /* --- Estilos da Página de Solicitações --- */
 .request-card {
-    background-color: var(--card-bg);
-    border-radius: 10px;
-    padding: 25px;    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
-    margin-bottom: 20px;
-    border-left: 4px solid; /* Será definido pelo status */
-    transition: background-color 0.3s ease, box-shadow 0.2s ease;
-    display: flex;
-    flex-direction: column;
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
+  margin-bottom: 20px;
+  border-left: 4px solid; /* Será definido pelo status */
+  transition: background-color 0.3s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
-.request-card[data-status="pending"] { border-left-color: #FFB300; } /* Ambar */
+.request-card[data-status="pending"] {
+  border-left-color: #ffb300;
+} /* Ambar */
 .request-card[data-status="approved"] {
-    border-left-color: #43A047; /* Verde */
-    background-color: rgba(67, 160, 71, 0.05);
+  border-left-color: #43a047; /* Verde */
+  background-color: rgba(67, 160, 71, 0.05);
 }
 .request-card[data-status="rejected"] {
-    border-left-color: #E53935; /* Vermelho */
-    background-color: rgba(229, 57, 53, 0.05);
+  border-left-color: #e53935; /* Vermelho */
+  background-color: rgba(229, 57, 53, 0.05);
 }
 
 body.dark-theme .request-card[data-status="approved"] {
-    background-color: rgba(67, 160, 71, 0.1);
+  background-color: rgba(67, 160, 71, 0.1);
 }
 body.dark-theme .request-card[data-status="rejected"] {
-    background-color: rgba(229, 57, 53, 0.1);
+  background-color: rgba(229, 57, 53, 0.1);
 }
 
 .request-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
 }
 
 .request-card-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .request-card-title img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .request-card h3 {
-    margin: 0;
-    font-size: 1.2em;
+  margin: 0;
+  font-size: 1.2em;
 }
 
 .request-status-icon {
-    font-size: 1.5rem;
-    opacity: 0.7;
+  font-size: 1.5rem;
+  opacity: 0.7;
 }
 
 .request-meta {
-    font-size: 0.9em;
-    opacity: 0.7;
-    margin-bottom: 20px;
+  font-size: 0.9em;
+  opacity: 0.7;
+  margin-bottom: 20px;
 }
 
 .request-meta span {
-    font-weight: 600;
-    color: var(--text-color);
-    opacity: 1;
+  font-weight: 600;
+  color: var(--text-color);
+  opacity: 1;
 }
 
 .request-meta span {
-    font-weight: 600;
+  font-weight: 600;
 }
 
 .request-description {
-    margin-bottom: 20px;
-    line-height: 1.7;
+  margin-bottom: 20px;
+  line-height: 1.7;
 }
 .request-mention {
-    font-size: 0.9em;
-    margin-bottom: 15px;
-    font-weight: 600;
-    opacity: 0.8;
+  font-size: 0.9em;
+  margin-bottom: 15px;
+  font-weight: 600;
+  opacity: 0.8;
 }
 
-
 .request-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: auto; /* Empurra as ações para o final do card */
+  display: flex;
+  gap: 10px;
+  margin-top: auto; /* Empurra as ações para o final do card */
 }
 
 .request-actions .btn-approve {
-    background-color: #43A047;
-    border-color: #43A047;
+  background-color: #43a047;
+  border-color: #43a047;
 }
 
 .request-actions .btn-reject {
-    background-color: #E53935;
-    border-color: #E53935;
+  background-color: #e53935;
+  border-color: #e53935;
 }
 
 .requests-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px; /* MUDANÇA: Ajustado no media query */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px; /* MUDANÇA: Ajustado no media query */
 }
 /* MUDANÇA: Unifica o estilo do header da lista de serviços */
 .service-list-header {
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
 }
 
 @media (max-width: 768px) {
-    .detail-header, .requests-header {
-        flex-direction: column;
-        gap: 15px;
-        align-items: stretch; /* Faz os botões ocuparem a largura */
-        text-align: center;
-    }
+  .detail-header,
+  .requests-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch; /* Faz os botões ocuparem a largura */
+    text-align: center;
+  }
 
-    /* CORREÇÃO: Reduz o tamanho do título principal na página de detalhes */
-    .detail-header h2 {
-        font-size: 1.6em;
-    }
+  /* CORREÇÃO: Reduz o tamanho do título principal na página de detalhes */
+  .detail-header h2 {
+    font-size: 1.6em;
+  }
 
-    .detail-header-actions {
-        justify-content: center;
-    }
+  .detail-header-actions {
+    justify-content: center;
+  }
 
-    /* MUDANÇA: Reduz o padding das views de detalhe/gerenciamento no mobile */
-    #service-container, #task-detail-view, #profile-view, #user-management-view, #category-management-view, #production-status-view, #requests-view, #dashboard-view {
-        padding: 30px 20px;
-    }
-    /* MUDANÇA: Ajusta o padding do footer sticky no mobile */
-    .detail-sticky-footer {
-        padding: 15px 20px;
-        justify-content: center; /* Centraliza os botões no mobile */
-    }
+  /* MUDANÇA: Reduz o padding das views de detalhe/gerenciamento no mobile */
+  #service-container,
+  #task-detail-view,
+  #profile-view,
+  #user-management-view,
+  #category-management-view,
+  #production-status-view,
+  #requests-view,
+  #dashboard-view {
+    padding: 30px 20px;
+  }
+  /* MUDANÇA: Ajusta o padding do footer sticky no mobile */
+  .detail-sticky-footer {
+    padding: 15px 20px;
+    justify-content: center; /* Centraliza os botões no mobile */
+  }
 
-    /* MUDANÇA: Ajusta o layout do título da etapa no mobile */
-    .step-title-content {
-        flex-wrap: wrap; /* Permite que os itens quebrem a linha */
-    }
-    .step-progress-container {
-        width: 100%; /* Ocupa a largura toda */
-        margin-left: 0; /* Reseta a margem */
-    }
+  /* MUDANÇA: Ajusta o layout do título da etapa no mobile */
+  .step-title-content {
+    flex-wrap: wrap; /* Permite que os itens quebrem a linha */
+  }
+  .step-progress-container {
+    width: 100%; /* Ocupa a largura toda */
+    margin-left: 0; /* Reseta a margem */
+  }
 }
 /* --- MUDANÇA: Estilos para o Indicador de Carregamento (Spinner) --- */
 #loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    transition: opacity 0.3s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.3s ease;
 }
 
 .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- MUDANÇA: Estilos para a Página de Gerenciamento de Usuários --- */
 .user-list {
-    list-style: none;
+  list-style: none;
 }
 
 .user-list-item {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 15px;
-    border-radius: 8px;
-    transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
 }
 
 .user-list-item:not(:last-child) {
-    border-bottom: 1px solid var(--progress-bar-bg);
+  border-bottom: 1px solid var(--progress-bar-bg);
 }
 
 .user-list-item:hover {
-    background-color: var(--bg-color);
+  background-color: var(--bg-color);
 }
 
 .user-list-avatar img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .user-list-info {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
-.user-list-info .user-name { font-weight: 700; }
-.user-list-info .user-email { font-size: 0.9em; opacity: 0.7; }
+.user-list-info .user-name {
+  font-weight: 700;
+}
+.user-list-info .user-email {
+  font-size: 0.9em;
+  opacity: 0.7;
+}
 
 .category-color-swatch {
-    width: 25px;
-    height: 25px;
-    border-radius: 5px;
-    border: 1px solid var(--progress-bar-bg);
-    flex-shrink: 0;
+  width: 25px;
+  height: 25px;
+  border-radius: 5px;
+  border: 1px solid var(--progress-bar-bg);
+  flex-shrink: 0;
 }
 
 /* CORREÇÃO: Ajusta o alinhamento do formulário de categoria */
 .category-add-form .form-group:has(input[type="color"]) {
-    text-align: center; /* Centraliza o label 'Cor' */
+  text-align: center; /* Centraliza o label 'Cor' */
 }
 .category-add-form button {
-    height: 45px; /* Garante que o botão tenha a mesma altura dos inputs */
+  height: 45px; /* Garante que o botão tenha a mesma altura dos inputs */
 }
 
 /* MUDANÇA: Melhora a aparência do input de cor no formulário de categoria */
 .category-add-form input[type="color"] {
-    border: 1px solid var(--progress-bar-bg);
-    border-radius: 5px;
-    cursor: pointer;
+  border: 1px solid var(--progress-bar-bg);
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 /* MUDANÇA: Estilos para o modo de edição da categoria */
 .user-list-item.editing {
-    padding: 10px; /* Reduz o padding para acomodar o formulário */
+  padding: 10px; /* Reduz o padding para acomodar o formulário */
 }
 
 .category-edit-form {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
 }
 
 .category-edit-form input[type="text"] {
-    flex-grow: 1;
-    padding: 10px;
-    border: 1px solid var(--progress-bar-bg);
-    border-radius: 5px;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid var(--progress-bar-bg);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
-.category-edit-form .btn-save-category { color: #43A047; } /* Verde */
-.category-edit-form .btn-cancel-edit-category { color: #E53935; } /* Vermelho */
-
+.category-edit-form .btn-save-category {
+  color: #43a047;
+} /* Verde */
+.category-edit-form .btn-cancel-edit-category {
+  color: #e53935;
+} /* Vermelho */
 
 @media (max-width: 600px) {
-    .user-list-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
+  .user-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
 
-    .user-list-actions { width: 100%; }
+  .user-list-actions {
+    width: 100%;
+  }
 }
 
 /* --- MUDANÇA: Estilos para a Tabela de Status da Produção --- */
 /* MUDANÇA: Adiciona sombra interna para indicar que há mais conteúdo para rolar no mobile */
 .table-container {
-    overflow-x: auto; /* Permite scroll horizontal em telas pequenas */
-    position: relative;
+  overflow-x: auto; /* Permite scroll horizontal em telas pequenas */
+  position: relative;
 }
 
 @media (max-width: 768px) {
-    .table-container {
-        box-shadow: inset -10px 0 8px -8px rgba(0,0,0,0.1);
-    }
+  .table-container {
+    box-shadow: inset -10px 0 8px -8px rgba(0, 0, 0, 0.1);
+  }
 }
 
 table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    font-size: 0.9em;
-    table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 0.9em;
+  table-layout: fixed;
 }
 
-table th, table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: px solid var(--progress-bar-bg);
-    word-break: break-word; /* MUDANÇA: Quebra palavras longas para evitar overflow */
-    vertical-align: middle; /* Garante alinhamento vertical consistente */
+table th,
+table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: px solid var(--progress-bar-bg);
+  word-break: break-word; /* MUDANÇA: Quebra palavras longas para evitar overflow */
+  vertical-align: middle; /* Garante alinhamento vertical consistente */
 }
 /* MUDANÇA: Efeito zebrado para melhor legibilidade */
 table tbody tr:nth-child(odd) {
-    background-color: transparent; /* A base é a cor do card */
+  background-color: transparent; /* A base é a cor do card */
 }
 
 table thead th {
-    background-color: transparent; /* Remove fundo desnecessário */
-    font-weight: 700;
-    color: var(--accent-color);
-    text-align: center; /* MUDANÇA: Centraliza o texto dos cabeçalhos */
-    border-bottom-width: 2px; /* Destaca a linha do cabeçalho */
+  background-color: transparent; /* Remove fundo desnecessário */
+  font-weight: 700;
+  color: var(--accent-color);
+  text-align: center; /* MUDANÇA: Centraliza o texto dos cabeçalhos */
+  border-bottom-width: 2px; /* Destaca a linha do cabeçalho */
 }
 /* MUDANÇA: Estilos para cabeçalhos de tabela ordenáveis */
 table thead th[data-sort] {
-    cursor: pointer;
-    position: relative;
-    padding-right: 30px; /* Espaço para a seta */
+  cursor: pointer;
+  position: relative;
+  padding-right: 30px; /* Espaço para a seta */
 }
 
 table thead th[data-sort]::after {
-    content: '';
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    border: 4px solid transparent;
-    opacity: 0.3;
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 4px solid transparent;
+  opacity: 0.3;
 }
 
 table thead th.sort-active {
-    color: var(--accent-color); /* REVISÃO: Usa a cor de destaque para a coluna ativa */
+  color: var(
+    --accent-color
+  ); /* REVISÃO: Usa a cor de destaque para a coluna ativa */
 }
 
-table thead th.sort-active::after { opacity: 1; }
-table thead th.sort-asc::after { border-bottom-color: var(--accent-color); }
-table thead th.sort-desc::after { border-top-color: var(--accent-color); }
+table thead th.sort-active::after {
+  opacity: 1;
+}
+table thead th.sort-asc::after {
+  border-bottom-color: var(--accent-color);
+}
+table thead th.sort-desc::after {
+  border-top-color: var(--accent-color);
+}
 
 /* MUDANÇA: Substitui larguras fixas por larguras mínimas para responsividade */
-table th[data-sort="name"], table td:has(a[href*="#/service/"]) { min-width: 250px; } /* Material */
-table th[data-sort="category"] { min-width: 150px; } /* Categoria */
-table th[data-sort="responsible"] { min-width: 180px; } /* Responsável */
-table th[data-sort="step"] { min-width: 180px; } /* Etapa Atual */
-table th[data-sort="priority"] { min-width: 120px; text-align: center; } /* Prioridade */
-table th[data-sort="dueDate"] { min-width: 180px; text-align: center; } /* Entrega */
-table th[data-sort="progress"] { min-width: 120px; } /* Progresso */
+table th[data-sort="name"],
+table td:has(a[href*="#/service/"]) {
+  min-width: 250px;
+} /* Material */
+table th[data-sort="category"] {
+  min-width: 150px;
+} /* Categoria */
+table th[data-sort="responsible"] {
+  min-width: 180px;
+} /* Responsável */
+table th[data-sort="step"] {
+  min-width: 180px;
+} /* Etapa Atual */
+table th[data-sort="priority"] {
+  min-width: 120px;
+  text-align: center;
+} /* Prioridade */
+table th[data-sort="dueDate"] {
+  min-width: 180px;
+  text-align: center;
+} /* Entrega */
+table th[data-sort="progress"] {
+  min-width: 120px;
+} /* Progresso */
 
 /* MUDANÇA: Estilos para a célula da etapa atual */
 .step-cell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .step-color-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
-    flex-shrink: 0;
-    border: 1px solid rgba(0,0,0,0.1);
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* MUDANÇA: Estilos para o indicador de progresso */
 .progress-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    white-space: nowrap; /* CORREÇÃO: Impede que o conteúdo da célula quebre a linha */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap; /* CORREÇÃO: Impede que o conteúdo da célula quebre a linha */
 }
 
 /* MUDANÇA: Estilos para a célula de data de entrega */
 .due-date-cell {
-    font-weight: 600;
+  font-weight: 600;
 }
-.due-date-cell.due-soon { color: #856404; }
-.due-date-cell.overdue { color: #721c24; }
+.due-date-cell.due-soon {
+  color: #856404;
+}
+.due-date-cell.overdue {
+  color: #721c24;
+}
 
 .progress-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
-.progress-dot.progress-yellow { background-color: #FFB300; } /* Amarelo */
-.progress-dot.progress-green { background-color: #43A047; } /* Verde */
-.progress-dot.progress-blue { background-color: #007bff; } /* Azul */
+.progress-dot.progress-yellow {
+  background-color: #ffb300;
+} /* Amarelo */
+.progress-dot.progress-green {
+  background-color: #43a047;
+} /* Verde */
+.progress-dot.progress-blue {
+  background-color: #007bff;
+} /* Azul */
 
 table tbody tr:hover {
-    background-color: var(--bg-color); /* REVISÃO: Usa a cor de fundo principal para o hover */
+  background-color: var(
+    --bg-color
+  ); /* REVISÃO: Usa a cor de fundo principal para o hover */
 }
 
 table td a {
-    color: var(--text-color);
-    font-weight: 600;
-    text-decoration: none;
+  color: var(--text-color);
+  font-weight: 600;
+  text-decoration: none;
 }
 
 table td a:hover {
-    color: var(--accent-color);
-    text-decoration: underline;
+  color: var(--accent-color);
+  text-decoration: underline;
 }
 
 @media (max-width: 900px) {
-    #production-status-view {
-        max-width: 100%; /* Permite que a tabela ocupe mais espaço */
-    }
+  #production-status-view {
+    max-width: 100%; /* Permite que a tabela ocupe mais espaço */
+  }
 }
 
 /* --- MUDANÇA: Estilos do Rodapé --- */
 footer {
-    /* MUDANÇA: Usa a mesma cor de fundo do header */
-    background-color: var(--header-bg-color);
-    color: #ffffff; /* MUDANÇA: Define a cor do texto para combinar com o header */
-    padding: 20px 40px;
-    margin-top: auto; /* Empurra o rodapé para o final do flex container */
-    flex-shrink: 0; /* Impede que o rodapé encolha */
-    transition: background-color 0.3s ease, color 0.3s ease;
+  /* MUDANÇA: Usa a mesma cor de fundo do header */
+  background-color: var(--header-bg-color);
+  color: #ffffff; /* MUDANÇA: Define a cor do texto para combinar com o header */
+  padding: 20px 40px;
+  margin-top: auto; /* Empurra o rodapé para o final do flex container */
+  flex-shrink: 0; /* Impede que o rodapé encolha */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .footer-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    text-align: center;
-    font-size: 0.9em;
-    opacity: 0.8;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 0.9em;
+  opacity: 0.8;
 }
 
 body.dark-theme footer {
-    color: #000000;
+  color: #000000;
 }
 
 /* MUDANÇA: Ajusta o wrapper da barra de pesquisa para ocupar uma linha */
 #production-status-view .search-bar-wrapper {
-    margin-bottom: 20px;
-    max-width: none; /* Permite ocupar a largura do container */
+  margin-bottom: 20px;
+  max-width: none; /* Permite ocupar a largura do container */
 }
 
 /* MUDANÇA: Ajusta o grid de filtros para acomodar mais itens */
 .table-filters {
-    /* CORREÇÃO: Altera para flexbox para manter os filtros em uma única linha */
-    display: flex;
-    gap: 20px;
-    overflow-x: auto; /* Adiciona scroll horizontal se os itens não couberem */
-    padding-bottom: 10px; /* Espaço para a barra de scroll não sobrepor o conteúdo */
+  /* CORREÇÃO: Altera para flexbox para manter os filtros em uma única linha */
+  display: flex;
+  gap: 20px;
+  overflow-x: auto; /* Adiciona scroll horizontal se os itens não couberem */
+  padding-bottom: 10px; /* Espaço para a barra de scroll não sobrepor o conteúdo */
+}
+
+/* --- MUDANÇA: Estilos Refinados para a Página de Estatísticas --- */
+.statistics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px; /* MUDANÇA: Deixa o layout mais compacto */
+}
+
+/* MUDANÇA: Limita a altura máxima dos gráficos de rosca/pizza para manter a proporção */
+#status-chart-card .chart-container {
+  max-height: 300px;
+  margin: 0 auto;
+}
+
+.statistic-card {
+  background-color: var(--card-bg);
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  /* MUDANÇA: Adiciona uma borda superior colorida para destaque visual */
+  border-top: 4px solid var(--accent-color);
+}
+
+.statistic-card h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.2em;
+  color: var(--accent-color);
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+  min-height: 300px; /* Garante uma altura mínima para o container */
+}
+
+/* MUDANÇA: Estilo de destaque para o card de resumo */
+#summary-card {
+  background-color: var(--accent-color);
+  color: var(
+    --card-bg
+  ); /* Usa a cor de fundo do card como cor de texto para contraste */
+  /* MUDANÇA: Remove a borda superior do card de destaque para não haver sobreposição de cores */
+  border-top: none;
+}
+
+/* MUDANÇA: Garante que o título do card de resumo também mude de cor */
+#summary-card h3 {
+  color: inherit;
+}
+
+.summary-card-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  height: 100%;
+  align-content: center; /* MUDANÇA: Centraliza o conteúdo verticalmente */
+}
+
+.summary-item {
+  text-align: center;
+  padding: 10px;
+}
+
+/* MUDANÇA: Estilo para destacar os números no resumo */
+.summary-value {
+  font-size: 2.5em; /* Torna o número bem maior */
+  font-weight: 700;
+  display: block;
+  line-height: 1.1;
+  color: var(
+    --card-bg
+  ); /* Garante que o número seja branco/preto para contraste */
+}
+
+.summary-label {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+/* MUDANÇA: Estilo para destacar serviços atrasados no resumo */
+.summary-item.has-overdue .summary-value {
+  color: #e53935; /* Vermelho para alerta */
+}
+body.dark-theme .summary-item.has-overdue .summary-value {
+  color: #f5c6cb; /* Vermelho claro para alerta no tema escuro */
+}
+
+/* --- MUDANÇA: Estilos para o Skeleton/Placeholder do Gráfico --- */
+.chart-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  color: var(--text-color);
+  opacity: 0.6;
+  text-align: center;
+  padding: 20px;
 }
