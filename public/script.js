@@ -51,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let unsubscribeFromNotifications = null; // MUDANÇA: Listener para notificações
   let unsubscribeFromServices = null; // Para parar de ouvir os dados ao fazer logout
 
-
   // --- MUDANÇA: Elementos de Autenticação expandidos ---
   const loginContainer = document.getElementById("login-container"); // Container principal
   const loginBox = document.getElementById("login-box");
@@ -81,8 +80,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const profileView = document.getElementById("profile-view");
   const requestsView = document.getElementById("requests-view");
   const userManagementView = document.getElementById("user-management-view");
-  const categoryManagementView = document.getElementById("category-management-view");
-  const productionStatusView = document.getElementById("production-status-view"); // MUDANÇA
+  const categoryManagementView = document.getElementById(
+    "category-management-view"
+  );
+  const productionStatusView = document.getElementById(
+    "production-status-view"
+  ); // MUDANÇA
   const statisticsView = document.getElementById("statistics-view"); // MUDANÇA
   const addStepBtn = document.getElementById("add-step-btn");
   const dashboardView = document.getElementById("dashboard-view");
@@ -93,30 +96,44 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadingOverlay = document.getElementById("loading-overlay");
   const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
   const headerMenuItems = document.getElementById("header-menu-items");
-  const notificationContainer = document.getElementById("notification-container");
+  const notificationContainer = document.getElementById(
+    "notification-container"
+  );
   const notificationBell = document.getElementById("notification-bell");
   const notificationCount = document.getElementById("notification-count");
   const notificationPanel = document.getElementById("notification-panel");
   // MUDANÇA: Estado para a ordenação da tabela de status
   let productionStatusSort = {
-    column: 'name',
-    direction: 'asc'
+    column: "name",
+    direction: "asc",
   };
 
   // MUDANÇA: Define a ordem e os detalhes das colunas da tabela de produção
   const productionStatusColumns = {
-    name: { label: 'Material', sortable: true, className: '' },
-    category: { label: 'Categoria', sortable: true, className: '' },
-    responsible: { label: 'Responsável', sortable: true, className: '' },
-    step: { label: 'Etapa Atual', sortable: true, className: 'col-step' },
-    priority: { label: 'Prioridade', sortable: true, className: 'col-priority' },
-    dueDate: { label: 'Entrega', sortable: true, className: 'col-due-date' },
-    progress: { label: 'Progresso', sortable: true, className: 'col-progress' }
+    name: { label: "Material", sortable: true, className: "" },
+    category: { label: "Categoria", sortable: true, className: "" },
+    responsible: { label: "Responsável", sortable: true, className: "" },
+    step: { label: "Etapa Atual", sortable: true, className: "col-step" },
+    priority: {
+      label: "Prioridade",
+      sortable: true,
+      className: "col-priority",
+    },
+    dueDate: { label: "Entrega", sortable: true, className: "col-due-date" },
+    progress: { label: "Progresso", sortable: true, className: "col-progress" },
   };
 
   // MUDANÇA: Carrega a ordem das colunas do localStorage ou usa a padrão
-  let productionStatusColumnOrder = JSON.parse(localStorage.getItem('productionStatusColumnOrder')) || [
-    'name', 'category', 'responsible', 'step', 'priority', 'dueDate', 'progress'
+  let productionStatusColumnOrder = JSON.parse(
+    localStorage.getItem("productionStatusColumnOrder")
+  ) || [
+    "name",
+    "category",
+    "responsible",
+    "step",
+    "priority",
+    "dueDate",
+    "progress",
   ];
 
   // MUDANÇA: Opções pré-definidas para o select de pendências.
@@ -135,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Aguardando aprovação do roteiro - AudioVisual",
     "Ajustes solicitados - HTML",
     "Aguardando publicação - AVA",
-    "Erro de compatibilidade - AVA"
+    "Erro de compatibilidade - AVA",
   ];
 
   // --- MUDANÇA: Lógica para o seletor de tema ---
@@ -160,8 +177,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function setupChartStyles() {
     // Obtém as cores do tema diretamente do CSS para garantir consistência
     const style = getComputedStyle(document.body);
-    const textColor = style.getPropertyValue('--text-color').trim();
-    const gridColor = style.getPropertyValue('--progress-bar-bg').trim();
+    const textColor = style.getPropertyValue("--text-color").trim();
+    const gridColor = style.getPropertyValue("--progress-bar-bg").trim();
 
     // Define padrões para todos os gráficos
     Chart.defaults.color = textColor;
@@ -169,7 +186,9 @@ document.addEventListener("DOMContentLoaded", () => {
     Chart.defaults.font.size = 13;
 
     // Personaliza os tooltips (balões de informação)
-    Chart.defaults.plugins.tooltip.backgroundColor = style.getPropertyValue('--card-bg').trim();
+    Chart.defaults.plugins.tooltip.backgroundColor = style
+      .getPropertyValue("--card-bg")
+      .trim();
     Chart.defaults.plugins.tooltip.titleColor = textColor;
     Chart.defaults.plugins.tooltip.bodyColor = textColor;
     Chart.defaults.plugins.tooltip.borderColor = gridColor;
@@ -181,22 +200,22 @@ document.addEventListener("DOMContentLoaded", () => {
     // Personaliza as legendas
     Chart.defaults.plugins.legend.labels.color = textColor;
     Chart.defaults.plugins.legend.labels.usePointStyle = true; // Usa círculos em vez de quadrados
-    Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+    Chart.defaults.plugins.legend.labels.pointStyle = "circle";
 
     // Personaliza os eixos (escalas) para gráficos de barra, linha, etc.
     Chart.defaults.scale.grid.color = gridColor;
-    Chart.defaults.scale.grid.borderColor = 'transparent'; // Esconde a linha principal do eixo
+    Chart.defaults.scale.grid.borderColor = "transparent"; // Esconde a linha principal do eixo
     Chart.defaults.scale.grid.borderDash = [5, 5]; // Linhas pontilhadas
     Chart.defaults.scale.ticks.color = textColor;
   }
 
   // MUDANÇA: Plugin customizado para adicionar cor de fundo a um gráfico específico
   const chartAreaBackgroundColorPlugin = {
-    id: 'chartAreaBackgroundColor',
+    id: "chartAreaBackgroundColor",
     beforeDraw: (chart, args, options) => {
       if (options.color) {
-        const {ctx} = chart;
-        const {top, left, width, height} = chart.chartArea;
+        const { ctx } = chart;
+        const { top, left, width, height } = chart.chartArea;
         const x = left;
         const y = top;
 
@@ -205,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.fillRect(x, y, width, height);
         ctx.restore();
       }
-    }
+    },
   };
   // Registra o plugin globalmente para que possa ser usado
   Chart.register(chartAreaBackgroundColorPlugin);
@@ -217,11 +236,11 @@ document.addEventListener("DOMContentLoaded", () => {
   themeToggleBtn.addEventListener("click", () => {
     // Adiciona um pequeno delay para garantir que as variáveis CSS foram atualizadas
     setTimeout(() => {
-        setupChartStyles();
-        // Redesenha os gráficos existentes para aplicar as novas cores
-        if (window.myCharts) {
-            Object.values(window.myCharts).forEach(chart => chart.update());
-        }
+      setupChartStyles();
+      // Redesenha os gráficos existentes para aplicar as novas cores
+      if (window.myCharts) {
+        Object.values(window.myCharts).forEach((chart) => chart.update());
+      }
     }, 50);
   });
   // --- Funções Utilitárias ---
@@ -299,7 +318,9 @@ document.addEventListener("DOMContentLoaded", () => {
         category: "Desenvolvimento",
         orderIndex: 1, // MUDANÇA: Adiciona índice de ordenação
         priority: "Alta", // MUDANÇA: Adiciona prioridade
-        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Vence em 15 dias
+        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0], // Vence em 15 dias
         files: [],
         steps: [
           {
@@ -356,25 +377,27 @@ document.addEventListener("DOMContentLoaded", () => {
         category: "Marketing",
         orderIndex: 2, // MUDANÇA: Adiciona índice de ordenação
         priority: "Média", // MUDANÇA: Adiciona prioridade
-        dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Venceu há 2 dias
+        dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0], // Venceu há 2 dias
         color: "#17a2b8",
         files: [],
         steps: [
           {
             name: "Definir público-alvo",
-            subtasks: [{ name: "Tarefa Única", completed: true }]
+            subtasks: [{ name: "Tarefa Única", completed: true }],
           },
           {
             name: "Criar criativos",
-            subtasks: [{ name: "Tarefa Única", completed: true }]
+            subtasks: [{ name: "Tarefa Única", completed: true }],
           },
           {
             name: "Configurar anúncios",
-            subtasks: [{ name: "Tarefa Única", completed: false }]
+            subtasks: [{ name: "Tarefa Única", completed: false }],
           },
           {
             name: "Analisar resultados",
-            subtasks: [{ name: "Tarefa Única", completed: false }]
+            subtasks: [{ name: "Tarefa Única", completed: false }],
           },
         ],
         ownerId: user.uid,
@@ -407,15 +430,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const adminsQuery = query(usersCollection, where("role", "==", "admin"));
     const adminSnapshot = await getDocs(adminsQuery);
     if (adminSnapshot.empty) {
-        console.log("Nenhum admin encontrado. Promovendo o primeiro usuário.");
-        userData.role = "admin";
+      console.log("Nenhum admin encontrado. Promovendo o primeiro usuário.");
+      userData.role = "admin";
     }
 
     await setDoc(userDocRef, userData, { merge: true });
 
     // MUDANÇA: Atualiza o objeto currentUser local se o cargo foi alterado
     if (currentUser && currentUser.uid === user.uid) {
-        currentUser.role = userData.role;
+      currentUser.role = userData.role;
     }
   }
 
@@ -427,12 +450,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     teamMemberMap = new Map(teamMembers.map((m) => [m.id, m.name]));
     // MUDANÇA: Carrega todos os dados do usuário para a página de admin
-    allUsersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    allUsersData = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
   }
   // MUDANÇA: Função para carregar categorias pré-definidas
   async function loadPredefinedCategories() {
     const querySnapshot = await getDocs(categoriesCollection);
-    predefinedCategories = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    predefinedCategories = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
     // Ordena alfabeticamente
     predefinedCategories.sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -466,15 +495,21 @@ document.addEventListener("DOMContentLoaded", () => {
     listenForRequests();
 
     // Adiciona listeners para as abas e a barra de pesquisa
-    requestsView.querySelector('.requests-tabs').addEventListener('click', (e) => {
-        if (e.target.matches('.request-tab')) {
-            requestsView.querySelector('.request-tab.active').classList.remove('active');
-            e.target.classList.add('active');
-            listenForRequests();
+    requestsView
+      .querySelector(".requests-tabs")
+      .addEventListener("click", (e) => {
+        if (e.target.matches(".request-tab")) {
+          requestsView
+            .querySelector(".request-tab.active")
+            .classList.remove("active");
+          e.target.classList.add("active");
+          listenForRequests();
         }
-    });
+      });
     // MUDANÇA: Adiciona o listener para a nova barra de pesquisa
-    document.getElementById('requests-search-input').addEventListener('input', listenForRequests);
+    document
+      .getElementById("requests-search-input")
+      .addEventListener("input", listenForRequests);
   }
 
   function listenForRequests() {
@@ -489,22 +524,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const q = query(requestsCollection, orderBy("createdAt", "desc"));
 
     // MUDANÇA: Pega o termo da busca para filtrar os resultados
-    const searchInput = document.getElementById('requests-search-input');
-    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const searchInput = document.getElementById("requests-search-input");
+    const searchTerm = searchInput
+      ? searchInput.value.toLowerCase().trim()
+      : "";
 
     // MUDANÇA: Pega o status da aba ativa
-    const activeTab = requestsView.querySelector('.request-tab.active');
-    const filterStatus = activeTab ? activeTab.dataset.status : 'all';
+    const activeTab = requestsView.querySelector(".request-tab.active");
+    const filterStatus = activeTab ? activeTab.dataset.status : "all";
 
     // MUDANÇA: Armazena a função de unsubscribe
     unsubscribeFromRequests = onSnapshot(q, (querySnapshot) => {
-      let allRequests = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let allRequests = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
       // CORREÇÃO: Filtra as solicitações para membros, permitindo que admins vejam tudo.
-      if (currentUser.role !== 'admin') {
-          allRequests = allRequests.filter(req => 
-              req.requesterId === currentUser.uid || req.mentionedUserId === currentUser.uid
-          );
+      if (currentUser.role !== "admin") {
+        allRequests = allRequests.filter(
+          (req) =>
+            req.requesterId === currentUser.uid ||
+            req.mentionedUserId === currentUser.uid
+        );
       }
 
       updateDashboardBadges(allRequests); // MUDANÇA: Atualiza o selo no dashboard
@@ -515,19 +557,23 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Filtra as solicitações com base no termo de busca e na aba ativa
-      let filteredRequests = allRequests.filter(request => {
-          const searchMatch = !searchTerm || 
-                 request.title.toLowerCase().includes(searchTerm) ||
-                 request.description.toLowerCase().includes(searchTerm) ||
-                 request.requesterName.toLowerCase().includes(searchTerm);
-          
-          const statusMatch = filterStatus === 'all' || request.status === filterStatus;
+      let filteredRequests = allRequests.filter((request) => {
+        const searchMatch =
+          !searchTerm ||
+          request.title.toLowerCase().includes(searchTerm) ||
+          request.description.toLowerCase().includes(searchTerm) ||
+          request.requesterName.toLowerCase().includes(searchTerm);
 
-          return searchMatch && statusMatch;
+        const statusMatch =
+          filterStatus === "all" || request.status === filterStatus;
+
+        return searchMatch && statusMatch;
       });
 
       if (filteredRequests.length === 0) {
-        const message = searchTerm ? `Nenhuma solicitação encontrada para "${searchTerm}".` : `Nenhuma solicitação nesta categoria.`;
+        const message = searchTerm
+          ? `Nenhuma solicitação encontrada para "${searchTerm}".`
+          : `Nenhuma solicitação nesta categoria.`;
         listContainer.innerHTML = `<p class="no-results">${message}</p>`;
         return;
       }
@@ -553,7 +599,8 @@ document.addEventListener("DOMContentLoaded", () => {
           // CORREÇÃO: Cria o elemento de título que estava faltando.
           const statusTitle = document.createElement("h3");
           statusTitle.className = "category-title";
-          statusTitle.textContent = {
+          statusTitle.textContent =
+            {
               pending: "Pendentes",
               // MUDANÇA: Renomeia a seção de 'Aprovadas' para 'Em Atendimento'
               approved: "Em Atendimento",
@@ -572,52 +619,67 @@ document.addEventListener("DOMContentLoaded", () => {
             const date =
               request.createdAt?.toDate().toLocaleDateString("pt-BR") ||
               "Data indisponível";
-            
-            const mentionHtml = request.mentionedUserId 
-              ? `<div class="request-mention">Mencionado: <span>${teamMemberMap.get(request.mentionedUserId) || 'Usuário desconhecido'}</span></div>` 
-              : '';
+
+            const mentionHtml = request.mentionedUserId
+              ? `<div class="request-mention">Mencionado: <span>${
+                  teamMemberMap.get(request.mentionedUserId) ||
+                  "Usuário desconhecido"
+                }</span></div>`
+              : "";
 
             // MUDANÇA: Adiciona um link para o serviço criado, se existir
             const serviceLinkHtml = request.createdServiceId
               ? `<a href="#/service/${request.createdServiceId}" class="btn-secondary btn-view-service">Ver Serviço</a>`
-              : '';
+              : "";
 
             // MUDANÇA: Lógica de botões de ação baseada no novo status
-            let actionsHtml = '';
-            if (request.status === 'pending') {
-                actionsHtml = `
+            let actionsHtml = "";
+            if (request.status === "pending") {
+              actionsHtml = `
                     <button class="btn-primary btn-approve">Aprovar</button>
                     <button class="btn-primary btn-reject">Rejeitar</button>
+                    <button class="btn-primary btn-delegate">Terceirizar</button>
                 `;
-            } else if (request.status === 'approved') {
-                actionsHtml = `<button class="btn-primary btn-resolve">Marcar como Resolvido</button>`;
+            } else if (request.status === "approved") {
+              actionsHtml = `<button class="btn-primary btn-resolve">Marcar como Resolvido</button>`;
             }
 
-
             const statusIconsSvg = {
-                pending: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/></svg>', // Ícone de relógio
-                approved: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"/></svg>', // Ícone de check
-                resolved: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M10,17L5,12L6.41,10.59L10,14.17L17.59,6.58L19,8L10,17Z"/></svg>', // Ícone de check (igual ao de aprovado)
-                rejected: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C17.5,2 22,6.5 22,12S17.5,22 12,22 2,17.5 2,12 6.5,2 12,2M17,15.59L15.59,17L12,13.41L8.41,17L7,15.59L10.59,12L7,8.41L8.41,7L12,10.59L15.59,7L17,8.41L13.41,12L17,15.59Z"/></svg>'  // Ícone de X
+              pending:
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/></svg>', // Ícone de relógio
+              approved:
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"/></svg>', // Ícone de check
+              resolved:
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M10,17L5,12L6.41,10.59L10,14.17L17.59,6.58L19,8L10,17Z"/></svg>', // Ícone de check (igual ao de aprovado)
+              rejected:
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C17.5,2 22,6.5 22,12S17.5,22 12,22 2,17.5 2,12 6.5,2 12,2M17,15.59L15.59,17L12,13.41L8.41,17L7,15.59L10.59,12L7,8.41L8.41,7L12,10.59L15.59,7L17,8.41L13.41,12L17,15.59Z"/></svg>', // Ícone de X
             };
-            const statusIcon = statusIconsSvg[request.status] || '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>';
+            const statusIcon =
+              statusIconsSvg[request.status] ||
+              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>';
 
             card.innerHTML = `
                 <div class="request-card-header">
                     <div class="request-card-title">
-                        <img src="${request.requesterPhotoURL || './assets/default-avatar.png'}" alt="Avatar de ${request.requesterName}">
+                        <img src="${
+                          request.requesterPhotoURL ||
+                          "./assets/default-avatar.png"
+                        }" alt="Avatar de ${request.requesterName}">
                         <h3>${request.title}</h3>
                     </div>
-                    <div class="request-status-icon" title="Status: ${request.status}">${statusIcon}</div>
+                    <div class="request-status-icon" title="Status: ${
+                      request.status
+                    }">${statusIcon}</div>
                 </div>
-                <div class="request-meta">Solicitado por <span>${request.requesterName}</span> em <span>${date}</span></div>
+                <div class="request-meta">Solicitado por <span>${
+                  request.requesterName
+                }</span> em <span>${date}</span></div>
                 ${mentionHtml}
                 <p class="request-description">${request.description}</p>
                 <div class="request-actions">
                     ${actionsHtml}
                 </div>
             `;
-
 
             listContainer.appendChild(card);
           });
@@ -634,14 +696,14 @@ document.addEventListener("DOMContentLoaded", () => {
     ).length;
     const card = document.getElementById("requests-dashboard-card");
     if (!card) return;
- 
+
     let badge = card.querySelector(".dashboard-badge");
     if (!badge) {
       badge = document.createElement("div");
       badge.className = "dashboard-badge";
       card.appendChild(badge);
     }
- 
+
     if (pendingCount > 0) {
       badge.textContent = pendingCount;
       badge.classList.remove("hidden"); // Garante que o selo esteja visível
@@ -653,34 +715,45 @@ document.addEventListener("DOMContentLoaded", () => {
   // MUDANÇA: Nova função para verificar o status da data de entrega
   function getDueDateStatus(dueDateString) {
     if (!dueDateString) {
-      return { text: '', className: '' };
+      return { text: "", className: "" };
     }
 
     const dueDate = new Date(dueDateString);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     // CORREÇÃO: Ajusta a data de entrega para o início do dia no fuso horário local para evitar erros de cálculo.
-    const comparisonDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+    const comparisonDate = new Date(
+      dueDate.getFullYear(),
+      dueDate.getMonth(),
+      dueDate.getDate()
+    );
 
     const diffTime = comparisonDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    const formattedDate = dueDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const formattedDate = dueDate.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
 
     if (diffDays < 0) {
-      return { text: `Atrasado (${formattedDate})`, className: 'overdue' };
+      return { text: `Atrasado (${formattedDate})`, className: "overdue" };
     }
     if (diffDays === 0) {
-      return { text: `Vence Hoje (${formattedDate})`, className: 'due-soon' };
+      return { text: `Vence Hoje (${formattedDate})`, className: "due-soon" };
     }
     if (diffDays === 1) {
-      return { text: `Vence Amanhã (${formattedDate})`, className: 'due-soon' };
+      return { text: `Vence Amanhã (${formattedDate})`, className: "due-soon" };
     }
     if (diffDays <= 7) {
-      return { text: `Vence em ${diffDays} dias (${formattedDate})`, className: 'due-soon' };
+      return {
+        text: `Vence em ${diffDays} dias (${formattedDate})`,
+        className: "due-soon",
+      };
     }
 
-    return { text: `Entrega: ${formattedDate}`, className: '' };
+    return { text: `Entrega: ${formattedDate}`, className: "" };
   }
 
   // --- MUDANÇA: Função para calcular progresso com base nas sub-tarefas ---
@@ -700,7 +773,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- MUDANÇA: Função para Renderizar APENAS a lista de cartões de serviço ---
   function renderServiceCards() {
-    const searchInput = document.getElementById('services-search-input');
+    const searchInput = document.getElementById("services-search-input");
     if (!searchInput) return; // Sai se a barra de busca não existir
 
     const searchTerm = searchInput.value.toLowerCase().trim();
@@ -722,7 +795,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // MUDANÇA: Pega a referência do wrapper recém-criado
-    const currentServiceListWrapper = document.getElementById("service-list-wrapper");
+    const currentServiceListWrapper = document.getElementById(
+      "service-list-wrapper"
+    );
 
     if (servicesToRender.length === 0 && searchTerm) {
       currentServiceListWrapper.innerHTML = `<p class="no-results">Nenhum serviço encontrado para "${searchInput.value}".</p>`;
@@ -733,12 +808,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const activeServices = [];
     const completedServices = [];
 
-    servicesToRender.forEach(service => {
-        if (calculateOverallProgress(service).percentage === 100) {
-            completedServices.push(service);
-        } else {
-            activeServices.push(service);
-        }
+    servicesToRender.forEach((service) => {
+      if (calculateOverallProgress(service).percentage === 100) {
+        completedServices.push(service);
+      } else {
+        activeServices.push(service);
+      }
     });
 
     // 1. Agrupa apenas os serviços ativos por categoria
@@ -752,46 +827,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }, {});
 
     // MUDANÇA: Limpa a lista atual antes de adicionar os novos resultados filtrados.
-    currentServiceListWrapper.innerHTML = '';
+    currentServiceListWrapper.innerHTML = "";
 
     // MUDANÇA: Usa um DocumentFragment para melhorar a performance da renderização,
     // montando todos os elementos em memória antes de adicioná-los ao DOM de uma só vez.
     const mainFragment = document.createDocumentFragment();
 
     // MUDANÇA: Limpa a lista atual antes de adicionar os novos resultados filtrados.
-    currentServiceListWrapper.innerHTML = '';
+    currentServiceListWrapper.innerHTML = "";
 
     // MUDANÇA: Função para renderizar um grupo de categoria
     const renderCategoryGroup = (category, services) => {
-        // Cria e adiciona o título da categoria
-        const titleEl = document.createElement("h3");
-        titleEl.className = "category-title";
-        // MUDANÇA: Aplica a cor da categoria na borda inferior do título
-        const categoryData = predefinedCategories.find(c => c.name === category);
-        if (categoryData && categoryData.color) {
-            titleEl.style.borderBottomColor = categoryData.color;
-        }
-        titleEl.textContent = category;
-        mainFragment.appendChild(titleEl);
+      // Cria e adiciona o título da categoria
+      const titleEl = document.createElement("h3");
+      titleEl.className = "category-title";
+      // MUDANÇA: Aplica a cor da categoria na borda inferior do título
+      const categoryData = predefinedCategories.find(
+        (c) => c.name === category
+      );
+      if (categoryData && categoryData.color) {
+        titleEl.style.borderBottomColor = categoryData.color;
+      }
+      titleEl.textContent = category;
+      mainFragment.appendChild(titleEl);
 
-        // MUDANÇA: Cria um container para os cartões da categoria, que será o alvo do SortableJS
-        const cardContainer = document.createElement('div');
-        cardContainer.className = 'service-card-grid';
-        cardContainer.dataset.category = category; // Armazena a categoria no container
+      // MUDANÇA: Cria um container para os cartões da categoria, que será o alvo do SortableJS
+      const cardContainer = document.createElement("div");
+      cardContainer.className = "service-card-grid";
+      cardContainer.dataset.category = category; // Armazena a categoria no container
 
-        // Renderiza os cards dentro da categoria
-        // MUDANÇA: Ordena os serviços pelo orderIndex antes de renderizar
-        services
-          .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
-          .forEach((service) => {
-
+      // Renderiza os cards dentro da categoria
+      // MUDANÇA: Ordena os serviços pelo orderIndex antes de renderizar
+      services
+        .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+        .forEach((service) => {
           // MUDANÇA: O cartão agora tem um data-id para identificação no drag-and-drop
           const card = document.createElement("div");
           card.className = "service-card";
           card.dataset.id = service.id;
 
           // MUDANÇA: Adiciona ícone de alerta se houver pendências
-          let pendingAlertHtml = '';
+          let pendingAlertHtml = "";
           if (hasPendingIssuesInService(service)) {
             pendingAlertHtml = `
               <span class="alert-icon" title="Este serviço possui pendências em sub-etapas.">
@@ -800,16 +876,14 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
           }
 
-
-
           // MUDANÇA: O progresso agora é baseado nas sub-tarefas
           const progress = calculateOverallProgress(service);
 
           // MUDANÇA: Verifica o status da data de entrega
           const dueDateStatus = getDueDateStatus(service.dueDate);
-          let dueDateHtml = '';
+          let dueDateHtml = "";
           if (dueDateStatus.text) {
-              dueDateHtml = `
+            dueDateHtml = `
                   <div class="due-date-info ${dueDateStatus.className}">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z" /></svg>
                       <span>${dueDateStatus.text}</span>
@@ -824,34 +898,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // CORREÇÃO: Restaura a inicialização do sortable para as etapas do card
           const stepsListId = `steps-list-${service.id}`;
-          card.addEventListener('mouseenter', () => {
-              initializeCardStepSorting(stepsListId, service.id);
+          card.addEventListener("mouseenter", () => {
+            initializeCardStepSorting(stepsListId, service.id);
           });
- 
+
           // MUDANÇA: Adiciona classe se o serviço estiver completo
           if (progress.percentage === 100) {
-              card.classList.add('service-completed');
+            card.classList.add("service-completed");
           }
 
           // MUDANÇA: Gera o HTML para as pendências que aparecerão no card.
-          let cardPendingIssuesHtml = '';
-          const pendingSteps = service.steps.filter(step => hasPendingIssuesInStep(step));
+          let cardPendingIssuesHtml = "";
+          const pendingSteps = service.steps.filter((step) =>
+            hasPendingIssuesInStep(step)
+          );
           if (pendingSteps.length > 0) {
-              const issuesList = pendingSteps.map(step => `
+            const issuesList = pendingSteps
+              .map(
+                (step) => `
                   <div class="card-pending-item">
                       <span class="alert-icon">
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L1 21H23L12 2ZM13 8V14H11V8H13ZM13 16V18H11V16H13Z"/></svg>
                       </span>
                       <span style="color: var(--pending-color, #c78100); font-weight: 600;">${step.name}</span>
                   </div>
-              `).join('');
-              cardPendingIssuesHtml = `<div class="card-pending-issues">${issuesList}</div>`;
+              `
+              )
+              .join("");
+            cardPendingIssuesHtml = `<div class="card-pending-issues">${issuesList}</div>`;
           }
 
           card.innerHTML = `
                     <div class="card-header">
                         <div class="card-title-wrapper">
-                            <h2><a href="#/service/${service.id}">${service.name}</a></h2>
+                            <h2><a href="#/service/${service.id}">${
+            service.name
+          }</a></h2>
                         </div>
                         <div class="card-actions">
                             <button class="btn-icon btn-edit" title="Editar Serviço" data-service-id="${
@@ -879,14 +961,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         }%;"></div>
                     </div>
                     ${cardPendingIssuesHtml}
-                    ${progress.percentage === 100 ?
-                        `<button class="btn-secondary btn-reopen" data-service-id="${service.id}" style="width: 100%; margin-top: 15px;">Reabrir Serviço</button>` :
-                        '' // Remove a lista de etapas do card
+                    ${
+                      progress.percentage === 100
+                        ? `<button class="btn-secondary btn-reopen" data-service-id="${service.id}" style="width: 100%; margin-top: 15px;">Reabrir Serviço</button>`
+                        : "" // Remove a lista de etapas do card
                     }
                 `;
           cardContainer.appendChild(card);
         });
-        mainFragment.appendChild(cardContainer);
+      mainFragment.appendChild(cardContainer);
     };
 
     // 2. Renderiza os grupos de serviços ativos
@@ -898,7 +981,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 3. Renderiza a categoria de serviços concluídos, se houver
     if (completedServices.length > 0) {
-        renderCategoryGroup("Concluídos", completedServices);
+      renderCategoryGroup("Concluídos", completedServices);
     }
 
     currentServiceListWrapper.appendChild(mainFragment);
@@ -909,7 +992,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // MUDANÇA: Nova função para verificar se há pendências em uma sub-tarefa
   function hasPendingIssues(subtask) {
-    return subtask.pendingDescription && subtask.pendingDescription.trim() !== '';
+    return (
+      subtask.pendingDescription && subtask.pendingDescription.trim() !== ""
+    );
   }
 
   // MUDANÇA: Nova função para verificar se há pendências em uma etapa
@@ -922,7 +1007,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return (service.steps || []).some(hasPendingIssuesInStep);
   }
 
-
   // MUDANÇA: Nova função para calcular o progresso de uma única etapa
   function calculateStepProgress(step) {
     const subtasks = step.subtasks || [];
@@ -934,20 +1018,35 @@ document.addEventListener("DOMContentLoaded", () => {
     return {
       completed: completedSubtasks,
       total: totalSubtasks,
-      percentage: totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0,
+      percentage:
+        totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0,
     };
   }
   // --- Funções da Página de Detalhes do Serviço ---
   function renderServiceDetail(service, openSteps = [], isEditing = false) {
     // MUDANÇA: Seleciona os containers que serão atualizados
-    const serviceNameEl = document.getElementById('detail-service-name');
-    const headerActionsContainer = taskDetailView.querySelector('.detail-header-actions');
-    const generalInfoContent = document.getElementById('detail-general-info-content');
-    const stepsList = document.getElementById('detailed-steps-list');
-    const fileList = document.getElementById('file-list');
-    const stickyFooterContainer = document.getElementById('detail-sticky-footer-container');
+    const serviceNameEl = document.getElementById("detail-service-name");
+    const headerActionsContainer = taskDetailView.querySelector(
+      ".detail-header-actions"
+    );
+    const generalInfoContent = document.getElementById(
+      "detail-general-info-content"
+    );
+    const stepsList = document.getElementById("detailed-steps-list");
+    const fileList = document.getElementById("file-list");
+    const stickyFooterContainer = document.getElementById(
+      "detail-sticky-footer-container"
+    );
 
-    if (!serviceNameEl || !headerActionsContainer || !generalInfoContent || !stepsList || !fileList || !stickyFooterContainer) return;
+    if (
+      !serviceNameEl ||
+      !headerActionsContainer ||
+      !generalInfoContent ||
+      !stepsList ||
+      !fileList ||
+      !stickyFooterContainer
+    )
+      return;
 
     const responsibleName =
       teamMemberMap.get(service.responsible) || "Não atribuído";
@@ -955,9 +1054,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // MUDANÇA: Adiciona o status da data de entrega na página de detalhes
     const dueDateStatus = getDueDateStatus(service.dueDate);
-    let dueDateDetailHtml = '<p><strong>Data de Entrega:</strong> Não definida</p>';
+    let dueDateDetailHtml =
+      "<p><strong>Data de Entrega:</strong> Não definida</p>";
     if (dueDateStatus.text) {
-        dueDateDetailHtml = `<p class="due-date-info ${dueDateStatus.className}" style="width: 100%; justify-content: center;"><strong>${dueDateStatus.text}</strong></p>`;
+      dueDateDetailHtml = `<p class="due-date-info ${dueDateStatus.className}" style="width: 100%; justify-content: center;"><strong>${dueDateStatus.text}</strong></p>`;
     }
 
     // MUDANÇA: Adiciona a prioridade na página de detalhes
@@ -976,17 +1076,35 @@ document.addEventListener("DOMContentLoaded", () => {
         <button class="btn-icon btn-copy-service-name" title="Copiar nome do serviço">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg>
         </button>
-        ${progress.percentage === 100 ? '<span class="completion-badge">Concluído</span>' : ''}`;
+        ${
+          progress.percentage === 100
+            ? '<span class="completion-badge">Concluído</span>'
+            : ""
+        }`;
 
     if (isEditing) {
-        // MODO EDIÇÃO
-        headerActionsHtml = ``; // Botões movidos para o footer sticky
+      // MODO EDIÇÃO
+      headerActionsHtml = ``; // Botões movidos para o footer sticky
 
-        // Formulário para Informações Gerais
-        const responsibleOptions = teamMembers.map(member => `<option value="${member.id}" ${service.responsible === member.id ? 'selected' : ''}>${member.name}</option>`).join('');
-        const categoryOptions = predefinedCategories.map(cat => `<option value="${cat.name}" ${service.category === cat.name ? 'selected' : ''}>${cat.name}</option>`).join('');
+      // Formulário para Informações Gerais
+      const responsibleOptions = teamMembers
+        .map(
+          (member) =>
+            `<option value="${member.id}" ${
+              service.responsible === member.id ? "selected" : ""
+            }>${member.name}</option>`
+        )
+        .join("");
+      const categoryOptions = predefinedCategories
+        .map(
+          (cat) =>
+            `<option value="${cat.name}" ${
+              service.category === cat.name ? "selected" : ""
+            }>${cat.name}</option>`
+        )
+        .join("");
 
-        generalInfoHtml = `
+      generalInfoHtml = `
             <form id="inline-edit-general-form">
                 <div class="form-group">
                     <label for="inline-edit-category">Categoria</label>
@@ -999,78 +1117,105 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="form-group">
                     <label for="inline-edit-priority">Prioridade</label>
                     <select id="inline-edit-priority" name="servicePriority">
-                        <option value="Baixa" ${service.priority === 'Baixa' ? 'selected' : ''}>Baixa</option>
-                        <option value="Média" ${service.priority === 'Média' ? 'selected' : ''}>Média</option>
-                        <option value="Alta" ${service.priority === 'Alta' ? 'selected' : ''}>Alta</option>
+                        <option value="Baixa" ${
+                          service.priority === "Baixa" ? "selected" : ""
+                        }>Baixa</option>
+                        <option value="Média" ${
+                          service.priority === "Média" ? "selected" : ""
+                        }>Média</option>
+                        <option value="Alta" ${
+                          service.priority === "Alta" ? "selected" : ""
+                        }>Alta</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="inline-edit-due-date">Data de Entrega</label>
-                    <input type="date" id="inline-edit-due-date" name="serviceDueDate" value="${service.dueDate || ''}">
+                    <input type="date" id="inline-edit-due-date" name="serviceDueDate" value="${
+                      service.dueDate || ""
+                    }">
                 </div>
             </form>
         `;
 
-        // Formulário para Etapas (reutilizando a lógica do modal)
-        stepsHtml = `
+      // Formulário para Etapas (reutilizando a lógica do modal)
+      stepsHtml = `
             <div id="inline-steps-container">
-                ${service.steps.map(step => createStepGroupElement(step).outerHTML).join('')}
+                ${service.steps
+                  .map((step) => createStepGroupElement(step).outerHTML)
+                  .join("")}
             </div>
             <button type="button" id="add-step-btn-inline" class="btn-secondary" style="margin-top: 15px;">Adicionar Etapa</button>
         `;
-
     } else {
-        // MODO VISUALIZAÇÃO (Padrão)
-        headerActionsHtml = `
+      // MODO VISUALIZAÇÃO (Padrão)
+      headerActionsHtml = `
             <button class="btn-primary btn-start-inline-edit" data-service-id="${service.id}">Editar</button>
             <a href="#/services" class="btn-secondary">Voltar</a>
         `;
 
-        generalInfoHtml = `
-            <p><strong>Categoria:</strong> ${service.category || "Não definida"}</p>
+      generalInfoHtml = `
+            <p><strong>Categoria:</strong> ${
+              service.category || "Não definida"
+            }</p>
             <p><strong>Responsável Geral:</strong> ${responsibleName}</p>
             ${priorityDetailHtml}
             ${dueDateDetailHtml}
             <!-- MUDANÇA: Adiciona a barra de progresso -->
             <div class="progress-info">
                 <span>Progresso</span>
-                <span class="progress-text">${Math.round(progress.percentage)}%</span>
+                <span class="progress-text">${Math.round(
+                  progress.percentage
+                )}%</span>
             </div>
             <div class="progress-container">
-                <div class="progress-bar" style="width: ${progress.percentage}%;"></div>
+                <div class="progress-bar" style="width: ${
+                  progress.percentage
+                }%;"></div>
             </div>
         `;
 
-        stepsHtml = service.steps.map((step, stepIndex) => {
-            const stepProgress = calculateStepProgress(step);
-            const stepProgressBarHtml = `
+      stepsHtml = service.steps
+        .map((step, stepIndex) => {
+          const stepProgress = calculateStepProgress(step);
+          const stepProgressBarHtml = `
           <div class="step-progress-container">
               <div class="progress-info">
-                  <span class="progress-text">${Math.round(stepProgress.percentage)}%</span>
+                  <span class="progress-text">${Math.round(
+                    stepProgress.percentage
+                  )}%</span>
               </div>
               <div class="progress-container">
-                  <div class="progress-bar" style="width: ${stepProgress.percentage}%; background-color: ${step.color || 'var(--accent-color)'};"></div>
+                  <div class="progress-bar" style="width: ${
+                    stepProgress.percentage
+                  }%; background-color: ${
+            step.color || "var(--accent-color)"
+          };"></div>
               </div>
           </div>`;
 
-            const subtasksHtml = (step.subtasks || []).map((subtask, subtaskIndex) => {
-                const subtaskPendingAlertHtml = hasPendingIssues(subtask) ?
-              `<span class="alert-icon subtask-alert" title="${subtask.pendingDescription}">
+          const subtasksHtml = (step.subtasks || [])
+            .map((subtask, subtaskIndex) => {
+              const subtaskPendingAlertHtml = hasPendingIssues(subtask)
+                ? `<span class="alert-icon subtask-alert" title="${subtask.pendingDescription}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L1 21H23L12 2ZM13 8V14H11V8H13ZM13 16V18H11V16H13Z"/></svg>
-              </span>` : '';
-            
-            // MUDANÇA: Coloca o ícone e a descrição da pendência dentro da mesma tag <p>.
-            const pendingDescriptionHtml = hasPendingIssues(subtask) ?
-              `<p class="pending-description-text">${subtaskPendingAlertHtml} ${subtask.pendingDescription}</p>` : '';
+              </span>`
+                : "";
 
-                return `
+              // MUDANÇA: Coloca o ícone e a descrição da pendência dentro da mesma tag <p>.
+              const pendingDescriptionHtml = hasPendingIssues(subtask)
+                ? `<p class="pending-description-text">${subtaskPendingAlertHtml} ${subtask.pendingDescription}</p>`
+                : "";
+
+              return `
                 <li class="step-item subtask-item">
                     <input type="checkbox" id="subtask-${
                       service.id
                     }-${stepIndex}-${subtaskIndex}" data-step-index="${stepIndex}" data-subtask-index="${subtaskIndex}" ${
-              subtask.completed ? "checked" : ""
-            }>
-                    <label for="subtask-${service.id}-${stepIndex}-${subtaskIndex}">
+                subtask.completed ? "checked" : ""
+              }>
+                    <label for="subtask-${
+                      service.id
+                    }-${stepIndex}-${subtaskIndex}">
                         ${subtask.name}
                     </label>
                     ${pendingDescriptionHtml}
@@ -1078,26 +1223,36 @@ document.addEventListener("DOMContentLoaded", () => {
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
                     </button>
                 </li>
-            `
-            }).join("");
+            `;
+            })
+            .join("");
 
-            const stepResponsibleName = step.responsibleId ? teamMemberMap.get(step.responsibleId) : "Ninguém";
-            const stepResponsibleHtml = `<span class="step-assignee-detail">Responsável: ${stepResponsibleName}</span>`;
+          const stepResponsibleName = step.responsibleId
+            ? teamMemberMap.get(step.responsibleId)
+            : "Ninguém";
+          const stepResponsibleHtml = `<span class="step-assignee-detail">Responsável: ${stepResponsibleName}</span>`;
 
-            const stepPendingAlertHtml = hasPendingIssuesInStep(step) ?
-          `<span class="alert-icon step-alert" title="Esta etapa possui sub-etapas com pendências.">
+          const stepPendingAlertHtml = hasPendingIssuesInStep(step)
+            ? `<span class="alert-icon step-alert" title="Esta etapa possui sub-etapas com pendências.">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L1 21H23L12 2ZM13 8V14H11V8H13ZM13 16V18H11V16H13Z"/></svg>
-          </span>` : ''; // Este é o ícone que vamos controlar
+          </span>`
+            : ""; // Este é o ícone que vamos controlar
 
-            const startCollapsed = !openSteps.includes(stepIndex);
+          const startCollapsed = !openSteps.includes(stepIndex);
 
-            return `
-                <li class="step-group" data-step-name="${step.name}" data-step-index="${stepIndex}" style="--step-color: ${step.color || 'var(--progress-bar-bg)'};">
+          return `
+                <li class="step-group" data-step-name="${
+                  step.name
+                }" data-step-index="${stepIndex}" style="--step-color: ${
+            step.color || "var(--progress-bar-bg)"
+          };">
                     <h4 class="step-group-title ${
                       startCollapsed ? "collapsed" : ""
                     }"> 
                         <div class="step-title-content">
-                            <span class="step-name-toggle">${step.name} ${stepPendingAlertHtml}</span>
+                            <span class="step-name-toggle">${
+                              step.name
+                            } ${stepPendingAlertHtml}</span>
                             ${stepResponsibleHtml}
                             ${stepProgressBarHtml}
                         </div>
@@ -1109,10 +1264,12 @@ document.addEventListener("DOMContentLoaded", () => {
                       startCollapsed ? "hidden" : ""
                     }">${subtasksHtml}</ul>
                 </li>`;
-        }).join("");
+        })
+        .join("");
     }
-    
-    const filesHtml = (service.files || []).map((file, index) => {
+
+    const filesHtml = (service.files || [])
+      .map((file, index) => {
         // Se for um arquivo local, adiciona o atributo 'download'
         const downloadAttr = file.isLocal ? `download="${file.name}"` : "";
         return `
@@ -1133,18 +1290,24 @@ document.addEventListener("DOMContentLoaded", () => {
     fileList.innerHTML = filesHtml;
 
     // MUDANÇA: Atualiza o footer fixo
-    stickyFooterContainer.innerHTML = isEditing ? `
+    stickyFooterContainer.innerHTML = isEditing
+      ? `
         <div class="detail-sticky-footer">
             <button class="btn-primary btn-save-inline-edit" data-service-id="${service.id}">Salvar</button>
             <button class="btn-secondary btn-cancel-inline-edit">Cancelar</button>
-        </div>` : '';
+        </div>`
+      : "";
 
     // MUDANÇA: Inicializa o sortable para as etapas se estiver em modo de edição
     if (isEditing) {
-        const stepsContainer = document.getElementById('inline-steps-container'); // Este é o container dentro do formulário
-        if (stepsContainer) {
-            new Sortable(stepsContainer, { animation: 150, handle: ".drag-handle", ghostClass: "sortable-ghost" });
-        }
+      const stepsContainer = document.getElementById("inline-steps-container"); // Este é o container dentro do formulário
+      if (stepsContainer) {
+        new Sortable(stepsContainer, {
+          animation: 150,
+          handle: ".drag-handle",
+          ghostClass: "sortable-ghost",
+        });
+      }
     }
   }
 
@@ -1213,15 +1376,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- MUDANÇA: Função para renderizar a página de gerenciamento de usuários (Admin) ---
   function renderUserManagementPage() {
-    if (currentUser.role !== 'admin') {
-        userManagementView.innerHTML = `<p>Acesso negado. Esta área é apenas para administradores.</p>`;
-        return;
+    if (currentUser.role !== "admin") {
+      userManagementView.innerHTML = `<p>Acesso negado. Esta área é apenas para administradores.</p>`;
+      return;
     }
 
-    const usersHtml = allUsersData.map(user => `
+    const usersHtml = allUsersData
+      .map(
+        (user) => `
         <li class="user-list-item" data-user-id="${user.id}">
             <div class="user-list-avatar">
-                <img src="${user.photoURL || './assets/default-avatar.png'}" alt="Avatar de ${user.displayName}">
+                <img src="${
+                  user.photoURL || "./assets/default-avatar.png"
+                }" alt="Avatar de ${user.displayName}">
             </div>
             <div class="user-list-info">
                 <div class="user-name">${user.displayName}</div>
@@ -1229,15 +1396,27 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="user-list-actions">
                 <div class="form-group">
-                    <select class="user-role-selector" ${user.id === currentUser.uid ? 'disabled' : ''}>
-                        <option value="member" ${user.role === 'member' ? 'selected' : ''}>Membro</option>
-                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    <select class="user-role-selector" ${
+                      user.id === currentUser.uid ? "disabled" : ""
+                    }>
+                        <option value="member" ${
+                          user.role === "member" ? "selected" : ""
+                        }>Membro</option>
+                        <option value="admin" ${
+                          user.role === "admin" ? "selected" : ""
+                        }>Admin</option>
                     </select>
-                    ${user.id === currentUser.uid ? '<small>Você não pode alterar seu próprio cargo.</small>' : ''}
+                    ${
+                      user.id === currentUser.uid
+                        ? "<small>Você não pode alterar seu próprio cargo.</small>"
+                        : ""
+                    }
                 </div>
             </div>
         </li>
-    `).join('');
+    `
+      )
+      .join("");
 
     userManagementView.innerHTML = `
         <div class="detail-header">
@@ -1255,16 +1434,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // MUDANÇA: Função para renderizar a página de gerenciamento de categorias (Admin)
   function renderCategoryManagementPage() {
-    if (currentUser.role !== 'admin') {
-        categoryManagementView.innerHTML = `<p>Acesso negado. Esta área é apenas para administradores.</p>`;
-        return;
+    if (currentUser.role !== "admin") {
+      categoryManagementView.innerHTML = `<p>Acesso negado. Esta área é apenas para administradores.</p>`;
+      return;
     }
 
-    const categoriesHtml = predefinedCategories.map(cat => `
+    const categoriesHtml = predefinedCategories
+      .map(
+        (cat) => `
         <li class="user-list-item" data-category-id="${cat.id}">
-            <div class="category-color-swatch" style="background-color: ${cat.color || '#ccc'}"></div>
+            <div class="category-color-swatch" style="background-color: ${
+              cat.color || "#ccc"
+            }"></div>
             <div class="user-list-info">
-                <div class="user-name" style="color: ${cat.color || 'inherit'}">${cat.name}</div>
+                <div class="user-name" style="color: ${
+                  cat.color || "inherit"
+                }">${cat.name}</div>
             </div>
             <div class="user-list-actions">
                 <button class="btn-icon btn-edit-category" title="Editar Categoria">
@@ -1275,7 +1460,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 </button>
             </div>
         </li>
-    `).join('');
+    `
+      )
+      .join("");
 
     categoryManagementView.innerHTML = `
         <div class="detail-header">
@@ -1301,33 +1488,41 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="detail-section">
             <h3>Categorias Pré-definidas</h3>
-            ${predefinedCategories.length > 0 ? `<ul class="user-list">${categoriesHtml}</ul>` : '<p>Nenhuma categoria pré-definida ainda.</p>'}
+            ${
+              predefinedCategories.length > 0
+                ? `<ul class="user-list">${categoriesHtml}</ul>`
+                : "<p>Nenhuma categoria pré-definida ainda.</p>"
+            }
         </div>
     `;
 
     // Adiciona o listener para o formulário de adicionar categoria
-    const addCategoryForm = document.getElementById('add-category-form');
+    const addCategoryForm = document.getElementById("add-category-form");
     if (addCategoryForm) {
-        addCategoryForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = document.getElementById('new-category-name');
-            const categoryName = input.value.trim();
-            const categoryColor = document.getElementById('new-category-color').value;
+      addCategoryForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = document.getElementById("new-category-name");
+        const categoryName = input.value.trim();
+        const categoryColor =
+          document.getElementById("new-category-color").value;
 
-            if (!categoryName) return;
+        if (!categoryName) return;
 
-            showLoading();
-            try {
-                await addDoc(categoriesCollection, { name: categoryName, color: categoryColor });
-                await loadPredefinedCategories(); // Recarrega a lista
-                renderCategoryManagementPage(); // Redesenha a página
-            } catch (error) {
-                console.error("Erro ao adicionar categoria:", error);
-                alert("Falha ao adicionar a categoria.");
-            } finally {
-                hideLoading();
-            }
-        });
+        showLoading();
+        try {
+          await addDoc(categoriesCollection, {
+            name: categoryName,
+            color: categoryColor,
+          });
+          await loadPredefinedCategories(); // Recarrega a lista
+          renderCategoryManagementPage(); // Redesenha a página
+        } catch (error) {
+          console.error("Erro ao adicionar categoria:", error);
+          alert("Falha ao adicionar a categoria.");
+        } finally {
+          hideLoading();
+        }
+      });
     }
   }
 
@@ -1337,152 +1532,224 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // CORREÇÃO: Função para atualizar apenas o corpo da tabela, evitando recarregar a página inteira.
     const updateTable = () => {
-        const filterCategory = document.getElementById('status-filter-category').value;
-        const filterStatus = document.getElementById('status-filter-status').value;
-        const searchTerm = document.getElementById('status-search-input').value;
-        // MUDANÇA: Pega os valores dos novos filtros
-        const filterResponsible = document.getElementById('status-filter-responsible').value;
-        const filterPriority = document.getElementById('status-filter-priority').value;
-        const filterDueDate = document.getElementById('status-filter-due-date').value;
+      const filterCategory = document.getElementById(
+        "status-filter-category"
+      ).value;
+      const filterStatus = document.getElementById(
+        "status-filter-status"
+      ).value;
+      const searchTerm = document.getElementById("status-search-input").value;
+      // MUDANÇA: Pega os valores dos novos filtros
+      const filterResponsible = document.getElementById(
+        "status-filter-responsible"
+      ).value;
+      const filterPriority = document.getElementById(
+        "status-filter-priority"
+      ).value;
+      const filterDueDate = document.getElementById(
+        "status-filter-due-date"
+      ).value;
 
-    const filteredServices = services.filter(service => {
+      const filteredServices = services.filter((service) => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
-        
+
         // MUDANÇA: Lógica de correspondência para os novos filtros
-        const categoryMatch = filterCategory === 'all' || service.category === filterCategory;
-        const responsibleMatch = filterResponsible === 'all' || service.responsible === filterResponsible;
-        const priorityMatch = filterPriority === 'all' || (service.priority || 'Média') === filterPriority;
+        const categoryMatch =
+          filterCategory === "all" || service.category === filterCategory;
+        const responsibleMatch =
+          filterResponsible === "all" ||
+          service.responsible === filterResponsible;
+        const priorityMatch =
+          filterPriority === "all" ||
+          (service.priority || "Média") === filterPriority;
 
         const progress = calculateOverallProgress(service);
         let statusMatch = true;
-        if (filterStatus === 'ready') {
-        statusMatch = progress.percentage === 100;
-        } else if (filterStatus === 'in-progress') {
-        statusMatch = progress.percentage < 100;
+        if (filterStatus === "ready") {
+          statusMatch = progress.percentage === 100;
+        } else if (filterStatus === "in-progress") {
+          statusMatch = progress.percentage < 100;
         }
 
         let dueDateMatch = true;
-        if (filterDueDate !== 'all') {
-            const dueDateInfo = getDueDateStatus(service.dueDate);
-            if (filterDueDate === 'overdue') {
-                dueDateMatch = dueDateInfo.className === 'overdue';
-            } else if (filterDueDate === 'due-today') {
-                dueDateMatch = dueDateInfo.text.includes('Vence Hoje');
-            } else if (filterDueDate === 'due-week') {
-                // A classe 'due-soon' cobre de 1 a 7 dias, o que serve para "esta semana"
-                dueDateMatch = dueDateInfo.className === 'due-soon';
-            } else if (filterDueDate === 'no-due-date') {
-                dueDateMatch = !service.dueDate;
-            }
+        if (filterDueDate !== "all") {
+          const dueDateInfo = getDueDateStatus(service.dueDate);
+          if (filterDueDate === "overdue") {
+            dueDateMatch = dueDateInfo.className === "overdue";
+          } else if (filterDueDate === "due-today") {
+            dueDateMatch = dueDateInfo.text.includes("Vence Hoje");
+          } else if (filterDueDate === "due-week") {
+            // A classe 'due-soon' cobre de 1 a 7 dias, o que serve para "esta semana"
+            dueDateMatch = dueDateInfo.className === "due-soon";
+          } else if (filterDueDate === "no-due-date") {
+            dueDateMatch = !service.dueDate;
+          }
         }
 
-        if (!categoryMatch || !statusMatch || !responsibleMatch || !priorityMatch || !dueDateMatch) return false;
-        if (searchTerm === '') return true;
+        if (
+          !categoryMatch ||
+          !statusMatch ||
+          !responsibleMatch ||
+          !priorityMatch ||
+          !dueDateMatch
+        )
+          return false;
+        if (searchTerm === "") return true;
 
         // MUDANÇA: Expande a busca para incluir múltiplas colunas
         const name = service.name.toLowerCase();
-        const category = (service.category || '').toLowerCase();
-        const responsible = (teamMemberMap.get(service.responsible) || '').toLowerCase();
-        
+        const category = (service.category || "").toLowerCase();
+        const responsible = (
+          teamMemberMap.get(service.responsible) || ""
+        ).toLowerCase();
+
         let currentStepName = "n/a";
         // MUDANÇA: Adiciona prioridade e data à busca
-        const priority = (service.priority || '').toLowerCase();
+        const priority = (service.priority || "").toLowerCase();
         const dueDateInfo = getDueDateStatus(service.dueDate);
         // Formata a data para a busca (ex: "vence hoje (dd/mm/yyyy)")
         const dueDateText = dueDateInfo.text.toLowerCase();
 
-
         if (progress.percentage < 100) {
-            const firstUnfinishedStep = service.steps.find(step => (step.subtasks || []).some(st => !st.completed));
-            currentStepName = firstUnfinishedStep ? firstUnfinishedStep.name.toLowerCase() : "revisão final";
+          const firstUnfinishedStep = service.steps.find((step) =>
+            (step.subtasks || []).some((st) => !st.completed)
+          );
+          currentStepName = firstUnfinishedStep
+            ? firstUnfinishedStep.name.toLowerCase()
+            : "revisão final";
         } else {
-            currentStepName = "finalizado";
+          currentStepName = "finalizado";
         }
 
-        return name.includes(lowerCaseSearchTerm) || category.includes(lowerCaseSearchTerm) || responsible.includes(lowerCaseSearchTerm) || currentStepName.includes(lowerCaseSearchTerm) || priority.includes(lowerCaseSearchTerm) || dueDateText.includes(lowerCaseSearchTerm);
-    });
+        return (
+          name.includes(lowerCaseSearchTerm) ||
+          category.includes(lowerCaseSearchTerm) ||
+          responsible.includes(lowerCaseSearchTerm) ||
+          currentStepName.includes(lowerCaseSearchTerm) ||
+          priority.includes(lowerCaseSearchTerm) ||
+          dueDateText.includes(lowerCaseSearchTerm)
+        );
+      });
 
-    // MUDANÇA: Lógica de ordenação
-    filteredServices.sort((a, b) => {
-        const dir = productionStatusSort.direction === 'asc' ? 1 : -1;
+      // MUDANÇA: Lógica de ordenação
+      filteredServices.sort((a, b) => {
+        const dir = productionStatusSort.direction === "asc" ? 1 : -1;
         const col = productionStatusSort.column;
         let valA, valB;
 
         // Atribui valores para comparação com base na coluna
-        if (col === 'name') { valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); }
-        else if (col === 'category') { valA = (a.category || '').toLowerCase(); valB = (b.category || '').toLowerCase(); }
-        else if (col === 'responsible') { valA = (teamMemberMap.get(a.responsible) || '').toLowerCase(); valB = (teamMemberMap.get(b.responsible) || '').toLowerCase(); }
-        else if (col === 'progress') { valA = calculateOverallProgress(a).percentage; valB = calculateOverallProgress(b).percentage; }
+        if (col === "name") {
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
+        } else if (col === "category") {
+          valA = (a.category || "").toLowerCase();
+          valB = (b.category || "").toLowerCase();
+        } else if (col === "responsible") {
+          valA = (teamMemberMap.get(a.responsible) || "").toLowerCase();
+          valB = (teamMemberMap.get(b.responsible) || "").toLowerCase();
+        } else if (col === "progress") {
+          valA = calculateOverallProgress(a).percentage;
+          valB = calculateOverallProgress(b).percentage;
+        }
         // MUDANÇA: Adiciona ordenação para prioridade e data
-        else if (col === 'priority') {
-            const priorityOrder = { 'alta': 3, 'média': 2, 'baixa': 1 };
-            valA = priorityOrder[(a.priority || 'média').toLowerCase()] || 0;
-            valB = priorityOrder[(b.priority || 'média').toLowerCase()] || 0;
+        else if (col === "priority") {
+          const priorityOrder = { alta: 3, média: 2, baixa: 1 };
+          valA = priorityOrder[(a.priority || "média").toLowerCase()] || 0;
+          valB = priorityOrder[(b.priority || "média").toLowerCase()] || 0;
+        } else if (col === "dueDate") {
+          // Trata datas nulas ou inválidas como "infinitas" para que fiquem no final
+          valA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+          valB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+        } else {
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
         }
-        else if (col === 'dueDate') {
-            // Trata datas nulas ou inválidas como "infinitas" para que fiquem no final
-            valA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-            valB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-        }
-        else { valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); }
 
         if (valA < valB) return -1 * dir;
         if (valA > valB) return 1 * dir;
         return 0;
-    });
+      });
 
-    // MUDANÇA: Gera as linhas da tabela dinamicamente com base na ordem das colunas
-    const tableRowsHtml = filteredServices.map(service => {
-        const progress = calculateOverallProgress(service);
-        const responsibleName = teamMemberMap.get(service.responsible) || "Não atribuído";
-        const dueDateStatus = getDueDateStatus(service.dueDate);
-        const priority = service.priority || "Média";
-        const priorityTagHtml = `<span class="priority-tag-table ${priority.toLowerCase()}">${priority}</span>`;
+      // MUDANÇA: Gera as linhas da tabela dinamicamente com base na ordem das colunas
+      const tableRowsHtml = filteredServices
+        .map((service) => {
+          const progress = calculateOverallProgress(service);
+          const responsibleName =
+            teamMemberMap.get(service.responsible) || "Não atribuído";
+          const dueDateStatus = getDueDateStatus(service.dueDate);
+          const priority = service.priority || "Média";
+          const priorityTagHtml = `<span class="priority-tag-table ${priority.toLowerCase()}">${priority}</span>`;
 
-        let progressColorClass = progress.percentage === 0 ? 'progress-yellow' : (progress.percentage === 100 ? 'progress-blue' : 'progress-green');
-        let currentStepName = "N/A", currentStepColor = 'var(--progress-bar-bg)';
-        if (progress.percentage === 100) {
+          let progressColorClass =
+            progress.percentage === 0
+              ? "progress-yellow"
+              : progress.percentage === 100
+              ? "progress-blue"
+              : "progress-green";
+          let currentStepName = "N/A",
+            currentStepColor = "var(--progress-bar-bg)";
+          if (progress.percentage === 100) {
             currentStepName = "Finalizado";
-        } else {
-            const firstUnfinishedStep = service.steps.find(step => (step.subtasks || []).some(st => !st.completed));
+          } else {
+            const firstUnfinishedStep = service.steps.find((step) =>
+              (step.subtasks || []).some((st) => !st.completed)
+            );
             if (firstUnfinishedStep) {
-                currentStepName = firstUnfinishedStep.name;
-                currentStepColor = firstUnfinishedStep.color || 'var(--progress-bar-bg)';
+              currentStepName = firstUnfinishedStep.name;
+              currentStepColor =
+                firstUnfinishedStep.color || "var(--progress-bar-bg)";
             } else {
-                currentStepName = "Revisão Final";
+              currentStepName = "Revisão Final";
             }
-        }
+          }
 
-        // Mapeia os dados para cada chave de coluna
-        const cellData = {
+          // Mapeia os dados para cada chave de coluna
+          const cellData = {
             name: `<td><a href="#/service/${service.id}">${service.name}</a></td>`,
             category: `<td>${service.category || "N/A"}</td>`,
             responsible: `<td>${responsibleName}</td>`,
             step: `<td class="step-cell"><span class="step-color-indicator" style="background-color: ${currentStepColor};"></span><span>${currentStepName}</span></td>`,
             priority: `<td>${priorityTagHtml}</td>`,
-            dueDate: `<td class="due-date-cell ${dueDateStatus.className}">${dueDateStatus.text || 'N/A'}</td>`,
-            progress: `<td class="progress-cell"><span class="progress-dot ${progressColorClass}"></span><span>${Math.round(progress.percentage)}%</span></td>`
-        };
+            dueDate: `<td class="due-date-cell ${dueDateStatus.className}">${
+              dueDateStatus.text || "N/A"
+            }</td>`,
+            progress: `<td class="progress-cell"><span class="progress-dot ${progressColorClass}"></span><span>${Math.round(
+              progress.percentage
+            )}%</span></td>`,
+          };
 
-        // Monta a linha na ordem correta
-        const rowCells = productionStatusColumnOrder.map(key => cellData[key]).join('');
-        return `<tr>${rowCells}</tr>`;
-    }).join('');
+          // Monta a linha na ordem correta
+          const rowCells = productionStatusColumnOrder
+            .map((key) => cellData[key])
+            .join("");
+          return `<tr>${rowCells}</tr>`;
+        })
+        .join("");
 
-        const tableBody = productionStatusView.querySelector('tbody');
-        if (tableBody) tableBody.innerHTML = tableRowsHtml;
+      const tableBody = productionStatusView.querySelector("tbody");
+      if (tableBody) tableBody.innerHTML = tableRowsHtml;
     };
 
-    const categoryOptions = ['<option value="all">Todas as Categorias</option>', ...predefinedCategories.map(cat => `<option value="${cat.name}">${cat.name}</option>`)].join('');
+    const categoryOptions = [
+      '<option value="all">Todas as Categorias</option>',
+      ...predefinedCategories.map(
+        (cat) => `<option value="${cat.name}">${cat.name}</option>`
+      ),
+    ].join("");
 
     // MUDANÇA: Gera opções para os novos filtros
-    const responsibleOptions = ['<option value="all">Todos os Responsáveis</option>', ...teamMembers.map(m => `<option value="${m.id}">${m.name}</option>`)].join('');
+    const responsibleOptions = [
+      '<option value="all">Todos os Responsáveis</option>',
+      ...teamMembers.map((m) => `<option value="${m.id}">${m.name}</option>`),
+    ].join("");
 
     // MUDANÇA: Gera o cabeçalho da tabela dinamicamente com base na ordem das colunas
-    const tableHeadersHtml = productionStatusColumnOrder.map(key => {
+    const tableHeadersHtml = productionStatusColumnOrder
+      .map((key) => {
         const col = productionStatusColumns[key];
         return `<th data-sort="${key}" data-column-key="${key}" class="${col.className}">${col.label}</th>`;
-    }).join('');
+      })
+      .join("");
 
     productionStatusView.innerHTML = `
         <div class="detail-header">
@@ -1555,68 +1822,95 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     // CORREÇÃO: Adiciona um único listener ao container dos filtros para chamar a atualização da tabela.
-    productionStatusView.querySelector('.detail-section').addEventListener('input', updateTable);
+    productionStatusView
+      .querySelector(".detail-section")
+      .addEventListener("input", updateTable);
 
     // MUDANÇA: Adiciona listeners para os cabeçalhos da tabela para ordenação
-    productionStatusView.querySelectorAll('thead th[data-sort]').forEach(th => {
+    productionStatusView
+      .querySelectorAll("thead th[data-sort]")
+      .forEach((th) => {
         // Adiciona indicador visual de ordenação
         if (th.dataset.sort === productionStatusSort.column) {
-            th.classList.add('sort-active', `sort-${productionStatusSort.direction}`);
+          th.classList.add(
+            "sort-active",
+            `sort-${productionStatusSort.direction}`
+          );
         }
 
-        th.addEventListener('click', () => {
-            const newSortColumn = th.dataset.sort;
-            if (productionStatusSort.column === newSortColumn) {
-                productionStatusSort.direction = productionStatusSort.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                productionStatusSort.column = newSortColumn;
-                productionStatusSort.direction = 'asc';
-            }
-            // CORREÇÃO: Redesenha a página para atualizar os cabeçalhos e aplica a nova ordenação
-            renderProductionStatusPage();
+        th.addEventListener("click", () => {
+          const newSortColumn = th.dataset.sort;
+          if (productionStatusSort.column === newSortColumn) {
+            productionStatusSort.direction =
+              productionStatusSort.direction === "asc" ? "desc" : "asc";
+          } else {
+            productionStatusSort.column = newSortColumn;
+            productionStatusSort.direction = "asc";
+          }
+          // CORREÇÃO: Redesenha a página para atualizar os cabeçalhos e aplica a nova ordenação
+          renderProductionStatusPage();
         });
-    });
+      });
     updateTable(); // Chama a função uma vez para popular a tabela inicialmente.
     initializeColumnSorting(); // MUDANÇA: Ativa o drag-and-drop nas colunas
   }
 
   // MUDANÇA: Função movida para o escopo global para ser acessível por outras funções.
   const saveColumnOrder = (newOrder) => {
-      productionStatusColumnOrder = newOrder;
-      localStorage.setItem('productionStatusColumnOrder', JSON.stringify(newOrder));
+    productionStatusColumnOrder = newOrder;
+    localStorage.setItem(
+      "productionStatusColumnOrder",
+      JSON.stringify(newOrder)
+    );
   };
 
   // MUDANÇA: Função movida para o escopo global e tornada mais robusta.
   const initializeColumnSorting = () => {
-      if (!productionStatusView) return; // Garante que a view exista
-      const headerRow = productionStatusView.querySelector('thead tr');
-      if (headerRow && !headerRow.classList.contains('sortable-initialized')) { // Evita reinicialização
-          new Sortable(headerRow, { animation: 150, onEnd: (evt) => {
-              const newOrder = Array.from(evt.target.children).map(th => th.dataset.columnKey);
-              saveColumnOrder(newOrder);
-              renderProductionStatusPage();
-          }});
-          headerRow.classList.add('sortable-initialized');
-      }
+    if (!productionStatusView) return; // Garante que a view exista
+    const headerRow = productionStatusView.querySelector("thead tr");
+    if (headerRow && !headerRow.classList.contains("sortable-initialized")) {
+      // Evita reinicialização
+      new Sortable(headerRow, {
+        animation: 150,
+        onEnd: (evt) => {
+          const newOrder = Array.from(evt.target.children).map(
+            (th) => th.dataset.columnKey
+          );
+          saveColumnOrder(newOrder);
+          renderProductionStatusPage();
+        },
+      });
+      headerRow.classList.add("sortable-initialized");
+    }
   };
 
   // MUDANÇA: Função auxiliar para gerar cores para os gráficos
   function generateChartColors(count) {
-      const colors = [
-          '#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1',
-          '#e83e8c', '#fd7e14', '#20c997', '#6610f2', '#001f3f', '#87CEFA'
-      ];
-      const generatedColors = [];
-      for (let i = 0; i < count; i++) {
-          // Repete as cores se houver mais itens do que cores predefinidas
-          generatedColors.push(colors[i % colors.length]);
-      }
-      return generatedColors;
+    const colors = [
+      "#007bff",
+      "#28a745",
+      "#dc3545",
+      "#ffc107",
+      "#17a2b8",
+      "#6f42c1",
+      "#e83e8c",
+      "#fd7e14",
+      "#20c997",
+      "#6610f2",
+      "#001f3f",
+      "#87CEFA",
+    ];
+    const generatedColors = [];
+    for (let i = 0; i < count; i++) {
+      // Repete as cores se houver mais itens do que cores predefinidas
+      generatedColors.push(colors[i % colors.length]);
+    }
+    return generatedColors;
   }
 
   // MUDANÇA: Função para criar um placeholder de gráfico (skeleton)
   function createChartPlaceholder(message = "Carregando dados do gráfico...") {
-      return `<div class="chart-placeholder">${message}</div>`;
+    return `<div class="chart-placeholder">${message}</div>`;
   }
 
   // MUDANÇA: Nova função para renderizar a página de Estatísticas
@@ -1643,7 +1937,9 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="statistic-card" id="summary-card">
                 <h3>Resumo Geral</h3>
-                <div class="summary-card-container" id="statistics-summary">${createChartPlaceholder("Carregando resumo...")}</div>
+                <div class="summary-card-container" id="statistics-summary">${createChartPlaceholder(
+                  "Carregando resumo..."
+                )}</div>
             </div>
         </div>
 
@@ -1677,7 +1973,9 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     // Adiciona o listener para o filtro
-    document.getElementById('stats-period-filter').addEventListener('change', updateStatisticsCharts);
+    document
+      .getElementById("stats-period-filter")
+      .addEventListener("change", updateStatisticsCharts);
 
     // Chama a função para popular os gráficos pela primeira vez
     updateStatisticsCharts();
@@ -1685,103 +1983,133 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // MUDANÇA: Nova função para atualizar os gráficos com base no filtro de período
   function updateStatisticsCharts() {
-      const period = document.getElementById('stats-period-filter').value;
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const period = document.getElementById("stats-period-filter").value;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-      const filteredServices = services.filter(service => {
-          if (!service.createdAt?.toDate) return false; // Ignora serviços sem data
-          const createdAt = service.createdAt.toDate();
+    const filteredServices = services.filter((service) => {
+      if (!service.createdAt?.toDate) return false; // Ignora serviços sem data
+      const createdAt = service.createdAt.toDate();
 
-          switch (period) {
-              case 'last7days':
-                  const sevenDaysAgo = new Date(today);
-                  sevenDaysAgo.setDate(today.getDate() - 7);
-                  return createdAt >= sevenDaysAgo;
-              case 'last30days':
-                  const thirtyDaysAgo = new Date(today);
-                  thirtyDaysAgo.setDate(today.getDate() - 30);
-                  return createdAt >= thirtyDaysAgo;
-              case 'thisMonth':
-                  return createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear();
-              case 'lastMonth':
-                  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                  const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                  return createdAt >= lastMonth && createdAt < startOfThisMonth;
-              case 'all':
-              default:
-                  return true;
-          }
-      });
-
-      // Limpa gráficos existentes para evitar sobreposição
-      if (window.myCharts) {
-          Object.values(window.myCharts).forEach(chart => chart.destroy());
+      switch (period) {
+        case "last7days":
+          const sevenDaysAgo = new Date(today);
+          sevenDaysAgo.setDate(today.getDate() - 7);
+          return createdAt >= sevenDaysAgo;
+        case "last30days":
+          const thirtyDaysAgo = new Date(today);
+          thirtyDaysAgo.setDate(today.getDate() - 30);
+          return createdAt >= thirtyDaysAgo;
+        case "thisMonth":
+          return (
+            createdAt.getMonth() === now.getMonth() &&
+            createdAt.getFullYear() === now.getFullYear()
+          );
+        case "lastMonth":
+          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          const startOfThisMonth = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            1
+          );
+          return createdAt >= lastMonth && createdAt < startOfThisMonth;
+        case "all":
+        default:
+          return true;
       }
-      window.myCharts = {};
+    });
 
-      // Garante que a renderização dos gráficos aconteça após o DOM ser atualizado.
-      setTimeout(() => {
-          // Se não houver serviços, exibe mensagens nos placeholders
-          if (filteredServices.length === 0) {
-              document.querySelectorAll('.chart-container').forEach(c => c.innerHTML = createChartPlaceholder("Nenhum serviço para exibir neste período."));
-              document.getElementById('statistics-summary').innerHTML = createChartPlaceholder("Nenhum dado para resumir.");
-              return;
+    // Limpa gráficos existentes para evitar sobreposição
+    if (window.myCharts) {
+      Object.values(window.myCharts).forEach((chart) => chart.destroy());
+    }
+    window.myCharts = {};
+
+    // Garante que a renderização dos gráficos aconteça após o DOM ser atualizado.
+    setTimeout(() => {
+      // Se não houver serviços, exibe mensagens nos placeholders
+      if (filteredServices.length === 0) {
+        document
+          .querySelectorAll(".chart-container")
+          .forEach(
+            (c) =>
+              (c.innerHTML = createChartPlaceholder(
+                "Nenhum serviço para exibir neste período."
+              ))
+          );
+        document.getElementById("statistics-summary").innerHTML =
+          createChartPlaceholder("Nenhum dado para resumir.");
+        return;
+      }
+
+      // 1. Dados para o gráfico de Status
+      const completedCount = filteredServices.filter(
+        (s) => calculateOverallProgress(s).percentage === 100
+      ).length;
+      const inProgressCount = filteredServices.length - completedCount;
+
+      // 2. Dados para o gráfico de Categoria
+      const servicesByCategory = filteredServices.reduce((acc, service) => {
+        const category = service.category || "Sem Categoria";
+        acc[category] = (acc[category] || 0) + 1;
+        return acc;
+      }, {});
+
+      // 3. Dados para o gráfico de Responsável
+      const servicesByResponsible = filteredServices.reduce((acc, service) => {
+        const responsibleName =
+          teamMemberMap.get(service.responsible) || "Não Atribuído";
+        acc[responsibleName] = (acc[responsibleName] || 0) + 1;
+        return acc;
+      }, {});
+
+      // MUDANÇA: Adiciona dados para o novo gráfico de Prioridade
+      const servicesByPriority = filteredServices.reduce((acc, service) => {
+        const priority = service.priority || "Média";
+        acc[priority] = (acc[priority] || 0) + 1;
+        return acc;
+      }, {});
+
+      // MUDANÇA: Calcula os dados adicionais para o resumo
+      const topCategory = Object.entries(servicesByCategory).reduce(
+        (top, current) => (current[1] > top[1] ? current : top),
+        ["N/A", 0]
+      );
+      const topResponsible = Object.entries(servicesByResponsible).reduce(
+        (top, current) => (current[1] > top[1] ? current : top),
+        ["N/A", 0]
+      );
+      const highPriorityCount = servicesByPriority["Alta"] || 0;
+
+      // MUDANÇA: Função auxiliar para encontrar o valor máximo em um objeto
+      const findTopEntry = (dataObject) => {
+        let topEntry = ["N/A", -1];
+        for (const [key, value] of Object.entries(dataObject)) {
+          if (value > topEntry[1]) {
+            topEntry = [key, value];
           }
+        }
+        // Retorna o nome e a contagem, ou N/A se o objeto estiver vazio
+        return topEntry[1] > 0 ? `${topEntry[0]} (${topEntry[1]})` : "N/A";
+      };
+      const topCategoryText = findTopEntry(servicesByCategory);
+      const topResponsibleText = findTopEntry(servicesByResponsible);
 
-          // 1. Dados para o gráfico de Status
-          const completedCount = filteredServices.filter(s => calculateOverallProgress(s).percentage === 100).length;
-          const inProgressCount = filteredServices.length - completedCount;
+      // 4. Dados para o Resumo
+      const totalServices = filteredServices.length;
+      const overdueServices = filteredServices.filter(
+        (s) => getDueDateStatus(s.dueDate).className === "overdue"
+      ).length;
+      const totalProgress = filteredServices.reduce(
+        (sum, s) => sum + calculateOverallProgress(s).percentage,
+        0
+      );
+      const averageProgress =
+        totalServices > 0 ? Math.round(totalProgress / totalServices) : 0;
 
-          // 2. Dados para o gráfico de Categoria
-          const servicesByCategory = filteredServices.reduce((acc, service) => {
-              const category = service.category || 'Sem Categoria';
-              acc[category] = (acc[category] || 0) + 1;
-              return acc;
-          }, {});
+      const overdueHighlightClass = overdueServices > 0 ? "has-overdue" : "";
 
-          // 3. Dados para o gráfico de Responsável
-          const servicesByResponsible = filteredServices.reduce((acc, service) => {
-              const responsibleName = teamMemberMap.get(service.responsible) || 'Não Atribuído';
-              acc[responsibleName] = (acc[responsibleName] || 0) + 1;
-              return acc;
-          }, {});
-
-          // MUDANÇA: Adiciona dados para o novo gráfico de Prioridade
-          const servicesByPriority = filteredServices.reduce((acc, service) => {
-              const priority = service.priority || 'Média';
-              acc[priority] = (acc[priority] || 0) + 1;
-              return acc;
-          }, {});
-
-          // MUDANÇA: Calcula os dados adicionais para o resumo
-          const topCategory = Object.entries(servicesByCategory).reduce((top, current) => current[1] > top[1] ? current : top, ["N/A", 0]);
-          const topResponsible = Object.entries(servicesByResponsible).reduce((top, current) => current[1] > top[1] ? current : top, ["N/A", 0]);
-          const highPriorityCount = servicesByPriority['Alta'] || 0;
-
-          // MUDANÇA: Função auxiliar para encontrar o valor máximo em um objeto
-          const findTopEntry = (dataObject) => {
-              let topEntry = ["N/A", -1];
-              for (const [key, value] of Object.entries(dataObject)) {
-                  if (value > topEntry[1]) {
-                      topEntry = [key, value];
-                  }
-              }
-              // Retorna o nome e a contagem, ou N/A se o objeto estiver vazio
-              return topEntry[1] > 0 ? `${topEntry[0]} (${topEntry[1]})` : "N/A";
-          };
-          const topCategoryText = findTopEntry(servicesByCategory);
-          const topResponsibleText = findTopEntry(servicesByResponsible);
-
-          // 4. Dados para o Resumo
-          const totalServices = filteredServices.length;
-          const overdueServices = filteredServices.filter(s => getDueDateStatus(s.dueDate).className === 'overdue').length;
-          const totalProgress = filteredServices.reduce((sum, s) => sum + calculateOverallProgress(s).percentage, 0);
-          const averageProgress = totalServices > 0 ? Math.round(totalProgress / totalServices) : 0;
-
-          const overdueHighlightClass = overdueServices > 0 ? 'has-overdue' : '';
-
-          document.getElementById('statistics-summary').innerHTML = `
+      document.getElementById("statistics-summary").innerHTML = `
               <!-- MUDANÇA: Adiciona um ícone e um container para o conteúdo de texto -->
               <div class="summary-item">
                   <div class="summary-item-icon">
@@ -1810,7 +2138,9 @@ document.addEventListener("DOMContentLoaded", () => {
                       <span class="summary-label">Serviços Concluídos</span>
                   </div>
               </div>
-              <div class="summary-item ${highPriorityCount > 0 ? 'has-overdue' : ''}">
+              <div class="summary-item ${
+                highPriorityCount > 0 ? "has-overdue" : ""
+              }">
                   <div class="summary-item-icon">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" /></svg>
                   </div>
@@ -1840,98 +2170,136 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
           `;
 
-          // Cria os gráficos
-          const statusChartContainer = document.querySelector('#status-chart-card .chart-container');
-          statusChartContainer.innerHTML = '<canvas id="status-chart"></canvas>';
-          createChart('status-chart', 'doughnut', {
-              labels: ['Em Produção', 'Concluídos'],
-              datasets: [{
-                  data: [inProgressCount, completedCount],
-                  backgroundColor: ['#43A047', '#007bff'],
-                  borderColor: 'var(--card-bg)',
-                  borderWidth: 2,
-                  hoverBorderColor: 'var(--card-bg)',
-                  cutout: '70%',
-              }]
-          }, {
-              plugins: {
-                  legend: {
-                      display: true,
-                      position: 'bottom'
-                  }
-              }
-          });
-
-    const categoryChartContainer = document.querySelector('#category-chart-card .chart-container');
-    categoryChartContainer.innerHTML = '<canvas id="category-chart"></canvas>';
-    const categoryLabels = Object.keys(servicesByCategory);
-    const categoryColors = categoryLabels.map(label => {
-        const category = predefinedCategories.find(c => c.name === label);
-        return category?.color || generateChartColors(1)[0];
-    });
-
-    createChart('category-chart', 'bar', {
-        labels: categoryLabels,
-        datasets: [{
-            label: 'Nº de Serviços',
-            data: Object.values(servicesByCategory),
-            backgroundColor: categoryColors,
-            borderRadius: 6,
-            barThickness: 'flex'
-        }],
-    }, {
-        plugins: {
-            chartAreaBackgroundColor: { color: 'rgba(0, 0, 0, 0.03)' },
-            legend: { display: false }
-        }
-    });
-
-    const responsibleChartContainer = document.querySelector('#responsible-chart-card .chart-container');
-    responsibleChartContainer.innerHTML = '<canvas id="responsible-chart"></canvas>';
-    const responsibleLabels = Object.keys(servicesByResponsible);
-    createChart('responsible-chart', 'bar', {
-        labels: responsibleLabels,
-        datasets: [{
-            label: 'Nº de Serviços Atribuídos',
-            data: Object.values(servicesByResponsible),
-            backgroundColor: generateChartColors(responsibleLabels.length),
-            borderRadius: 6,
-        }],
-    }, {
-        indexAxis: 'y',
-        plugins: {
-            legend: { display: false }
+      // Cria os gráficos
+      const statusChartContainer = document.querySelector(
+        "#status-chart-card .chart-container"
+      );
+      statusChartContainer.innerHTML = '<canvas id="status-chart"></canvas>';
+      createChart(
+        "status-chart",
+        "doughnut",
+        {
+          labels: ["Em Produção", "Concluídos"],
+          datasets: [
+            {
+              data: [inProgressCount, completedCount],
+              backgroundColor: ["#43A047", "#007bff"],
+              borderColor: "var(--card-bg)",
+              borderWidth: 2,
+              hoverBorderColor: "var(--card-bg)",
+              cutout: "70%",
+            },
+          ],
         },
-        layout: { padding: { left: 20 } }
-    });
-
-    // MUDANÇA: Cria o novo gráfico de Prioridade
-    const priorityChartContainer = document.querySelector('#priority-chart-card .chart-container');
-    priorityChartContainer.innerHTML = '<canvas id="priority-chart"></canvas>';
-    const priorityLabels = Object.keys(servicesByPriority);
-    // CORREÇÃO: Mapeia as cores dinamicamente para garantir que a cor certa seja usada para cada prioridade.
-    const priorityColors = priorityLabels.map(label => {
-        if (label === 'Alta') return '#E53935'; // Vermelho
-        if (label === 'Média') return '#FFB300'; // Amarelo/Âmbar
-        if (label === 'Baixa') return '#43A047'; // Verde
-        return '#808080'; // Cor padrão
-    });
-
-    createChart('priority-chart', 'pie', {
-        labels: priorityLabels,
-        datasets: [{
-            data: Object.values(servicesByPriority),
-            backgroundColor: priorityColors,
-            borderColor: 'var(--card-bg)',
-            borderWidth: 2,
-        }]
-    }, {
-        plugins: {
-            legend: { display: true, position: 'bottom' }
+        {
+          plugins: {
+            legend: {
+              display: true,
+              position: "bottom",
+            },
+          },
         }
-    });
+      );
 
-      }, 0);
+      const categoryChartContainer = document.querySelector(
+        "#category-chart-card .chart-container"
+      );
+      categoryChartContainer.innerHTML =
+        '<canvas id="category-chart"></canvas>';
+      const categoryLabels = Object.keys(servicesByCategory);
+      const categoryColors = categoryLabels.map((label) => {
+        const category = predefinedCategories.find((c) => c.name === label);
+        return category?.color || generateChartColors(1)[0];
+      });
+
+      createChart(
+        "category-chart",
+        "bar",
+        {
+          labels: categoryLabels,
+          datasets: [
+            {
+              label: "Nº de Serviços",
+              data: Object.values(servicesByCategory),
+              backgroundColor: categoryColors,
+              borderRadius: 6,
+              barThickness: "flex",
+            },
+          ],
+        },
+        {
+          plugins: {
+            chartAreaBackgroundColor: { color: "rgba(0, 0, 0, 0.03)" },
+            legend: { display: false },
+          },
+        }
+      );
+
+      const responsibleChartContainer = document.querySelector(
+        "#responsible-chart-card .chart-container"
+      );
+      responsibleChartContainer.innerHTML =
+        '<canvas id="responsible-chart"></canvas>';
+      const responsibleLabels = Object.keys(servicesByResponsible);
+      createChart(
+        "responsible-chart",
+        "bar",
+        {
+          labels: responsibleLabels,
+          datasets: [
+            {
+              label: "Nº de Serviços Atribuídos",
+              data: Object.values(servicesByResponsible),
+              backgroundColor: generateChartColors(responsibleLabels.length),
+              borderRadius: 6,
+            },
+          ],
+        },
+        {
+          indexAxis: "y",
+          plugins: {
+            legend: { display: false },
+          },
+          layout: { padding: { left: 20 } },
+        }
+      );
+
+      // MUDANÇA: Cria o novo gráfico de Prioridade
+      const priorityChartContainer = document.querySelector(
+        "#priority-chart-card .chart-container"
+      );
+      priorityChartContainer.innerHTML =
+        '<canvas id="priority-chart"></canvas>';
+      const priorityLabels = Object.keys(servicesByPriority);
+      // CORREÇÃO: Mapeia as cores dinamicamente para garantir que a cor certa seja usada para cada prioridade.
+      const priorityColors = priorityLabels.map((label) => {
+        if (label === "Alta") return "#E53935"; // Vermelho
+        if (label === "Média") return "#FFB300"; // Amarelo/Âmbar
+        if (label === "Baixa") return "#43A047"; // Verde
+        return "#808080"; // Cor padrão
+      });
+
+      createChart(
+        "priority-chart",
+        "pie",
+        {
+          labels: priorityLabels,
+          datasets: [
+            {
+              data: Object.values(servicesByPriority),
+              backgroundColor: priorityColors,
+              borderColor: "var(--card-bg)",
+              borderWidth: 2,
+            },
+          ],
+        },
+        {
+          plugins: {
+            legend: { display: true, position: "bottom" },
+          },
+        }
+      );
+    }, 0);
   }
   function createChart(canvasId, type, data, options = {}) {
     const ctx = document.getElementById(canvasId);
@@ -1939,122 +2307,193 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Configurações padrão para todos os gráficos
     const defaultOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', }, title: { display: false, } }
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: "top" }, title: { display: false } },
     };
 
     const finalOptions = { ...defaultOptions, ...options };
 
     window.myCharts[canvasId] = new Chart(ctx, {
-        type: type,
-        data: data,
-        options: finalOptions
+      type: type,
+      data: data,
+      options: finalOptions,
     });
   }
 
   // MUDANÇA: Nova função para exportar a tabela de status para CSV
   function exportProductionStatusToCSV() {
     // 1. Obter os dados filtrados e ordenados (mesma lógica da renderização da tabela)
-    const filterCategory = document.getElementById('status-filter-category').value;
-    const filterStatus = document.getElementById('status-filter-status').value;
-    const searchTerm = document.getElementById('status-search-input').value;
-    const filterResponsible = document.getElementById('status-filter-responsible').value;
-    const filterPriority = document.getElementById('status-filter-priority').value;
-    const filterDueDate = document.getElementById('status-filter-due-date').value;
+    const filterCategory = document.getElementById(
+      "status-filter-category"
+    ).value;
+    const filterStatus = document.getElementById("status-filter-status").value;
+    const searchTerm = document.getElementById("status-search-input").value;
+    const filterResponsible = document.getElementById(
+      "status-filter-responsible"
+    ).value;
+    const filterPriority = document.getElementById(
+      "status-filter-priority"
+    ).value;
+    const filterDueDate = document.getElementById(
+      "status-filter-due-date"
+    ).value;
 
-    const filteredServices = services.filter(service => {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
-        const categoryMatch = filterCategory === 'all' || service.category === filterCategory;
-        const responsibleMatch = filterResponsible === 'all' || service.responsible === filterResponsible;
-        const priorityMatch = filterPriority === 'all' || (service.priority || 'Média') === filterPriority;
+    const filteredServices = services.filter((service) => {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      const categoryMatch =
+        filterCategory === "all" || service.category === filterCategory;
+      const responsibleMatch =
+        filterResponsible === "all" ||
+        service.responsible === filterResponsible;
+      const priorityMatch =
+        filterPriority === "all" ||
+        (service.priority || "Média") === filterPriority;
 
-        const progress = calculateOverallProgress(service);
-        let statusMatch = true;
-        if (filterStatus === 'ready') { statusMatch = progress.percentage === 100; } 
-        else if (filterStatus === 'in-progress') { statusMatch = progress.percentage < 100; }
+      const progress = calculateOverallProgress(service);
+      let statusMatch = true;
+      if (filterStatus === "ready") {
+        statusMatch = progress.percentage === 100;
+      } else if (filterStatus === "in-progress") {
+        statusMatch = progress.percentage < 100;
+      }
 
-        let dueDateMatch = true;
-        if (filterDueDate !== 'all') {
-            const dueDateInfo = getDueDateStatus(service.dueDate);
-            if (filterDueDate === 'overdue') {
-                dueDateMatch = dueDateInfo.className === 'overdue';
-            } else if (filterDueDate === 'due-today') {
-                dueDateMatch = dueDateInfo.text.includes('Vence Hoje');
-            } else if (filterDueDate === 'due-week') {
-                dueDateMatch = dueDateInfo.className === 'due-soon';
-            } else if (filterDueDate === 'no-due-date') {
-                dueDateMatch = !service.dueDate;
-            }
+      let dueDateMatch = true;
+      if (filterDueDate !== "all") {
+        const dueDateInfo = getDueDateStatus(service.dueDate);
+        if (filterDueDate === "overdue") {
+          dueDateMatch = dueDateInfo.className === "overdue";
+        } else if (filterDueDate === "due-today") {
+          dueDateMatch = dueDateInfo.text.includes("Vence Hoje");
+        } else if (filterDueDate === "due-week") {
+          dueDateMatch = dueDateInfo.className === "due-soon";
+        } else if (filterDueDate === "no-due-date") {
+          dueDateMatch = !service.dueDate;
         }
+      }
 
-        if (!categoryMatch || !statusMatch || !responsibleMatch || !priorityMatch || !dueDateMatch) return false;
-        if (searchTerm === '') return true;
+      if (
+        !categoryMatch ||
+        !statusMatch ||
+        !responsibleMatch ||
+        !priorityMatch ||
+        !dueDateMatch
+      )
+        return false;
+      if (searchTerm === "") return true;
 
-        const name = service.name.toLowerCase();
-        const category = (service.category || '').toLowerCase();
-        const responsible = (teamMemberMap.get(service.responsible) || '').toLowerCase();
-        const priority = (service.priority || '').toLowerCase();
-        const dueDateText = getDueDateStatus(service.dueDate).text.toLowerCase();
-        const currentStepName = progress.percentage < 100 ? (service.steps.find(step => (step.subtasks || []).some(st => !st.completed))?.name || "revisão final").toLowerCase() : "finalizado";
+      const name = service.name.toLowerCase();
+      const category = (service.category || "").toLowerCase();
+      const responsible = (
+        teamMemberMap.get(service.responsible) || ""
+      ).toLowerCase();
+      const priority = (service.priority || "").toLowerCase();
+      const dueDateText = getDueDateStatus(service.dueDate).text.toLowerCase();
+      const currentStepName =
+        progress.percentage < 100
+          ? (
+              service.steps.find((step) =>
+                (step.subtasks || []).some((st) => !st.completed)
+              )?.name || "revisão final"
+            ).toLowerCase()
+          : "finalizado";
 
-        return name.includes(lowerCaseSearchTerm) || category.includes(lowerCaseSearchTerm) || responsible.includes(lowerCaseSearchTerm) || currentStepName.includes(lowerCaseSearchTerm) || priority.includes(lowerCaseSearchTerm) || dueDateText.includes(lowerCaseSearchTerm);
+      return (
+        name.includes(lowerCaseSearchTerm) ||
+        category.includes(lowerCaseSearchTerm) ||
+        responsible.includes(lowerCaseSearchTerm) ||
+        currentStepName.includes(lowerCaseSearchTerm) ||
+        priority.includes(lowerCaseSearchTerm) ||
+        dueDateText.includes(lowerCaseSearchTerm)
+      );
     });
 
     // Ordena os serviços
     filteredServices.sort((a, b) => {
-        const dir = productionStatusSort.direction === 'asc' ? 1 : -1;
-        const col = productionStatusSort.column;
-        let valA, valB;
-        if (col === 'name') { valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); }
-        else if (col === 'category') { valA = (a.category || '').toLowerCase(); valB = (b.category || '').toLowerCase(); }
-        else if (col === 'responsible') { valA = (teamMemberMap.get(a.responsible) || '').toLowerCase(); valB = (teamMemberMap.get(b.responsible) || '').toLowerCase(); }
-        else if (col === 'progress') { valA = calculateOverallProgress(a).percentage; valB = calculateOverallProgress(b).percentage; }
-        else if (col === 'priority') { const order = { 'alta': 3, 'média': 2, 'baixa': 1 }; valA = order[(a.priority || 'média').toLowerCase()] || 0; valB = order[(b.priority || 'média').toLowerCase()] || 0; }
-        else if (col === 'dueDate') { valA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity; valB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity; }
-        else { valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); }
-        if (valA < valB) return -1 * dir; if (valA > valB) return 1 * dir; return 0;
+      const dir = productionStatusSort.direction === "asc" ? 1 : -1;
+      const col = productionStatusSort.column;
+      let valA, valB;
+      if (col === "name") {
+        valA = a.name.toLowerCase();
+        valB = b.name.toLowerCase();
+      } else if (col === "category") {
+        valA = (a.category || "").toLowerCase();
+        valB = (b.category || "").toLowerCase();
+      } else if (col === "responsible") {
+        valA = (teamMemberMap.get(a.responsible) || "").toLowerCase();
+        valB = (teamMemberMap.get(b.responsible) || "").toLowerCase();
+      } else if (col === "progress") {
+        valA = calculateOverallProgress(a).percentage;
+        valB = calculateOverallProgress(b).percentage;
+      } else if (col === "priority") {
+        const order = { alta: 3, média: 2, baixa: 1 };
+        valA = order[(a.priority || "média").toLowerCase()] || 0;
+        valB = order[(b.priority || "média").toLowerCase()] || 0;
+      } else if (col === "dueDate") {
+        valA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+        valB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+      } else {
+        valA = a.name.toLowerCase();
+        valB = b.name.toLowerCase();
+      }
+      if (valA < valB) return -1 * dir;
+      if (valA > valB) return 1 * dir;
+      return 0;
     });
 
     // 2. Montar o conteúdo do CSV
     // CORREÇÃO: Usa ponto e vírgula como separador para compatibilidade com Excel (PT-BR)
-    const separator = ';';
-    const headers = ['Material', 'Categoria', 'Responsável', 'Etapa Atual', 'Prioridade', 'Entrega', 'Progresso (%)'];
+    const separator = ";";
+    const headers = [
+      "Material",
+      "Categoria",
+      "Responsável",
+      "Etapa Atual",
+      "Prioridade",
+      "Entrega",
+      "Progresso (%)",
+    ];
     const csvRows = [headers.join(separator)]; // Adiciona o cabeçalho
 
     for (const service of filteredServices) {
-        const progress = calculateOverallProgress(service);
-        const responsibleName = teamMemberMap.get(service.responsible) || "Não atribuído";
-        const currentStepName = progress.percentage === 100 ? "Finalizado" : (service.steps.find(step => (step.subtasks || []).some(st => !st.completed))?.name || "Revisão Final");
-        const dueDateText = getDueDateStatus(service.dueDate).text || 'N/A';
+      const progress = calculateOverallProgress(service);
+      const responsibleName =
+        teamMemberMap.get(service.responsible) || "Não atribuído";
+      const currentStepName =
+        progress.percentage === 100
+          ? "Finalizado"
+          : service.steps.find((step) =>
+              (step.subtasks || []).some((st) => !st.completed)
+            )?.name || "Revisão Final";
+      const dueDateText = getDueDateStatus(service.dueDate).text || "N/A";
 
-        // CORREÇÃO: Função para escapar aspas duplas dentro dos campos.
-        // O campo inteiro é envolvido por aspas para garantir que separadores (;) dentro do texto não quebrem o CSV.
-        const escape = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+      // CORREÇÃO: Função para escapar aspas duplas dentro dos campos.
+      // O campo inteiro é envolvido por aspas para garantir que separadores (;) dentro do texto não quebrem o CSV.
+      const escape = (str) => `"${String(str || "").replace(/"/g, '""')}"`;
 
-        const row = [
-            escape(service.name),
-            escape(service.category),
-            escape(responsibleName),
-            escape(currentStepName),
-            escape(service.priority),
-            escape(dueDateText),
-            Math.round(progress.percentage)
-        ].join(separator);
-        csvRows.push(row);
+      const row = [
+        escape(service.name),
+        escape(service.category),
+        escape(responsibleName),
+        escape(currentStepName),
+        escape(service.priority),
+        escape(dueDateText),
+        Math.round(progress.percentage),
+      ].join(separator);
+      csvRows.push(row);
     }
 
     // 3. Criar e baixar o arquivo
     // CORREÇÃO: Adiciona o BOM (Byte Order Mark) para UTF-8, garantindo que o Excel leia os acentos corretamente.
-    const csvContent = '\uFEFF' + csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const csvContent = "\uFEFF" + csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', 'status_producao.csv');
+    link.setAttribute("download", "status_producao.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-}
+  }
 
   // MUDANÇA: Função para ouvir e renderizar comentários em tempo real
   function listenForComments(serviceId) {
@@ -2128,7 +2567,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isStatistics = hash.startsWith("#/statistics"); // MUDANÇA
 
     // MUDANÇA: Limpa o listener de comentários se não estiver na página de detalhes
-    if (!isServiceDetail && unsubscribeFromComments) { 
+    if (!isServiceDetail && unsubscribeFromComments) {
       unsubscribeFromComments();
       unsubscribeFromComments = null;
     }
@@ -2145,7 +2584,15 @@ document.addEventListener("DOMContentLoaded", () => {
     statisticsView.classList.toggle("hidden", !isStatistics); // MUDANÇA
 
     // Adiciona uma classe ao body para estilizar o header de forma diferente
-    const isSubPage = isServiceDetail || isProfile || isRequests || isServices || isUserManagement || isCategoryManagement || isProductionStatus || isStatistics;
+    const isSubPage =
+      isServiceDetail ||
+      isProfile ||
+      isRequests ||
+      isServices ||
+      isUserManagement ||
+      isCategoryManagement ||
+      isProductionStatus ||
+      isStatistics;
     document.body.classList.toggle("detail-view-active", isSubPage);
 
     // Carrega o conteúdo da view ativa
@@ -2156,7 +2603,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // MUDANÇA: Preserva o estado de expansão das etapas ao recarregar
         const openStepsIndices = [];
         document
-          .querySelectorAll("#task-detail-view .step-group-title:not(.collapsed)")
+          .querySelectorAll(
+            "#task-detail-view .step-group-title:not(.collapsed)"
+          )
           .forEach((title) => {
             const stepGroup = title.closest(".step-group");
             if (stepGroup && stepGroup.dataset.stepIndex) {
@@ -2182,16 +2631,19 @@ document.addEventListener("DOMContentLoaded", () => {
       renderUserManagementPage();
     } else if (isCategoryManagement) {
       renderCategoryManagementPage(); // MUDANÇA
-    } else if (isProductionStatus) { // MUDANÇA
+    } else if (isProductionStatus) {
+      // MUDANÇA
       renderProductionStatusPage();
-    } else if (isStatistics) { // MUDANÇA
+    } else if (isStatistics) {
+      // MUDANÇA
       renderStatisticsPage();
     } else if (isServices) {
       // A view padrão é a lista de serviços
       // MUDANÇA: Adiciona o botão de gerenciar categorias apenas para admins
-      const adminCategoryButton = currentUser.role === 'admin' 
-        ? `<a href="#/categories" class="btn-primary">Gerenciar Categorias</a>` 
-        : '';
+      const adminCategoryButton =
+        currentUser.role === "admin"
+          ? `<a href="#/categories" class="btn-primary">Gerenciar Categorias</a>`
+          : "";
       // MUDANÇA: Renderiza a estrutura da página e depois os cards
       serviceContainer.innerHTML = `
         <div class="detail-header requests-header">
@@ -2208,14 +2660,14 @@ document.addEventListener("DOMContentLoaded", () => {
         <div id="service-list-wrapper"></div>
       `;
       // Adiciona o listener para a nova barra de pesquisa
-      const searchInput = document.getElementById('services-search-input');
-      searchInput.addEventListener('input', renderServiceCards);
+      const searchInput = document.getElementById("services-search-input");
+      searchInput.addEventListener("input", renderServiceCards);
       // MUDANÇA: Limpa o wrapper antes de renderizar para evitar duplicação de conteúdo
       const wrapper = document.getElementById("service-list-wrapper");
-      if (wrapper) wrapper.innerHTML = '';
+      if (wrapper) wrapper.innerHTML = "";
       renderServiceCards(); // Renderiza os cards iniciais
     } else {
-        window.location.hash = '#/'; // Rota padrão se nenhuma corresponder
+      window.location.hash = "#/"; // Rota padrão se nenhuma corresponder
     }
   }
 
@@ -2224,19 +2676,18 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", async (e) => {
     // Botão "Voltar para a lista" nas páginas de detalhe/perfil
     // MUDANÇA: Botões de ação que foram movidos
-    if (e.target.id === 'add-service-btn') {
-        openAddServiceModal();
+    if (e.target.id === "add-service-btn") {
+      openAddServiceModal();
     }
 
-    if (e.target.id === 'make-request-btn') {
-        openMakeRequestModal();
+    if (e.target.id === "make-request-btn") {
+      openMakeRequestModal();
     }
 
     // MUDANÇA: Botão para exportar a tabela de status para CSV
-    if (e.target.id === 'export-status-csv-btn') {
-        exportProductionStatusToCSV();
+    if (e.target.id === "export-status-csv-btn") {
+      exportProductionStatusToCSV();
     }
-
 
     if (e.target.matches(".detail-header a.btn-secondary")) {
       e.preventDefault();
@@ -2246,14 +2697,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Título de um grupo de etapas (para expandir/recolher)
     // MUDANÇA: Agora o clique pode ser em toda a área do título da etapa.
     const stepGroupTitle = e.target.closest(".step-group-title");
-    if (stepGroupTitle && !e.target.closest('button')) { // Ignora cliques nos botões dentro do título
-        stepGroupTitle.classList.toggle("collapsed");
-        const subtaskList = stepGroupTitle.nextElementSibling;
-        if (subtaskList && subtaskList.classList.contains("subtask-list")) {
-            subtaskList.classList.toggle("hidden");
-        }
+    if (stepGroupTitle && !e.target.closest("button")) {
+      // Ignora cliques nos botões dentro do título
+      stepGroupTitle.classList.toggle("collapsed");
+      const subtaskList = stepGroupTitle.nextElementSibling;
+      if (subtaskList && subtaskList.classList.contains("subtask-list")) {
+        subtaskList.classList.toggle("hidden");
+      }
     }
-
 
     // Botão de deletar serviço
     const deleteBtn = e.target.closest(".btn-delete");
@@ -2277,64 +2728,75 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Lógica para o botão "Reabrir Serviço"
     const reopenBtn = e.target.closest(".btn-reopen");
     if (reopenBtn) {
-        const serviceId = reopenBtn.dataset.serviceId;
-        const service = services.find(s => s.id === serviceId);
+      const serviceId = reopenBtn.dataset.serviceId;
+      const service = services.find((s) => s.id === serviceId);
 
-        if (service && confirm("Tem certeza que deseja reabrir este serviço? Ele voltará para sua categoria original.")) {
-            showLoading();
-            try {
-                // Encontra a primeira sub-etapa e a desmarca
-                const firstStepWithSubtasks = service.steps.find(step => step.subtasks && step.subtasks.length > 0);
-                if (firstStepWithSubtasks) {
-                    firstStepWithSubtasks.subtasks[0].completed = false;
-                    const serviceRef = doc(db, "services", serviceId);
-                    await updateDoc(serviceRef, { steps: service.steps });
-                    // O onSnapshot cuidará de mover o card
-                }
-            } catch (error) {
-                console.error("Erro ao reabrir serviço:", error);
-                alert("Falha ao reabrir o serviço.");
-            } finally {
-                hideLoading();
-            }
+      if (
+        service &&
+        confirm(
+          "Tem certeza que deseja reabrir este serviço? Ele voltará para sua categoria original."
+        )
+      ) {
+        showLoading();
+        try {
+          // Encontra a primeira sub-etapa e a desmarca
+          const firstStepWithSubtasks = service.steps.find(
+            (step) => step.subtasks && step.subtasks.length > 0
+          );
+          if (firstStepWithSubtasks) {
+            firstStepWithSubtasks.subtasks[0].completed = false;
+            const serviceRef = doc(db, "services", serviceId);
+            await updateDoc(serviceRef, { steps: service.steps });
+            // O onSnapshot cuidará de mover o card
+          }
+        } catch (error) {
+          console.error("Erro ao reabrir serviço:", error);
+          alert("Falha ao reabrir o serviço.");
+        } finally {
+          hideLoading();
         }
+      }
     }
 
     // MUDANÇA: Abrir/fechar painel de notificações
     if (e.target.closest("#notification-bell")) {
-        const panel = document.getElementById("notification-panel");
-        panel.classList.toggle("hidden");
+      const panel = document.getElementById("notification-panel");
+      panel.classList.toggle("hidden");
 
-        // CORREÇÃO: Marca as notificações como lidas quando o painel é aberto.
-        // A verificação `!panel.classList.contains("hidden")` garante que isso só aconteça
-        // quando o painel está visível (ou seja, após o toggle o ter aberto).
-        if (!panel.classList.contains("hidden")) {
-            // Fornece feedback visual imediato zerando o contador
-            notificationCount.textContent = '0';
-            notificationCount.classList.add("hidden");
-            markNotificationsAsRead();
-        }
+      // CORREÇÃO: Marca as notificações como lidas quando o painel é aberto.
+      // A verificação `!panel.classList.contains("hidden")` garante que isso só aconteça
+      // quando o painel está visível (ou seja, após o toggle o ter aberto).
+      if (!panel.classList.contains("hidden")) {
+        // Fornece feedback visual imediato zerando o contador
+        notificationCount.textContent = "0";
+        notificationCount.classList.add("hidden");
+        markNotificationsAsRead();
+      }
     } else if (!e.target.closest("#notification-panel")) {
-        // Fecha o painel se clicar fora dele
-        document.getElementById("notification-panel").classList.add("hidden");
+      // Fecha o painel se clicar fora dele
+      document.getElementById("notification-panel").classList.add("hidden");
     }
 
     // MUDANÇA: Botão de editar categoria
     const editCategoryBtn = e.target.closest(".btn-edit-category");
     if (editCategoryBtn) {
-        const listItem = editCategoryBtn.closest(".user-list-item");
-        const categoryId = listItem.dataset.categoryId;
-        const category = predefinedCategories.find(c => c.id === categoryId);
-        if (!category) return;
+      const listItem = editCategoryBtn.closest(".user-list-item");
+      const categoryId = listItem.dataset.categoryId;
+      const category = predefinedCategories.find((c) => c.id === categoryId);
+      if (!category) return;
 
-        // Salva o HTML original para poder cancelar a edição
-        listItem.dataset.originalHtml = listItem.innerHTML;
+      // Salva o HTML original para poder cancelar a edição
+      listItem.dataset.originalHtml = listItem.innerHTML;
 
-        // Transforma o item da lista em um formulário de edição
-        listItem.innerHTML = `
+      // Transforma o item da lista em um formulário de edição
+      listItem.innerHTML = `
             <div class="category-edit-form">
-                <input type="color" name="editCategoryColor" value="${category.color || '#001f3f'}">
-                <input type="text" name="editCategoryName" value="${category.name}" required>
+                <input type="color" name="editCategoryColor" value="${
+                  category.color || "#001f3f"
+                }">
+                <input type="text" name="editCategoryName" value="${
+                  category.name
+                }" required>
                 <div class="user-list-actions">
                     <button class="btn-icon btn-save-category" title="Salvar">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>
@@ -2345,137 +2807,229 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             </div>
         `;
-        listItem.classList.add('editing');
+      listItem.classList.add("editing");
     }
 
     // MUDANÇA: Botão para cancelar a edição da categoria
     const cancelEditCategoryBtn = e.target.closest(".btn-cancel-edit-category");
     if (cancelEditCategoryBtn) {
-        const listItem = cancelEditCategoryBtn.closest(".user-list-item");
-        listItem.innerHTML = listItem.dataset.originalHtml;
-        listItem.classList.remove('editing');
-        delete listItem.dataset.originalHtml;
+      const listItem = cancelEditCategoryBtn.closest(".user-list-item");
+      listItem.innerHTML = listItem.dataset.originalHtml;
+      listItem.classList.remove("editing");
+      delete listItem.dataset.originalHtml;
     }
 
     // MUDANÇA: Botão para salvar a edição da categoria
     const saveCategoryBtn = e.target.closest(".btn-save-category");
     if (saveCategoryBtn) {
-        const listItem = saveCategoryBtn.closest(".user-list-item");
-        const categoryId = listItem.dataset.categoryId;
-        const newName = listItem.querySelector('[name="editCategoryName"]').value.trim();
-        const newColor = listItem.querySelector('[name="editCategoryColor"]').value;
+      const listItem = saveCategoryBtn.closest(".user-list-item");
+      const categoryId = listItem.dataset.categoryId;
+      const newName = listItem
+        .querySelector('[name="editCategoryName"]')
+        .value.trim();
+      const newColor = listItem.querySelector(
+        '[name="editCategoryColor"]'
+      ).value;
 
-        if (!newName || !categoryId) return;
+      if (!newName || !categoryId) return;
 
-        showLoading();
-        try {
-            const categoryRef = doc(db, "categories", categoryId);
-            await updateDoc(categoryRef, { name: newName, color: newColor });
-            await loadPredefinedCategories(); // Recarrega os dados
-            renderCategoryManagementPage(); // Redesenha a página com os dados atualizados
-        } catch (error) {
-            console.error("Erro ao atualizar categoria:", error);
-            alert("Falha ao atualizar a categoria.");
-        } finally {
-            hideLoading();
-        }
+      showLoading();
+      try {
+        const categoryRef = doc(db, "categories", categoryId);
+        await updateDoc(categoryRef, { name: newName, color: newColor });
+        await loadPredefinedCategories(); // Recarrega os dados
+        renderCategoryManagementPage(); // Redesenha a página com os dados atualizados
+      } catch (error) {
+        console.error("Erro ao atualizar categoria:", error);
+        alert("Falha ao atualizar a categoria.");
+      } finally {
+        hideLoading();
+      }
     }
 
     // MUDANÇA: Botão para copiar o nome do serviço
     const copyServiceNameBtn = e.target.closest(".btn-copy-service-name");
     if (copyServiceNameBtn) {
-        const serviceNameText = document.getElementById('detail-service-name-text')?.innerText;
-        if (serviceNameText) {
-            navigator.clipboard.writeText(serviceNameText).then(() => {
-                // Fornece feedback visual
-                const originalIcon = copyServiceNameBtn.innerHTML;
-                copyServiceNameBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>`;
-                copyServiceNameBtn.style.color = '#43a047'; // Verde
+      const serviceNameText = document.getElementById(
+        "detail-service-name-text"
+      )?.innerText;
+      if (serviceNameText) {
+        navigator.clipboard
+          .writeText(serviceNameText)
+          .then(() => {
+            // Fornece feedback visual
+            const originalIcon = copyServiceNameBtn.innerHTML;
+            copyServiceNameBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>`;
+            copyServiceNameBtn.style.color = "#43a047"; // Verde
 
-                setTimeout(() => {
-                    copyServiceNameBtn.innerHTML = originalIcon;
-                    copyServiceNameBtn.style.color = ''; // Volta à cor original
-                }, 1500);
-            }).catch(err => {
-                console.error('Falha ao copiar texto: ', err);
-                alert('Não foi possível copiar o nome do serviço.');
-            });
-        }
+            setTimeout(() => {
+              copyServiceNameBtn.innerHTML = originalIcon;
+              copyServiceNameBtn.style.color = ""; // Volta à cor original
+            }, 1500);
+          })
+          .catch((err) => {
+            console.error("Falha ao copiar texto: ", err);
+            alert("Não foi possível copiar o nome do serviço.");
+          });
+      }
     }
-
 
     // MUDANÇA: Botão de deletar categoria
     const deleteCategoryBtn = e.target.closest(".btn-delete-category");
     if (deleteCategoryBtn) {
-        const categoryId = deleteCategoryBtn.closest(".user-list-item").dataset.categoryId;
-        if (confirm("Tem certeza que deseja deletar esta categoria pré-definida?")) {
-            showLoading();
-            try {
-                await deleteDoc(doc(db, "categories", categoryId));
-                await loadPredefinedCategories(); // Recarrega a lista
-                renderCategoryManagementPage(); // Redesenha a página
-            } catch (error) {
-                console.error("Erro ao deletar categoria:", error);
-                alert("Falha ao deletar a categoria.");
-            } finally {
-                hideLoading();
-            }
+      const categoryId =
+        deleteCategoryBtn.closest(".user-list-item").dataset.categoryId;
+      if (
+        confirm("Tem certeza que deseja deletar esta categoria pré-definida?")
+      ) {
+        showLoading();
+        try {
+          await deleteDoc(doc(db, "categories", categoryId));
+          await loadPredefinedCategories(); // Recarrega a lista
+          renderCategoryManagementPage(); // Redesenha a página
+        } catch (error) {
+          console.error("Erro ao deletar categoria:", error);
+          alert("Falha ao deletar a categoria.");
+        } finally {
+          hideLoading();
         }
+      }
     }
 
     // MUDANÇA: Botão para iniciar a edição inline na página de detalhes
     const startInlineEditBtn = e.target.closest(".btn-start-inline-edit");
     if (startInlineEditBtn) {
-        const serviceId = startInlineEditBtn.dataset.serviceId;
-        const service = services.find(s => s.id === serviceId);
-        if (service) {
-            renderServiceDetail(service, [], true); // Renderiza em modo de edição
-        }
+      const serviceId = startInlineEditBtn.dataset.serviceId;
+      const service = services.find((s) => s.id === serviceId);
+      if (service) {
+        renderServiceDetail(service, [], true); // Renderiza em modo de edição
+      }
     }
 
     // MUDANÇA: Botão para cancelar a edição inline
     const cancelInlineEditBtn = e.target.closest(".btn-cancel-inline-edit");
     if (cancelInlineEditBtn) {
-        const serviceId = window.location.hash.substring("#/service/".length);
-        const service = services.find(s => s.id === serviceId);
-        if (service) {
-            renderServiceDetail(service, [], false); // Renderiza em modo de visualização
-        }
+      const serviceId = window.location.hash.substring("#/service/".length);
+      const service = services.find((s) => s.id === serviceId);
+      if (service) {
+        renderServiceDetail(service, [], false); // Renderiza em modo de visualização
+      }
     }
 
     // MUDANÇA: Botão para salvar a edição inline
     const saveInlineEditBtn = e.target.closest(".btn-save-inline-edit");
     if (saveInlineEditBtn) {
-        const serviceId = saveInlineEditBtn.dataset.serviceId;
-        
-        // CORREÇÃO: Busca o formulário dentro da view de detalhes
-        const generalForm = taskDetailView.querySelector('#inline-edit-general-form');
-        const category = generalForm.querySelector('[name="serviceCategory"]').value;
-        const responsible = generalForm.querySelector('[name="responsibleName"]').value;
-        const priority = generalForm.querySelector('[name="servicePriority"]').value;
-        const dueDate = generalForm.querySelector('[name="serviceDueDate"]').value;
+      const serviceId = saveInlineEditBtn.dataset.serviceId;
 
-        // CORREÇÃO: Busca os grupos de etapas dentro da view de detalhes
-        const serviceToUpdate = services.find(s => s.id === serviceId);
-        // CORREÇÃO: Passa o serviço original para a função collectStepsFromForm para preservar o status 'completed'.
-        const stepGroups = taskDetailView.querySelectorAll('#inline-steps-container .step-group-modal');
-        const steps = collectStepsFromForm(stepGroups, serviceToUpdate);
+      // CORREÇÃO: Busca o formulário dentro da view de detalhes
+      const generalForm = taskDetailView.querySelector(
+        "#inline-edit-general-form"
+      );
+      const category = generalForm.querySelector(
+        '[name="serviceCategory"]'
+      ).value;
+      const responsible = generalForm.querySelector(
+        '[name="responsibleName"]'
+      ).value;
+      const priority = generalForm.querySelector(
+        '[name="servicePriority"]'
+      ).value;
+      const dueDate = generalForm.querySelector(
+        '[name="serviceDueDate"]'
+      ).value;
 
-        if (serviceToUpdate) {
-            showLoading();
-            try {
-                const serviceRef = doc(db, "services", serviceId);
-                await updateDoc(serviceRef, { category, responsible, priority, dueDate, steps });
-                alert("Serviço atualizado com sucesso!");
-                // CORREÇÃO: Redesenha a página no modo de visualização após salvar.
-                renderServiceDetail(serviceToUpdate, [], false);
-            } catch (error) {
-                console.error("Erro ao salvar serviço:", error);
-                alert("Falha ao salvar as alterações.");
-            } finally {
-                hideLoading();
-            }
+      // CORREÇÃO: Busca os grupos de etapas dentro da view de detalhes
+      const serviceToUpdate = services.find((s) => s.id === serviceId);
+      // CORREÇÃO: Passa o serviço original para a função collectStepsFromForm para preservar o status 'completed'.
+      const stepGroups = taskDetailView.querySelectorAll(
+        "#inline-steps-container .step-group-modal"
+      );
+      const steps = collectStepsFromForm(stepGroups, serviceToUpdate);
+
+      if (serviceToUpdate) {
+        showLoading();
+        try {
+          const serviceRef = doc(db, "services", serviceId);
+          await updateDoc(serviceRef, {
+            category,
+            responsible,
+            priority,
+            dueDate,
+            steps,
+          });
+          alert("Serviço atualizado com sucesso!");
+          // CORREÇÃO: Redesenha a página no modo de visualização após salvar.
+          renderServiceDetail(serviceToUpdate, [], false);
+        } catch (error) {
+          console.error("Erro ao salvar serviço:", error);
+          alert("Falha ao salvar as alterações.");
+        } finally {
+          hideLoading();
         }
+      }
+    }
+
+    // MUDANÇA: Lógica para o botão "Terceirizar"
+    const delegateBtn = e.target.closest(".btn-delegate");
+    if (delegateBtn) {
+      const requestId = delegateBtn.closest(".request-card").dataset.id;
+      const modal = document.getElementById("delegate-request-modal");
+      const form = document.getElementById("delegate-request-form");
+      const select = document.getElementById("delegate-user-select");
+
+      // Popula o select com os membros da equipe, exceto o usuário atual
+      select.innerHTML = teamMembers
+        .filter((member) => member.id !== currentUser.uid)
+        .map((member) => `<option value="${member.id}">${member.name}</option>`)
+        .join("");
+
+      // Define o ID da solicitação no formulário
+      form.querySelector('[name="requestId"]').value = requestId;
+
+      // Mostra o modal
+      modal.style.display = "block";
+    }
+
+    // MUDANÇA: Lógica para o formulário de delegação
+    if (e.target.id === "delegate-request-form") {
+      e.preventDefault();
+      const form = e.target;
+      const requestId = form.querySelector('[name="requestId"]').value;
+      const delegateUserId = form.querySelector(
+        '[name="delegateUserId"]'
+      ).value;
+      const delegateUserName = teamMemberMap.get(delegateUserId);
+      const request = allRequests.find((r) => r.id === requestId);
+
+      if (!request || !delegateUserId) return;
+
+      showLoading();
+      try {
+        const requestRef = doc(db, "requests", requestId);
+        // Atualiza o usuário mencionado, que efetivamente "delega" a tarefa
+        await updateDoc(requestRef, {
+          mentionedUserId: delegateUserId,
+          mentionedUserName: delegateUserName,
+        });
+
+        // Envia uma notificação para o novo usuário
+        await addDoc(notificationsCollection, {
+          userId: delegateUserId,
+          text: `A solicitação "${request.title}" foi encaminhada para você por ${currentUser.displayName}.`,
+          link: "#/requests",
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+
+        alert(`Solicitação encaminhada para ${delegateUserName} com sucesso!`);
+        document.getElementById("delegate-request-modal").style.display =
+          "none";
+      } catch (error) {
+        console.error("Erro ao delegar solicitação:", error);
+        alert("Falha ao delegar a solicitação.");
+      } finally {
+        hideLoading();
+      }
     }
 
     // MUDANÇA: Botão de deletar arquivo na página de detalhes
@@ -2483,12 +3037,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (deleteFileBtn) {
       const fileIndex = parseInt(deleteFileBtn.dataset.fileIndex, 10);
       const serviceId = window.location.hash.substring("#/service/".length);
-      const service = services.find(s => s.id === serviceId);
+      const service = services.find((s) => s.id === serviceId);
 
       if (service && confirm("Tem certeza que deseja deletar este arquivo?")) {
         showLoading();
         try {
-          const updatedFiles = service.files.filter((_, index) => index !== fileIndex);
+          const updatedFiles = service.files.filter(
+            (_, index) => index !== fileIndex
+          );
           const serviceRef = doc(db, "services", serviceId);
           await updateDoc(serviceRef, { files: updatedFiles });
           // A UI se atualizará pelo onSnapshot
@@ -2502,48 +3058,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // MUDANÇA: Botão de deletar sub-etapa na página de detalhes
-    const deleteSubtaskDetailBtn = e.target.closest(".btn-delete-subtask-detail");
+    const deleteSubtaskDetailBtn = e.target.closest(
+      ".btn-delete-subtask-detail"
+    );
     if (deleteSubtaskDetailBtn) {
-        const stepIndex = parseInt(deleteSubtaskDetailBtn.dataset.stepIndex, 10);
-        const subtaskIndex = parseInt(deleteSubtaskDetailBtn.dataset.subtaskIndex, 10);
-        const serviceId = window.location.hash.substring("#/service/".length);
-        const service = services.find(s => s.id === serviceId);
+      const stepIndex = parseInt(deleteSubtaskDetailBtn.dataset.stepIndex, 10);
+      const subtaskIndex = parseInt(
+        deleteSubtaskDetailBtn.dataset.subtaskIndex,
+        10
+      );
+      const serviceId = window.location.hash.substring("#/service/".length);
+      const service = services.find((s) => s.id === serviceId);
 
-        if (service && confirm("Tem certeza que deseja deletar esta sub-etapa?")) {
-            showLoading();
-            try {
-                service.steps[stepIndex].subtasks.splice(subtaskIndex, 1);
-                const serviceRef = doc(db, "services", serviceId);
-                await updateDoc(serviceRef, { steps: service.steps });
-            } catch (error) {
-                console.error("Erro ao deletar sub-etapa:", error);
-                alert("Falha ao deletar a sub-etapa.");
-            } finally {
-                hideLoading();
-            }
+      if (
+        service &&
+        confirm("Tem certeza que deseja deletar esta sub-etapa?")
+      ) {
+        showLoading();
+        try {
+          service.steps[stepIndex].subtasks.splice(subtaskIndex, 1);
+          const serviceRef = doc(db, "services", serviceId);
+          await updateDoc(serviceRef, { steps: service.steps });
+        } catch (error) {
+          console.error("Erro ao deletar sub-etapa:", error);
+          alert("Falha ao deletar a sub-etapa.");
+        } finally {
+          hideLoading();
         }
+      }
     }
 
     // MUDANÇA: Botão de deletar etapa na página de detalhes
     const deleteStepDetailBtn = e.target.closest(".btn-delete-step-detail");
     if (deleteStepDetailBtn) {
-        const stepIndex = parseInt(deleteStepDetailBtn.dataset.stepIndex, 10);
-        const serviceId = window.location.hash.substring("#/service/".length);
-        const service = services.find(s => s.id === serviceId);
+      const stepIndex = parseInt(deleteStepDetailBtn.dataset.stepIndex, 10);
+      const serviceId = window.location.hash.substring("#/service/".length);
+      const service = services.find((s) => s.id === serviceId);
 
-        if (service && confirm("Tem certeza que deseja deletar esta etapa e todas as suas sub-etapas?")) {
-            showLoading();
-            try {
-                service.steps.splice(stepIndex, 1);
-                const serviceRef = doc(db, "services", serviceId);
-                await updateDoc(serviceRef, { steps: service.steps });
-            } catch (error) {
-                console.error("Erro ao deletar etapa:", error);
-                alert("Falha ao deletar a etapa.");
-            } finally {
-                hideLoading();
-            }
+      if (
+        service &&
+        confirm(
+          "Tem certeza que deseja deletar esta etapa e todas as suas sub-etapas?"
+        )
+      ) {
+        showLoading();
+        try {
+          service.steps.splice(stepIndex, 1);
+          const serviceRef = doc(db, "services", serviceId);
+          await updateDoc(serviceRef, { steps: service.steps });
+        } catch (error) {
+          console.error("Erro ao deletar etapa:", error);
+          alert("Falha ao deletar a etapa.");
+        } finally {
+          hideLoading();
         }
+      }
     }
 
     // Lógica para upload de foto de perfil
@@ -2574,19 +3143,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Botão de editar serviço
     const editBtn = e.target.closest(".btn-edit");
     if (editBtn) {
-        const serviceId = editBtn.dataset.serviceId;
-        const serviceToEdit = services.find((s) => s.id === serviceId);
-        if (serviceToEdit) {
-            // MUDANÇA: Verifica se a edição é a partir do card ou da página de detalhes
-            const isOnDetailPage = editBtn.closest('#task-detail-view');
-            if (isOnDetailPage) {
-                // Inicia a edição inline
-                renderServiceDetail(serviceToEdit, [], true);
-            } else {
-                // Abre o modal (comportamento antigo)
-                openEditModal(serviceToEdit);
-            }
+      const serviceId = editBtn.dataset.serviceId;
+      const serviceToEdit = services.find((s) => s.id === serviceId);
+      if (serviceToEdit) {
+        // MUDANÇA: Verifica se a edição é a partir do card ou da página de detalhes
+        const isOnDetailPage = editBtn.closest("#task-detail-view");
+        if (isOnDetailPage) {
+          // Inicia a edição inline
+          renderServiceDetail(serviceToEdit, [], true);
+        } else {
+          // Abre o modal (comportamento antigo)
+          openEditModal(serviceToEdit);
         }
+      }
     }
 
     // MUDANÇA: Botão de remover etapa no modal de adicionar serviço
@@ -2599,16 +3168,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Botão de adicionar sub-etapa no modal
     const addSubstepBtn = e.target.closest(".btn-add-substep");
     if (addSubstepBtn) {
-      const substepsContainer =
-        addSubstepBtn.previousElementSibling;
+      const substepsContainer = addSubstepBtn.previousElementSibling;
       substepsContainer.appendChild(createSubstepInputRow());
     }
 
     // MUDANÇA: Botão de adicionar sub-etapa na edição inline
     const addSubstepBtnInline = e.target.closest(".btn-add-substep-inline");
     if (addSubstepBtnInline) {
-        const substepsContainer = addSubstepBtnInline.previousElementSibling;
-        substepsContainer.appendChild(createSubstepInputRow());
+      const substepsContainer = addSubstepBtnInline.previousElementSibling;
+      substepsContainer.appendChild(createSubstepInputRow());
     }
 
     // MUDANÇA: Botão de remover sub-etapa no modal
@@ -2620,8 +3188,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Botão de adicionar etapa na edição inline
     const addStepBtnInline = e.target.closest("#add-step-btn-inline");
     if (addStepBtnInline) {
-        const container = document.getElementById('inline-steps-container');
-        container.appendChild(createStepGroupElement());
+      const container = document.getElementById("inline-steps-container");
+      container.appendChild(createStepGroupElement());
     }
 
     // MUDANÇA: Lógica para aprovar/rejeitar solicitações
@@ -2763,7 +3331,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!file) return;
 
       // CORREÇÃO: Captura o ID do serviço a partir do hash da URL corretamente.
-      const taskId = window.location.hash.split('/')[2];
+      const taskId = window.location.hash.split("/")[2];
       showLoading();
       await uploadAndLinkFile(taskId, file);
       hideLoading();
@@ -2795,30 +3363,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // MUDANÇA: Lógica para alterar o cargo de um usuário (movido para o evento 'change')
-    if (e.target.classList.contains('user-role-selector')) {
-        const select = e.target;
-        const newRole = select.value;
-        const userId = select.closest('.user-list-item').dataset.userId;
+    if (e.target.classList.contains("user-role-selector")) {
+      const select = e.target;
+      const newRole = select.value;
+      const userId = select.closest(".user-list-item").dataset.userId;
 
-        if (!userId || userId === currentUser.uid) return;
+      if (!userId || userId === currentUser.uid) return;
 
-        showLoading();
-        try {
-            const userRef = doc(db, 'users', userId);
-            await updateDoc(userRef, { role: newRole });
-            alert('Cargo do usuário atualizado com sucesso!');
-            // Atualiza o estado local para consistência imediata da UI
-            const userToUpdate = allUsersData.find(u => u.id === userId);
-            if (userToUpdate) userToUpdate.role = newRole;
-        } catch (error) {
-            console.error("Erro ao atualizar cargo:", error);
-            alert('Falha ao atualizar o cargo do usuário.');
-            // Reverte a mudança na UI em caso de erro
-            const userToUpdate = allUsersData.find(u => u.id === userId);
-            if (userToUpdate) select.value = userToUpdate.role;
-        } finally {
-            hideLoading();
-        }
+      showLoading();
+      try {
+        const userRef = doc(db, "users", userId);
+        await updateDoc(userRef, { role: newRole });
+        alert("Cargo do usuário atualizado com sucesso!");
+        // Atualiza o estado local para consistência imediata da UI
+        const userToUpdate = allUsersData.find((u) => u.id === userId);
+        if (userToUpdate) userToUpdate.role = newRole;
+      } catch (error) {
+        console.error("Erro ao atualizar cargo:", error);
+        alert("Falha ao atualizar o cargo do usuário.");
+        // Reverte a mudança na UI em caso de erro
+        const userToUpdate = allUsersData.find((u) => u.id === userId);
+        if (userToUpdate) select.value = userToUpdate.role;
+      } finally {
+        hideLoading();
+      }
     }
   });
 
@@ -2879,8 +3447,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // MUDANÇA: Validação do tamanho do nome
       if (newName.length > 30) {
-          alert("O nome de exibição não pode ter mais de 30 caracteres.");
-          return;
+        alert("O nome de exibição não pode ter mais de 30 caracteres.");
+        return;
       }
 
       const successMessage = document.getElementById("profile-success");
@@ -2903,16 +3471,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // MUDANÇA: Lógica para o botão "Continuar como"
   continueAsBtn.addEventListener("click", () => {
-      if (currentUser) {
-          // O usuário já está autenticado, apenas procedemos para o app
-          initializeAppUI(currentUser);
-      }
+    if (currentUser) {
+      // O usuário já está autenticado, apenas procedemos para o app
+      initializeAppUI(currentUser);
+    }
   });
 
   // MUDANÇA: Lógica para "Entrar com outra conta"
   switchAccountLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      signOut(auth); // Desloga o usuário atual para mostrar a tela de login padrão
+    e.preventDefault();
+    signOut(auth); // Desloga o usuário atual para mostrar a tela de login padrão
   });
 
   // --- LÓGICA PRINCIPAL DE AUTENTICAÇÃO E EVENTOS ---
@@ -2927,9 +3495,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
       if (userDocSnap.exists()) {
-          currentUser = { ...user, ...userDocSnap.data() };
+        currentUser = { ...user, ...userDocSnap.data() };
       } else {
-          currentUser = user;
+        currentUser = user;
       }
 
       // MUDANÇA: Em vez de logar direto, mostra a tela "Continuar como"
@@ -2969,15 +3537,14 @@ document.addEventListener("DOMContentLoaded", () => {
       // Atualiza a UI para o estado "deslogado", mostrando a tela de login
       loginContainer.classList.remove("hidden");
       appHeader.classList.remove("hidden"); // MUDANÇA: Mantém o header visível
-      document.querySelector('footer').style.display = 'block'; // MUDANÇA: Mantém o footer visível
+      document.querySelector("footer").style.display = "block"; // MUDANÇA: Mantém o footer visível
 
       // MUDANÇA: Esconde os controles específicos do usuário no header
-      document.getElementById('home-btn').style.display = 'none';
-      document.getElementById('notification-container').style.display = 'none';
-      document.getElementById('user-profile').style.display = 'none';
-      document.getElementById('mobile-menu-toggle').style.display = 'none';
-      document.querySelector('.app-content').style.display = 'none'; // CORREÇÃO: Esconde o main content
-
+      document.getElementById("home-btn").style.display = "none";
+      document.getElementById("notification-container").style.display = "none";
+      document.getElementById("user-profile").style.display = "none";
+      document.getElementById("mobile-menu-toggle").style.display = "none";
+      document.querySelector(".app-content").style.display = "none"; // CORREÇÃO: Esconde o main content
 
       // CORREÇÃO: Garante que a caixa de login principal seja exibida.
       loginBox.classList.remove("hidden");
@@ -2999,66 +3566,66 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // MUDANÇA: Nova função para mostrar a tela "Continuar como"
   function showContinueAsScreen(user) {
-      const photoEl = document.getElementById('continue-as-photo');
-      const nameEl = document.getElementById('continue-as-name');
+    const photoEl = document.getElementById("continue-as-photo");
+    const nameEl = document.getElementById("continue-as-name");
 
-      photoEl.src = user.photoURL || "./assets/default-avatar.png";
-      nameEl.textContent = user.displayName || user.email;
+    photoEl.src = user.photoURL || "./assets/default-avatar.png";
+    nameEl.textContent = user.displayName || user.email;
 
-      loginBox.classList.add("hidden");
-      registerBox.classList.add("hidden");
-      continueAsBox.classList.remove("hidden");
+    loginBox.classList.add("hidden");
+    registerBox.classList.add("hidden");
+    continueAsBox.classList.remove("hidden");
   }
 
   // MUDANÇA: Nova função para inicializar a UI após o login confirmado
   async function initializeAppUI(user) {
-      // --- O USUÁRIO ESTÁ LOGADO ---
-      console.log("Usuário logado:", user.uid);
+    // --- O USUÁRIO ESTÁ LOGADO ---
+    console.log("Usuário logado:", user.uid);
 
-      // Carrega a lista de membros da equipe para usar na aplicação
-      await loadTeamMembers();
+    // Carrega a lista de membros da equipe para usar na aplicação
+    await loadTeamMembers();
 
-      // Carrega as categorias pré-definidas
-      await loadPredefinedCategories();
+    // Carrega as categorias pré-definidas
+    await loadPredefinedCategories();
 
-      // Atualiza a UI para o estado "logado"
-      userNameEl.textContent = user.displayName || user.email;
-      userPhotoEl.src = user.photoURL || "./assets/default-avatar.png";
+    // Atualiza a UI para o estado "logado"
+    userNameEl.textContent = user.displayName || user.email;
+    userPhotoEl.src = user.photoURL || "./assets/default-avatar.png";
 
-      // Mostra o card de gerenciamento de usuários se for admin
-      const adminCard = document.getElementById('admin-user-management-card');
-      if (user.role === 'admin') {
-          adminCard.classList.remove('hidden');
-      } else {
-          adminCard.classList.add('hidden');
-      }
+    // Mostra o card de gerenciamento de usuários se for admin
+    const adminCard = document.getElementById("admin-user-management-card");
+    if (user.role === "admin") {
+      adminCard.classList.remove("hidden");
+    } else {
+      adminCard.classList.add("hidden");
+    }
 
-      loginContainer.classList.add("hidden");
-      appHeader.classList.remove("hidden");
-      // MUDANÇA: Mostra os controles do usuário ao logar
-      document.getElementById('home-btn').style.display = 'inline-flex';
-      document.getElementById('notification-container').style.display = 'block';
-      document.getElementById('user-profile').style.display = 'flex';
-      // O botão de menu mobile é controlado por CSS, então não precisa de 'display: block' aqui.
+    loginContainer.classList.add("hidden");
+    appHeader.classList.remove("hidden");
+    // MUDANÇA: Mostra os controles do usuário ao logar
+    document.getElementById("home-btn").style.display = "inline-flex";
+    document.getElementById("notification-container").style.display = "block";
+    document.getElementById("user-profile").style.display = "flex";
+    // O botão de menu mobile é controlado por CSS, então não precisa de 'display: block' aqui.
 
-      document.querySelector('footer').style.display = 'block';
-      document.querySelector('.app-content').style.display = 'block'; // CORREÇÃO: Mostra o main content
+    document.querySelector("footer").style.display = "block";
+    document.querySelector(".app-content").style.display = "block"; // CORREÇÃO: Mostra o main content
 
-      userProfile.classList.remove("hidden");
-      dashboardView.classList.remove("hidden");
+    userProfile.classList.remove("hidden");
+    dashboardView.classList.remove("hidden");
 
-      // Começa a ouvir por atualizações nos serviços do usuário em tempo real
-      listenForServices(user);
+    // Começa a ouvir por atualizações nos serviços do usuário em tempo real
+    listenForServices(user);
 
-      // Começa a ouvir as solicitações para atualizar o selo do dashboard
-      listenForRequests();
+    // Começa a ouvir as solicitações para atualizar o selo do dashboard
+    listenForRequests();
 
-      // Começa a ouvir por notificações
-      listenForNotifications(user.uid);
+    // Começa a ouvir por notificações
+    listenForNotifications(user.uid);
 
-      // Verifica a URL para mostrar a view correta
-      handleRouteChange();
-      window.addEventListener("hashchange", handleRouteChange);
+    // Verifica a URL para mostrar a view correta
+    handleRouteChange();
+    window.addEventListener("hashchange", handleRouteChange);
   }
   // Evento de login com E-mail e Senha
   emailLoginForm.addEventListener("submit", async (e) => {
@@ -3092,14 +3659,17 @@ document.addEventListener("DOMContentLoaded", () => {
       hideLoading(); // Esconde o carregamento em caso de erro
       console.error("Erro no login com Google:", error);
       // MUDANÇA: Mensagem de erro mais específica
-      if (error.code === 'auth/operation-not-allowed') {
-          loginErrorEl.textContent = "Login com Google não está habilitado no Firebase. Verifique as configurações.";
-      } else if (error.code === 'auth/unauthorized-domain') {
-          loginErrorEl.textContent = "Este domínio não está autorizado para login. Use um servidor local (Live Server).";
-      } else if (error.code === 'auth/popup-closed-by-user') {
-          loginErrorEl.textContent = "A janela de login foi fechada antes da conclusão.";
+      if (error.code === "auth/operation-not-allowed") {
+        loginErrorEl.textContent =
+          "Login com Google não está habilitado no Firebase. Verifique as configurações.";
+      } else if (error.code === "auth/unauthorized-domain") {
+        loginErrorEl.textContent =
+          "Este domínio não está autorizado para login. Use um servidor local (Live Server).";
+      } else if (error.code === "auth/popup-closed-by-user") {
+        loginErrorEl.textContent =
+          "A janela de login foi fechada antes da conclusão.";
       } else {
-          loginErrorEl.textContent = "Falha ao autenticar com o Google.";
+        loginErrorEl.textContent = "Falha ao autenticar com o Google.";
       }
       loginErrorEl.classList.remove("hidden");
     }
@@ -3115,10 +3685,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // MUDANÇA: Validação do tamanho do nome
     if (name.length > 30) {
-        registerErrorEl.textContent = "O nome de usuário não pode ter mais de 30 caracteres.";
-        registerErrorEl.classList.remove("hidden");
-        hideLoading();
-        return;
+      registerErrorEl.textContent =
+        "O nome de usuário não pode ter mais de 30 caracteres.";
+      registerErrorEl.classList.remove("hidden");
+      hideLoading();
+      return;
     }
 
     showLoading();
@@ -3168,18 +3739,23 @@ document.addEventListener("DOMContentLoaded", () => {
     loginErrorEl.classList.add("hidden");
 
     if (!email) {
-      alert("Por favor, digite seu e-mail no campo correspondente antes de solicitar a redefinição de senha.");
+      alert(
+        "Por favor, digite seu e-mail no campo correspondente antes de solicitar a redefinição de senha."
+      );
       return;
     }
 
     showLoading();
     try {
       await sendPasswordResetEmail(auth, email);
-      alert(`Um e-mail para redefinição de senha foi enviado para ${email}. Verifique sua caixa de entrada e spam.`);
+      alert(
+        `Um e-mail para redefinição de senha foi enviado para ${email}. Verifique sua caixa de entrada e spam.`
+      );
     } catch (error) {
       console.error("Erro ao enviar e-mail de redefinição:", error);
-      loginErrorEl.textContent = "Não foi possível enviar o e-mail. Verifique se o e-mail está correto e tente novamente.";
-      if (error.code === 'auth/user-not-found') {
+      loginErrorEl.textContent =
+        "Não foi possível enviar o e-mail. Verifique se o e-mail está correto e tente novamente.";
+      if (error.code === "auth/user-not-found") {
         loginErrorEl.textContent = "Nenhum usuário encontrado com este e-mail.";
       }
       loginErrorEl.classList.remove("hidden");
@@ -3196,91 +3772,107 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // MUDANÇA: Popula o <select> apenas com as categorias pré-definidas pelo admin.
     const optionsHtml = predefinedCategories
-      .map(cat => `<option value="${cat.name}">${cat.name}</option>`)
-      .join('');
+      .map((cat) => `<option value="${cat.name}">${cat.name}</option>`)
+      .join("");
     select.innerHTML = `<option value="">Selecione uma categoria...</option>${optionsHtml}`;
   }
 
   // MUDANÇA: Nova função para inicializar a ordenação dos cartões de serviço
   function initializeServiceCardSorting() {
-    const containers = document.querySelectorAll('.service-card-grid');
-    containers.forEach(container => {
+    const containers = document.querySelectorAll(".service-card-grid");
+    containers.forEach((container) => {
       new Sortable(container, {
-        group: 'services', // Permite arrastar entre categorias
+        group: "services", // Permite arrastar entre categorias
         animation: 150,
-        ghostClass: 'sortable-ghost',
+        ghostClass: "sortable-ghost",
         onEnd: async (evt) => {
           const serviceId = evt.item.dataset.id;
           const newCategory = evt.to.dataset.category;
-          
+
           // Pega todos os IDs na nova lista e encontra o novo índice
-          const serviceIdsInNewList = Array.from(evt.to.children).map(card => card.dataset.id);
+          const serviceIdsInNewList = Array.from(evt.to.children).map(
+            (card) => card.dataset.id
+          );
           const newIndex = serviceIdsInNewList.indexOf(serviceId);
 
           // Atualiza o serviço no Firestore
           const serviceRef = doc(db, "services", serviceId);
-          await updateDoc(serviceRef, { category: newCategory, orderIndex: newIndex });
+          await updateDoc(serviceRef, {
+            category: newCategory,
+            orderIndex: newIndex,
+          });
           // O onSnapshot irá redesenhar a UI, mas a mudança visual é instantânea.
-        }
+        },
       });
     });
   }
 
   // MUDANÇA: Função para salvar a nova ordem das etapas
   async function saveStepOrder(serviceId, newStepOrder) {
-      const service = services.find(s => s.id === serviceId);
-      if (!service) return;
+    const service = services.find((s) => s.id === serviceId);
+    if (!service) return;
 
-      // Mapeia a nova ordem de nomes de volta para a estrutura completa das etapas
-      const originalStepsMap = new Map(service.steps.map(step => [step.name, step]));
-      const reorderedSteps = newStepOrder.map(stepName => originalStepsMap.get(stepName));
+    // Mapeia a nova ordem de nomes de volta para a estrutura completa das etapas
+    const originalStepsMap = new Map(
+      service.steps.map((step) => [step.name, step])
+    );
+    const reorderedSteps = newStepOrder.map((stepName) =>
+      originalStepsMap.get(stepName)
+    );
 
-      // Atualiza o objeto local e o Firestore
-      service.steps = reorderedSteps;
-      const serviceRef = doc(db, "services", serviceId);
-      try {
-          await updateDoc(serviceRef, { steps: reorderedSteps });
-      } catch (error) {
-          console.error("Erro ao reordenar etapas:", error);
-          alert("Falha ao salvar a nova ordem das etapas.");
-      }
+    // Atualiza o objeto local e o Firestore
+    service.steps = reorderedSteps;
+    const serviceRef = doc(db, "services", serviceId);
+    try {
+      await updateDoc(serviceRef, { steps: reorderedSteps });
+    } catch (error) {
+      console.error("Erro ao reordenar etapas:", error);
+      alert("Falha ao salvar a nova ordem das etapas.");
+    }
   }
 
   // MUDANÇA: Função para inicializar a ordenação das etapas no cartão
   function initializeCardStepSorting(listId, serviceId) {
-      const listElement = document.getElementById(listId);
-      if (listElement && !listElement.classList.contains('sortable-initialized')) {
-          new Sortable(listElement, {
-              animation: 150,
-              ghostClass: "sortable-ghost",
-              onEnd: (evt) => {
-                  const newOrder = Array.from(evt.target.children).map(item => item.dataset.stepName);
-                  saveStepOrder(serviceId, newOrder);
-              },
-          });
-          listElement.classList.add('sortable-initialized');
-      }
+    const listElement = document.getElementById(listId);
+    if (
+      listElement &&
+      !listElement.classList.contains("sortable-initialized")
+    ) {
+      new Sortable(listElement, {
+        animation: 150,
+        ghostClass: "sortable-ghost",
+        onEnd: (evt) => {
+          const newOrder = Array.from(evt.target.children).map(
+            (item) => item.dataset.stepName
+          );
+          saveStepOrder(serviceId, newOrder);
+        },
+      });
+      listElement.classList.add("sortable-initialized");
+    }
   }
 
   // MUDANÇA: Função para inicializar a ordenação na página de detalhes
   function initializeDetailStepSorting(serviceId) {
-      const listElement = document.getElementById('detailed-steps-list');
-      if (listElement) {
-          new Sortable(listElement, {
-              animation: 150,
-              handle: ".step-group-title", // Permite arrastar pelo título
-              ghostClass: "sortable-ghost",
-              onEnd: (evt) => {
-                  const newOrder = Array.from(evt.target.children).map(item => item.dataset.stepName);
-                  // Salva a nova ordem
-                  saveStepOrder(serviceId, newOrder).then(() => {
-                      // Redesenha a view para atualizar os índices, se necessário
-                      const service = services.find(s => s.id === serviceId);
-                      if (service) renderServiceDetail(service);
-                  });
-              },
+    const listElement = document.getElementById("detailed-steps-list");
+    if (listElement) {
+      new Sortable(listElement, {
+        animation: 150,
+        handle: ".step-group-title", // Permite arrastar pelo título
+        ghostClass: "sortable-ghost",
+        onEnd: (evt) => {
+          const newOrder = Array.from(evt.target.children).map(
+            (item) => item.dataset.stepName
+          );
+          // Salva a nova ordem
+          saveStepOrder(serviceId, newOrder).then(() => {
+            // Redesenha a view para atualizar os índices, se necessário
+            const service = services.find((s) => s.id === serviceId);
+            if (service) renderServiceDetail(service);
           });
-      }
+        },
+      });
+    }
   }
 
   // MUDANÇA: Nova função para inicializar a ordenação das etapas
@@ -3319,9 +3911,11 @@ document.addEventListener("DOMContentLoaded", () => {
     addServiceForm.querySelector('[name="serviceCategory"]').value =
       service.category || "";
     // MUDANÇA: Preenche a data de entrega
-    addServiceForm.querySelector('[name="serviceDueDate"]').value = service.dueDate || "";
+    addServiceForm.querySelector('[name="serviceDueDate"]').value =
+      service.dueDate || "";
     // MUDANÇA: Preenche a prioridade
-    addServiceForm.querySelector('[name="servicePriority"]').value = service.priority || "Média";
+    addServiceForm.querySelector('[name="servicePriority"]').value =
+      service.priority || "Média";
 
     // MUDANÇA: Limpa e preenche as etapas e sub-etapas corretamente
     stepsContainer.innerHTML = "";
@@ -3349,7 +3943,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Garante que o modal esteja em modo de "adição"
     currentEditServiceId = null; // Reset currentEditServiceId for new service
     modal.querySelector("h2").textContent = "Adicionar Novo Serviço";
-    modal.querySelector('.modal-footer button[type="submit"]').textContent = "Criar Serviço"; // Target the button in the footer
+    modal.querySelector('.modal-footer button[type="submit"]').textContent =
+      "Criar Serviço"; // Target the button in the footer
 
     modal.style.display = "block";
   }
@@ -3359,7 +3954,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const mentionSelect = document.getElementById("request-mention");
     if (mentionSelect) {
       const optionsHtml = teamMembers
-        .map(member => `<option value="${member.id}">${member.name}</option>`)
+        .map((member) => `<option value="${member.id}">${member.name}</option>`)
         .join("");
       mentionSelect.innerHTML = `<option value="">Ninguém em específico</option>${optionsHtml}`;
     }
@@ -3410,8 +4005,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const priority = formData.get("servicePriority"); // MUDANÇA: Pega a prioridade
 
     // MUDANÇA: Lógica para coletar etapas e sub-etapas
-    const stepGroups = stepsContainer.querySelectorAll(".step-group-modal");    
-    const steps = collectStepsFromForm(stepGroups, currentEditServiceId ? services.find(s => s.id === currentEditServiceId) : null);
+    const stepGroups = stepsContainer.querySelectorAll(".step-group-modal");
+    const steps = collectStepsFromForm(
+      stepGroups,
+      currentEditServiceId
+        ? services.find((s) => s.id === currentEditServiceId)
+        : null
+    );
 
     const serviceData = {
       name: serviceName,
@@ -3473,10 +4073,13 @@ document.addEventListener("DOMContentLoaded", () => {
         title,
         description,
         mentionedUserId: mentionedUserId || null, // Salva o ID ou null
-        mentionedUserName: mentionedUserId ? teamMemberMap.get(mentionedUserId) : null, // Salva o nome para referência
+        mentionedUserName: mentionedUserId
+          ? teamMemberMap.get(mentionedUserId)
+          : null, // Salva o nome para referência
         requesterId: currentUser.uid,
         requesterName: currentUser.displayName || currentUser.email,
-        requesterPhotoURL: currentUser.photoURL || './assets/default-avatar.png',
+        requesterPhotoURL:
+          currentUser.photoURL || "./assets/default-avatar.png",
         status: "pending", // 'pending', 'approved', 'rejected'
         createdAt: serverTimestamp(),
       });
@@ -3484,28 +4087,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // MUDANÇA: Cria a notificação se um usuário foi mencionado
       if (mentionedUserId) {
-          await addDoc(notificationsCollection, {
-              userId: mentionedUserId,
-              text: `Você foi mencionado na solicitação "${title}" por ${currentUser.displayName}.`,
-              link: "#/requests",
-              read: false,
-              createdAt: serverTimestamp(),
-          });
+        await addDoc(notificationsCollection, {
+          userId: mentionedUserId,
+          text: `Você foi mencionado na solicitação "${title}" por ${currentUser.displayName}.`,
+          link: "#/requests",
+          read: false,
+          createdAt: serverTimestamp(),
+        });
 
-          // MUDANÇA: Adiciona um documento na coleção 'mail' para disparar o e-mail.
-          // A extensão "Send Email" irá processar este documento.
-          const mentionedUserEmail = allUsersData.find(u => u.id === mentionedUserId)?.email;
-          if (mentionedUserEmail) {
-              await addDoc(collection(db, "mail"), {
-                  to: mentionedUserEmail,
-                  message: {
-                      subject: `[Painel de Gestão] Você foi mencionado em uma solicitação!`,
-                      html: `Olá, ${mentionedUserName}!<br><br>
+        // MUDANÇA: Adiciona um documento na coleção 'mail' para disparar o e-mail.
+        // A extensão "Send Email" irá processar este documento.
+        const mentionedUserEmail = allUsersData.find(
+          (u) => u.id === mentionedUserId
+        )?.email;
+        if (mentionedUserEmail) {
+          await addDoc(collection(db, "mail"), {
+            to: mentionedUserEmail,
+            message: {
+              subject: `[Painel de Gestão] Você foi mencionado em uma solicitação!`,
+              html: `Olá, ${mentionedUserName}!<br><br>
                              O usuário <strong>${currentUser.displayName}</strong> mencionou você na solicitação: <strong>"${title}"</strong>.<br><br>
                              Acesse o painel para ver os detalhes.`,
-                  },
-              });
-          }
+            },
+          });
+        }
       }
 
       alert("Solicitação enviada com sucesso!");
@@ -3520,92 +4125,108 @@ document.addEventListener("DOMContentLoaded", () => {
   // MUDANÇA: Função movida para o escopo global para ser reutilizável.
   // Coleta dados das etapas de um formulário (modal ou inline) e preserva o estado 'completed'.
   function collectStepsFromForm(stepGroups, originalService = null) {
-      return Array.from(stepGroups).map((group, stepIndex) => {
-          const stepName = group.querySelector('[name="stepName"]').value;
-          const stepColor = group.querySelector('[name="stepColor"]').value;
-          const stepResponsibleId = group.querySelector('[name="stepResponsible"]').value;
-          const substepInputs = group.querySelectorAll('[name="substepName"]');
+    return Array.from(stepGroups).map((group, stepIndex) => {
+      const stepName = group.querySelector('[name="stepName"]').value;
+      const stepColor = group.querySelector('[name="stepColor"]').value;
+      const stepResponsibleId = group.querySelector(
+        '[name="stepResponsible"]'
+      ).value;
+      const substepInputs = group.querySelectorAll('[name="substepName"]');
 
-          const subtasks = Array.from(substepInputs).map((input, subtaskIndex) => {
-              // --- LÓGICA DE MESCLAGEM CORRIGIDA ---
-              const subtaskId = input.dataset.id;
-              const newName = input.value.trim();              const newPendingDescription = group.querySelector(`select[data-id="${subtaskId}"]`)?.value.trim() || '';
+      const subtasks = Array.from(substepInputs).map((input, subtaskIndex) => {
+        // --- LÓGICA DE MESCLAGEM CORRIGIDA ---
+        const subtaskId = input.dataset.id;
+        const newName = input.value.trim();
+        const newPendingDescription =
+          group.querySelector(`select[data-id="${subtaskId}"]`)?.value.trim() ||
+          "";
 
-              // Tenta encontrar a sub-etapa original pelo índice. Isso é seguro porque a ordem não muda durante a edição.
-              const originalSubtask = originalService?.steps[stepIndex]?.subtasks[subtaskIndex];
+        // Tenta encontrar a sub-etapa original pelo índice. Isso é seguro porque a ordem não muda durante a edição.
+        const originalSubtask =
+          originalService?.steps[stepIndex]?.subtasks[subtaskIndex];
 
-              // Preserva o status 'completed' da sub-etapa original, se ela existir.
-              const isCompleted = originalSubtask ? originalSubtask.completed : false;
+        // Preserva o status 'completed' da sub-etapa original, se ela existir.
+        const isCompleted = originalSubtask ? originalSubtask.completed : false;
 
-              return {
-                  name: newName,
-                  completed: isCompleted,
-                  pendingDescription: newPendingDescription,
-              };
-          });
-
-          return { name: stepName, color: stepColor, responsibleId: stepResponsibleId || null, subtasks };
+        return {
+          name: newName,
+          completed: isCompleted,
+          pendingDescription: newPendingDescription,
+        };
       });
+
+      return {
+        name: stepName,
+        color: stepColor,
+        responsibleId: stepResponsibleId || null,
+        subtasks,
+      };
+    });
   }
 
   // --- MUDANÇA: Funções para o sistema de notificação ---
   function listenForNotifications(userId) {
-      notificationContainer.classList.remove("hidden");
+    notificationContainer.classList.remove("hidden");
 
-      if (unsubscribeFromNotifications) {
-          unsubscribeFromNotifications();
+    if (unsubscribeFromNotifications) {
+      unsubscribeFromNotifications();
+    }
+
+    const q = query(
+      notificationsCollection,
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc")
+    );
+
+    unsubscribeFromNotifications = onSnapshot(q, (snapshot) => {
+      const unreadCount = snapshot.docs.filter(
+        (doc) => !doc.data().read
+      ).length;
+      const notificationList = document.getElementById("notification-list");
+
+      // Atualiza o contador no sino
+      if (unreadCount > 0) {
+        notificationCount.textContent = unreadCount;
+        notificationCount.classList.remove("hidden");
+      } else {
+        notificationCount.classList.add("hidden");
       }
 
-      const q = query(
-          notificationsCollection,
-          where("userId", "==", userId),
-          orderBy("createdAt", "desc")
-      );
-
-      unsubscribeFromNotifications = onSnapshot(q, (snapshot) => {
-          const unreadCount = snapshot.docs.filter(doc => !doc.data().read).length;
-          const notificationList = document.getElementById("notification-list");
-
-          // Atualiza o contador no sino
-          if (unreadCount > 0) {
-              notificationCount.textContent = unreadCount;
-              notificationCount.classList.remove("hidden");
-          } else {
-              notificationCount.classList.add("hidden");
-          }
-
-          // Atualiza a lista no painel
-          if (snapshot.empty) {
-              notificationList.innerHTML = '<li class="notification-item empty">Nenhuma notificação.</li>';
-          } else {
-              notificationList.innerHTML = snapshot.docs.map(doc => {
-                  const notif = doc.data();
-                  return `
-                      <li class="notification-item ${notif.read ? 'read' : ''}">
+      // Atualiza a lista no painel
+      if (snapshot.empty) {
+        notificationList.innerHTML =
+          '<li class="notification-item empty">Nenhuma notificação.</li>';
+      } else {
+        notificationList.innerHTML = snapshot.docs
+          .map((doc) => {
+            const notif = doc.data();
+            return `
+                      <li class="notification-item ${notif.read ? "read" : ""}">
                           <a href="${notif.link}">${notif.text}</a>
                       </li>
                   `;
-              }).join('');
-          }
-      });
+          })
+          .join("");
+      }
+    });
   }
 
   async function markNotificationsAsRead() {
-      const q = query(
-          notificationsCollection,
-          where("userId", "==", currentUser.uid),
-          where("read", "==", false)
-      );
+    const q = query(
+      notificationsCollection,
+      where("userId", "==", currentUser.uid),
+      where("read", "==", false)
+    );
 
-      const snapshot = await getDocs(q);
-      if (snapshot.empty) return;
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return;
 
-      const batch = writeBatch(db);
-      snapshot.forEach(doc => {
-          batch.update(doc.ref, { read: true });
-      });
+    const batch = writeBatch(db);
+    snapshot.forEach((doc) => {
+      batch.update(doc.ref, { read: true });
+    });
 
-      await batch.commit();
+    await batch.commit();
   }
 
   // --- MUDANÇA: Funções auxiliares para criar elementos do formulário ---
@@ -3622,17 +4243,17 @@ document.addEventListener("DOMContentLoaded", () => {
       <button type="button" class="btn-icon btn-delete-substep" title="Remover Sub-etapa"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
     `;
     // MUDANÇA: Substitui o textarea por um select com opções pré-definidas.
-    const pendingSelect = document.createElement('select');
+    const pendingSelect = document.createElement("select");
     pendingSelect.name = `substepPendingDescription`;
     pendingSelect.dataset.id = uniqueId;
-    pendingSelect.classList.add('substep-pending-description');
+    pendingSelect.classList.add("substep-pending-description");
 
     const options = ['<option value="">Nenhuma pendência</option>'];
-    pendingOptions.forEach(opt => {
-        const isSelected = (pendingDescription === opt) ? 'selected' : '';
-        options.push(`<option value="${opt}" ${isSelected}>${opt}</option>`);
+    pendingOptions.forEach((opt) => {
+      const isSelected = pendingDescription === opt ? "selected" : "";
+      options.push(`<option value="${opt}" ${isSelected}>${opt}</option>`);
     });
-    pendingSelect.innerHTML = options.join('');
+    pendingSelect.innerHTML = options.join("");
 
     row.appendChild(pendingSelect);
     return row;
@@ -3652,8 +4273,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // MUDANÇA: Cria as opções para o select de responsáveis da etapa
     const responsibleOptions = teamMembers
-      .map(member => `<option value="${member.id}" ${stepResponsibleId === member.id ? 'selected' : ''}>${member.name}</option>`)
-      .join('');
+      .map(
+        (member) =>
+          `<option value="${member.id}" ${
+            stepResponsibleId === member.id ? "selected" : ""
+          }>${member.name}</option>`
+      )
+      .join("");
     const responsibleSelectHtml = `
       <select name="stepResponsible">
         <option value="">Ninguém</option>
@@ -3681,14 +4307,25 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="form-group">
         <label>Tipo de Sub-etapa</label>
         <select class="substep-type-selector">
-            <option value="text" ${initialType === "text" ? "selected" : ""}>Texto Livre</option>
-            <option value="units" ${initialType === "units" ? "selected" : ""}>4 Unidades</option>
+            <option value="text" ${
+              initialType === "text" ? "selected" : ""
+            }>Texto Livre</option>
+            <option value="units" ${
+              initialType === "units" ? "selected" : ""
+            }>4 Unidades</option>
         </select>
       </div>
       <div class="substeps-container-modal">
-        ${subtasks.map(st => createSubstepInputRow(st.name, st.pendingDescription).outerHTML).join("")}
+        ${subtasks
+          .map(
+            (st) =>
+              createSubstepInputRow(st.name, st.pendingDescription).outerHTML
+          )
+          .join("")}
       </div>
-      <button type="button" class="btn-secondary btn-add-substep" style="width: auto; padding: 5px 10px; font-size: 0.9em; margin-top: 10px; display: ${initialType === 'units' ? 'none' : 'inline-block'};">+ Sub-etapa</button>
+      <button type="button" class="btn-secondary btn-add-substep" style="width: auto; padding: 5px 10px; font-size: 0.9em; margin-top: 10px; display: ${
+        initialType === "units" ? "none" : "inline-block"
+      };">+ Sub-etapa</button>
     `;
 
     return group;

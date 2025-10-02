@@ -1989,6 +1989,9 @@ body.dark-theme .request-card[data-status="rejected"] {
   background-color: #e53935;
   border-color: #e53935;
 }
+/* MUDANÇA: Estilo para o botão de terceirizar */
+.request-actions .btn-delegate {
+}
 
 /* MUDANÇA: Estilo para o botão de resolver */
 .request-actions .btn-resolve {
@@ -2487,7 +2490,10 @@ body.dark-theme footer {
 
 .summary-card-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* MUDANÇA: Torna o resumo mais responsivo */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(200px, 1fr)
+  ); /* MUDANÇA: Torna o resumo mais responsivo */
   gap: 20px;
   height: 100%;
   align-content: center; /* MUDANÇA: Centraliza o conteúdo verticalmente */

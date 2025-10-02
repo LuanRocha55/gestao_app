@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +14,7 @@
     <!-- Link para a folha de estilos -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <header>
@@ -27,12 +29,18 @@
 
                 <!-- MUDANÇA: Botão Home movido para a direita -->
                 <a href="#/" class="btn-icon" id="home-btn" title="Início">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z" />
+                    </svg>
                 </a>
                 <!-- MUDANÇA: Container para o sino de notificação -->
-                <div id="notification-container"> <!-- CORREÇÃO: Removida a classe 'hidden' para que o sino sempre apareça -->
+                <div id="notification-container">
+                    <!-- CORREÇÃO: Removida a classe 'hidden' para que o sino sempre apareça -->
                     <div id="notification-bell" class="btn-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19Z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path
+                                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19Z" />
+                        </svg>
                         <span id="notification-count" class="badge hidden"></span>
                     </div>
                     <div id="notification-panel" class="hidden">
@@ -44,7 +52,10 @@
                 </div>
                 <!-- MUDANÇA: Botão de troca de tema com ícones de sol/lua -->
                 <button id="theme-toggle-btn" class="btn-icon" title="Alternar tema">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 0 1 20 12A8 8 0 0 1 12 20V4Z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 0 1 20 12A8 8 0 0 1 12 20V4Z" />
+                    </svg>
                 </button>
                 <!-- MUDANÇA: Perfil do usuário movido para o final dos controles -->
                 <div id="user-profile" class="user-profile-container hidden">
@@ -55,7 +66,9 @@
                     <button id="logout-btn" class="btn-secondary">Sair</button>
                 </div>
                 <button id="mobile-menu-toggle" class="btn-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+                    </svg>
                 </button>
             </div>
         </div>
@@ -82,7 +95,11 @@
             </form>
             <div class="auth-separator"><span>ou</span></div>
             <button id="google-login-btn" class="btn-google">
-                <svg viewBox="0 0 24 24"><path d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12.5C5,8.75 8.36,5.73 12.19,5.73C15.19,5.73 17.5,6.78 17.5,6.78L19.27,5C19.27,5 16.54,3 12.19,3C6.42,3 2.03,7.8 2.03,12.5C2.03,17.2 6.42,22 12.19,22C17.96,22 21.54,18.33 21.54,12.81C21.54,11.9 21.45,11.5 21.35,11.1Z"></path></svg>
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12.5C5,8.75 8.36,5.73 12.19,5.73C15.19,5.73 17.5,6.78 17.5,6.78L19.27,5C19.27,5 16.54,3 12.19,3C6.42,3 2.03,7.8 2.03,12.5C2.03,17.2 6.42,22 12.19,22C17.96,22 21.54,18.33 21.54,12.81C21.54,11.9 21.45,11.5 21.35,11.1Z">
+                    </path>
+                </svg>
                 Entrar com Google
             </button>
             <p class="auth-toggle">Não tem uma conta? <a href="#" id="toggle-to-register">Registre-se</a></p>
@@ -175,7 +192,10 @@
             <div class="dashboard-card">
                 <a href="#/services">
                     <div class="dashboard-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path
+                                d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z" />
+                        </svg>
                     </div>
                     <h2>Gerenciar Serviços</h2>
                     <p>Acesse e gerencie todos os serviços e suas etapas.</p>
@@ -185,7 +205,9 @@
             <div class="dashboard-card">
                 <a href="#/production-status">
                     <div class="dashboard-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z" />
+                        </svg>
                     </div>
                     <h2>Status da Produção</h2>
                     <p>Consulte o andamento de todos os materiais em produção.</p>
@@ -195,7 +217,9 @@
             <div class="dashboard-card">
                 <a href="#/statistics">
                     <div class="dashboard-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z" />
+                        </svg>
                     </div>
                     <h2>Estatísticas<span class="beta-tag">(beta)</span></h2>
                     <p>Visualize gráficos e dados sobre o desempenho da produção.</p>
@@ -204,7 +228,10 @@
             <div class="dashboard-card" id="requests-dashboard-card">
                 <a href="#/requests">
                     <div class="dashboard-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6,7.5L12,10.85L18,7.5L12,4.15M5,15.91L11,19.29V12.58L5,9.21V15.91Z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path
+                                d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6,7.5L12,10.85L18,7.5L12,4.15M5,15.91L11,19.29V12.58L5,9.21V15.91Z" />
+                        </svg>
                     </div>
                     <h2>Ver Solicitações</h2>
                     <p>Aprove ou rejeite novas solicitações da equipe.</p>
@@ -213,7 +240,10 @@
             <div class="dashboard-card">
                 <a href="#/profile">
                     <div class="dashboard-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path
+                                d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                        </svg>
                     </div>
                     <h2>Meu Perfil</h2>
                     <p>Atualize suas informações e foto de perfil.</p>
@@ -223,7 +253,10 @@
             <div class="dashboard-card hidden" id="admin-user-management-card">
                 <a href="#/users">
                     <div class="dashboard-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7A3,3 0 0,1 15,10A3,3 0 0,1 12,13A3,3 0 0,1 9,10A3,3 0 0,1 12,7M17.5,17.13C15.93,18.54 14,19.38 12,19.82C10,19.38 8.07,18.54 6.5,17.13C6.83,16.06 9.11,15 12,15C14.89,15 17.17,16.06 17.5,17.13Z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path
+                                d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7A3,3 0 0,1 15,10A3,3 0 0,1 12,13A3,3 0 0,1 9,10A3,3 0 0,1 12,7M17.5,17.13C15.93,18.54 14,19.38 12,19.82C10,19.38 8.07,18.54 6.5,17.13C6.83,16.06 9.11,15 12,15C14.89,15 17.17,16.06 17.5,17.13Z" />
+                        </svg>
                     </div>
                     <h2>Gerenciar Usuários</h2>
                     <p>Altere cargos e permissões dos membros da equipe.</p>
@@ -272,7 +305,8 @@
             <form id="add-service-form">
                 <div class="form-group">
                     <label for="serviceName">Nome do Serviço</label>
-                    <input type="text" id="serviceName" name="serviceName" placeholder="Ex: Desenvolvimento do App" required />
+                    <input type="text" id="serviceName" name="serviceName" placeholder="Ex: Desenvolvimento do App"
+                        required />
                 </div>
                 <div class="form-group">
                     <label for="responsibleName">Responsável</label>
@@ -323,7 +357,8 @@
             <form id="make-request-form">
                 <div class="form-group">
                     <label for="request-title">Título da Solicitação</label>
-                    <input type="text" id="request-title" name="requestTitle" placeholder="Ex: Criar novo material de marketing" required />
+                    <input type="text" id="request-title" name="requestTitle"
+                        placeholder="Ex: Criar novo material de marketing" required />
                 </div>
                 <div class="form-group">
                     <label for="request-mention">Mencionar Usuário (Opcional)</label>
@@ -334,7 +369,8 @@
                 </div>
                 <div class="form-group">
                     <label for="request-description">Descrição</label>
-                    <textarea id="request-description" name="requestDescription" rows="4" placeholder="Descreva o que precisa ser feito..." required></textarea>
+                    <textarea id="request-description" name="requestDescription" rows="4"
+                        placeholder="Descreva o que precisa ser feito..." required></textarea>
                 </div>
                 <button type="submit" class="btn-primary">Enviar Solicitação</button>
             </form>
@@ -362,6 +398,26 @@
             </form>
         </div>
     </div>
+
+    <!-- MUDANÇA: Modal para Terceirizar/Delegar Solicitação -->
+    <div id="delegate-request-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-btn">&times;</span>
+            <h2>Delegar Solicitação</h2>
+            <form id="delegate-request-form">
+                <input type="hidden" name="requestId">
+                <div class="form-group">
+                    <label for="delegate-user-select">Encaminhar para:</label>
+                    <select id="delegate-user-select" name="delegateUserId" required>
+                        <!-- Membros da equipe serão inseridos aqui -->
+                    </select>
+                </div>
+                <p>O usuário selecionado será notificado e a solicitação aparecerá na lista dele.</p>
+                <button type="submit" class="btn-primary" style="margin-top: 15px;">Confirmar Delegação</button>
+            </form>
+        </div>
+    </div>
+
     <!-- MUDANÇA: Indicador de Carregamento Global -->
     <div id="loading-overlay" class="hidden">
         <div class="spinner"></div>
@@ -373,4 +429,5 @@
     <!-- Link para o script JavaScript -->
     <script type="module" src="script.js"></script>
 </body>
+
 </html>
