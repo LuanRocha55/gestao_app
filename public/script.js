@@ -82,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userManagementView = document.getElementById("user-management-view");
   const categoryManagementView = document.getElementById("category-management-view");
   const productionStatusView = document.getElementById("production-status-view"); // MUDANÇA
+  const statisticsView = document.getElementById("statistics-view"); // MUDANÇA
   const addStepBtn = document.getElementById("add-step-btn");
   const dashboardView = document.getElementById("dashboard-view");
   const stepsContainer = document.getElementById("steps-container");
@@ -101,13 +102,39 @@ document.addEventListener("DOMContentLoaded", () => {
     direction: 'asc'
   };
 
+  // MUDANÇA: Define a ordem e os detalhes das colunas da tabela de produção
+  const productionStatusColumns = {
+    name: { label: 'Material', sortable: true, className: '' },
+    category: { label: 'Categoria', sortable: true, className: '' },
+    responsible: { label: 'Responsável', sortable: true, className: '' },
+    step: { label: 'Etapa Atual', sortable: true, className: 'col-step' },
+    priority: { label: 'Prioridade', sortable: true, className: 'col-priority' },
+    dueDate: { label: 'Entrega', sortable: true, className: 'col-due-date' },
+    progress: { label: 'Progresso', sortable: true, className: 'col-progress' }
+  };
+
+  // MUDANÇA: Carrega a ordem das colunas do localStorage ou usa a padrão
+  let productionStatusColumnOrder = JSON.parse(localStorage.getItem('productionStatusColumnOrder')) || [
+    'name', 'category', 'responsible', 'step', 'priority', 'dueDate', 'progress'
+  ];
+
   // MUDANÇA: Opções pré-definidas para o select de pendências.
+  // CORREÇÃO: Opções de pendência mais específicas para o fluxo de trabalho.
   const pendingOptions = [
     "Aguardando material do cliente",
-    "Revisão interna necessária",
-    "Bloqueado por outra tarefa",
-    "Aguardando aprovação",
-    "Dúvida técnica",
+    "Aguardando aprovação do cliente",
+    "Revisão interna",
+    "Ajustes solicitados - Conteudista",
+    "Aguardando validação - Conteudista",
+    "Ajustes solicitados - DI",
+    "Aguardando aprovação do layout - DI",
+    "Ajustes solicitados - PDF",
+    "Erro na exportação - PDF",
+    "Ajustes solicitados - AudioVisual",
+    "Aguardando aprovação do roteiro - AudioVisual",
+    "Ajustes solicitados - HTML",
+    "Aguardando publicação - AVA",
+    "Erro de compatibilidade - AVA"
   ];
 
   // --- MUDANÇA: Lógica para o seletor de tema ---
@@ -1173,15 +1200,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // MUDANÇA: Função para renderizar a página de Status da Produção
   function renderProductionStatusPage() {
+    // MUDANÇA: Função para salvar a ordem das colunas no localStorage
+    const saveColumnOrder = (newOrder) => {
+        productionStatusColumnOrder = newOrder;
+        localStorage.setItem('productionStatusColumnOrder', JSON.stringify(newOrder));
+    };
+
+    // MUDANÇA: Função para inicializar o SortableJS no cabeçalho da tabela
+    const initializeColumnSorting = () => {
+        const headerRow = productionStatusView.querySelector('thead tr');
+        if (headerRow) {
+            new Sortable(headerRow, { animation: 150, onEnd: (evt) => { 
+                const newOrder = Array.from(evt.target.children).map(th => th.dataset.columnKey); 
+                saveColumnOrder(newOrder); 
+                renderProductionStatusPage(); 
+            }});
+        }
+    };
+
     // CORREÇÃO: Função para atualizar apenas o corpo da tabela, evitando recarregar a página inteira.
     const updateTable = () => {
         const filterCategory = document.getElementById('status-filter-category').value;
         const filterStatus = document.getElementById('status-filter-status').value;
         const searchTerm = document.getElementById('status-search-input').value;
+        // MUDANÇA: Pega os valores dos novos filtros
+        const filterResponsible = document.getElementById('status-filter-responsible').value;
+        const filterPriority = document.getElementById('status-filter-priority').value;
+        const filterDueDate = document.getElementById('status-filter-due-date').value;
 
     const filteredServices = services.filter(service => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        
+        // MUDANÇA: Lógica de correspondência para os novos filtros
         const categoryMatch = filterCategory === 'all' || service.category === filterCategory;
+        const responsibleMatch = filterResponsible === 'all' || service.responsible === filterResponsible;
+        const priorityMatch = filterPriority === 'all' || (service.priority || 'Média') === filterPriority;
+
         const progress = calculateOverallProgress(service);
         let statusMatch = true;
         if (filterStatus === 'ready') {
@@ -1190,7 +1244,22 @@ document.addEventListener("DOMContentLoaded", () => {
         statusMatch = progress.percentage < 100;
         }
 
-        if (!categoryMatch || !statusMatch) return false;
+        let dueDateMatch = true;
+        if (filterDueDate !== 'all') {
+            const dueDateInfo = getDueDateStatus(service.dueDate);
+            if (filterDueDate === 'overdue') {
+                dueDateMatch = dueDateInfo.className === 'overdue';
+            } else if (filterDueDate === 'due-today') {
+                dueDateMatch = dueDateInfo.text.includes('Vence Hoje');
+            } else if (filterDueDate === 'due-week') {
+                // A classe 'due-soon' cobre de 1 a 7 dias, o que serve para "esta semana"
+                dueDateMatch = dueDateInfo.className === 'due-soon';
+            } else if (filterDueDate === 'no-due-date') {
+                dueDateMatch = !service.dueDate;
+            }
+        }
+
+        if (!categoryMatch || !statusMatch || !responsibleMatch || !priorityMatch || !dueDateMatch) return false;
         if (searchTerm === '') return true;
 
         // MUDANÇA: Expande a busca para incluir múltiplas colunas
@@ -1199,6 +1268,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const responsible = (teamMemberMap.get(service.responsible) || '').toLowerCase();
         
         let currentStepName = "n/a";
+        // MUDANÇA: Adiciona prioridade e data à busca
+        const priority = (service.priority || '').toLowerCase();
+        const dueDateInfo = getDueDateStatus(service.dueDate);
+        // Formata a data para a busca (ex: "vence hoje (dd/mm/yyyy)")
+        const dueDateText = dueDateInfo.text.toLowerCase();
+
+
         if (progress.percentage < 100) {
             const firstUnfinishedStep = service.steps.find(step => (step.subtasks || []).some(st => !st.completed));
             currentStepName = firstUnfinishedStep ? firstUnfinishedStep.name.toLowerCase() : "revisão final";
@@ -1206,7 +1282,7 @@ document.addEventListener("DOMContentLoaded", () => {
             currentStepName = "finalizado";
         }
 
-        return name.includes(lowerCaseSearchTerm) || category.includes(lowerCaseSearchTerm) || responsible.includes(lowerCaseSearchTerm) || currentStepName.includes(lowerCaseSearchTerm);
+        return name.includes(lowerCaseSearchTerm) || category.includes(lowerCaseSearchTerm) || responsible.includes(lowerCaseSearchTerm) || currentStepName.includes(lowerCaseSearchTerm) || priority.includes(lowerCaseSearchTerm) || dueDateText.includes(lowerCaseSearchTerm);
     });
 
     // MUDANÇA: Lógica de ordenação
@@ -1220,6 +1296,17 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (col === 'category') { valA = (a.category || '').toLowerCase(); valB = (b.category || '').toLowerCase(); }
         else if (col === 'responsible') { valA = (teamMemberMap.get(a.responsible) || '').toLowerCase(); valB = (teamMemberMap.get(b.responsible) || '').toLowerCase(); }
         else if (col === 'progress') { valA = calculateOverallProgress(a).percentage; valB = calculateOverallProgress(b).percentage; }
+        // MUDANÇA: Adiciona ordenação para prioridade e data
+        else if (col === 'priority') {
+            const priorityOrder = { 'alta': 3, 'média': 2, 'baixa': 1 };
+            valA = priorityOrder[(a.priority || 'média').toLowerCase()] || 0;
+            valB = priorityOrder[(b.priority || 'média').toLowerCase()] || 0;
+        }
+        else if (col === 'dueDate') {
+            // Trata datas nulas ou inválidas como "infinitas" para que fiquem no final
+            valA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+            valB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+        }
         else { valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); }
 
         if (valA < valB) return -1 * dir;
@@ -1227,67 +1314,77 @@ document.addEventListener("DOMContentLoaded", () => {
         return 0;
     });
 
-    const tableRowsHtml = filteredServices
-      .map(service => {
+    // MUDANÇA: Gera as linhas da tabela dinamicamente com base na ordem das colunas
+    const tableRowsHtml = filteredServices.map(service => {
         const progress = calculateOverallProgress(service);
         const responsibleName = teamMemberMap.get(service.responsible) || "Não atribuído";
-        
-        // MUDANÇA: Lógica de cor para o indicador de progresso
-        let progressColorClass = '';
-        if (progress.percentage === 0) {
-            progressColorClass = 'progress-yellow';
-        } else if (progress.percentage === 100) {
-            progressColorClass = 'progress-blue';
-        } else {
-            progressColorClass = 'progress-green';
-        }
+        const dueDateStatus = getDueDateStatus(service.dueDate);
+        const priority = service.priority || "Média";
+        const priorityTagHtml = `<span class="priority-tag-table ${priority.toLowerCase()}">${priority}</span>`;
 
-        let currentStepName = "N/A";
+        let progressColorClass = progress.percentage === 0 ? 'progress-yellow' : (progress.percentage === 100 ? 'progress-blue' : 'progress-green');
+        let currentStepName = "N/A", currentStepColor = 'var(--progress-bar-bg)';
         if (progress.percentage === 100) {
             currentStepName = "Finalizado";
         } else {
-            // Encontra a primeira etapa que tenha sub-etapas não concluídas
-            const firstUnfinishedStep = service.steps.find(step => 
-                (step.subtasks || []).some(st => !st.completed)
-            );
+            const firstUnfinishedStep = service.steps.find(step => (step.subtasks || []).some(st => !st.completed));
             if (firstUnfinishedStep) {
                 currentStepName = firstUnfinishedStep.name;
+                currentStepColor = firstUnfinishedStep.color || 'var(--progress-bar-bg)';
             } else {
-                currentStepName = "Revisão Final"; // Caso todas as sub-etapas estejam marcadas, mas o progresso não seja 100%
+                currentStepName = "Revisão Final";
             }
         }
 
-        return `
-            <tr>
-                <td><a href="#/service/${service.id}">${service.name}</a></td>
-                <td>${service.category || "N/A"}</td>
-                <td>${responsibleName}</td>
-                <td>${currentStepName}</td>
-                <td class="progress-cell">
-                    <span class="progress-dot ${progressColorClass}"></span>
-                    <span>${Math.round(progress.percentage)}%</span>
-                </td>
-            </tr>
-        `;
-      }).join('');
+        // Mapeia os dados para cada chave de coluna
+        const cellData = {
+            name: `<td><a href="#/service/${service.id}">${service.name}</a></td>`,
+            category: `<td>${service.category || "N/A"}</td>`,
+            responsible: `<td>${responsibleName}</td>`,
+            step: `<td class="step-cell"><span class="step-color-indicator" style="background-color: ${currentStepColor};"></span><span>${currentStepName}</span></td>`,
+            priority: `<td>${priorityTagHtml}</td>`,
+            dueDate: `<td class="due-date-cell ${dueDateStatus.className}">${dueDateStatus.text || 'N/A'}</td>`,
+            progress: `<td class="progress-cell"><span class="progress-dot ${progressColorClass}"></span><span>${Math.round(progress.percentage)}%</span></td>`
+        };
+
+        // Monta a linha na ordem correta
+        const rowCells = productionStatusColumnOrder.map(key => cellData[key]).join('');
+        return `<tr>${rowCells}</tr>`;
+    }).join('');
+
         const tableBody = productionStatusView.querySelector('tbody');
         if (tableBody) tableBody.innerHTML = tableRowsHtml;
     };
 
     const categoryOptions = ['<option value="all">Todas as Categorias</option>', ...predefinedCategories.map(cat => `<option value="${cat.name}">${cat.name}</option>`)].join('');
 
+    // MUDANÇA: Gera opções para os novos filtros
+    const responsibleOptions = ['<option value="all">Todos os Responsáveis</option>', ...teamMembers.map(m => `<option value="${m.id}">${m.name}</option>`)].join('');
+
+    // MUDANÇA: Gera o cabeçalho da tabela dinamicamente com base na ordem das colunas
+    const tableHeadersHtml = productionStatusColumnOrder.map(key => {
+        const col = productionStatusColumns[key];
+        return `<th data-sort="${key}" data-column-key="${key}" class="${col.className}">${col.label}</th>`;
+    }).join('');
+
     productionStatusView.innerHTML = `
         <div class="detail-header">
             <h2>Status da Produção</h2>
-            <a href="#/" class="btn-secondary">Voltar</a>
+            <div class="detail-header-actions">
+                <button id="export-status-csv-btn" class="btn-primary">Exportar para CSV</button>
+                <a href="#/" class="btn-secondary">Voltar</a>
+            </div>
         </div>
         <div class="detail-section">
-            <!-- MUDANÇA: Filtros para a tabela -->
-            <div class="table-filters">
+            <!-- MUDANÇA: Barra de pesquisa em uma linha separada -->
+            <div class="search-bar-wrapper">
                 <div class="form-group">
                     <label for="status-search-input">Buscar Informação</label>
                     <input type="search" id="status-search-input" placeholder="Digite a pesquisa aqui...">
                 </div>
+            </div>
+            <!-- MUDANÇA: Filtros para a tabela -->
+            <div class="table-filters">
                 <div class="form-group">
                     <label for="status-filter-category">Filtrar por Categoria</label>
                     <select id="status-filter-category">${categoryOptions}</select>
@@ -1300,16 +1397,36 @@ document.addEventListener("DOMContentLoaded", () => {
                         <option value="ready">Pronto</option>
                     </select>
                 </div>
+                <!-- MUDANÇA: Novos filtros adicionados -->
+                <div class="form-group">
+                    <label for="status-filter-responsible">Filtrar por Responsável</label>
+                    <select id="status-filter-responsible">${responsibleOptions}</select>
+                </div>
+                <div class="form-group">
+                    <label for="status-filter-priority">Filtrar por Prioridade</label>
+                    <select id="status-filter-priority">
+                        <option value="all">Todas</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Média">Média</option>
+                        <option value="Baixa">Baixa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="status-filter-due-date">Filtrar por Prazo</label>
+                    <select id="status-filter-due-date">
+                        <option value="all">Qualquer Prazo</option>
+                        <option value="overdue">Atrasado</option>
+                        <option value="due-today">Vence Hoje</option>
+                        <option value="due-week">Vence esta Semana</option>
+                        <option value="no-due-date">Sem Prazo</option>
+                    </select>
+                </div>
             </div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th data-sort="name">Material</th>
-                            <th data-sort="category">Categoria</th>
-                            <th data-sort="responsible">Responsável</th>
-                            <th data-sort="step">Etapa Atual</th>
-                            <th data-sort="progress">Progresso</th>
+                            ${tableHeadersHtml}
                         </tr>
                     </thead>
                     <tbody>
@@ -1321,7 +1438,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     // CORREÇÃO: Adiciona um único listener ao container dos filtros para chamar a atualização da tabela.
-    productionStatusView.querySelector('.table-filters').addEventListener('input', updateTable);
+    productionStatusView.querySelector('.detail-section').addEventListener('input', updateTable);
 
     // MUDANÇA: Adiciona listeners para os cabeçalhos da tabela para ordenação
     productionStatusView.querySelectorAll('thead th[data-sort]').forEach(th => {
@@ -1338,11 +1455,258 @@ document.addEventListener("DOMContentLoaded", () => {
                 productionStatusSort.column = newSortColumn;
                 productionStatusSort.direction = 'asc';
             }
-            renderProductionStatusPage(); // Redesenha a página inteira para atualizar os cabeçalhos
+            // CORREÇÃO: Redesenha a página para atualizar os cabeçalhos e aplica a nova ordenação
+            renderProductionStatusPage();
         });
     });
     updateTable(); // Chama a função uma vez para popular a tabela inicialmente.
+    initializeColumnSorting(); // MUDANÇA: Ativa o drag-and-drop nas colunas
   }
+
+  // MUDANÇA: Nova função para renderizar a página de Estatísticas
+  function renderStatisticsPage() {
+    // Limpa gráficos existentes para evitar sobreposição
+    if (window.myCharts) {
+        Object.values(window.myCharts).forEach(chart => chart.destroy());
+    }
+    window.myCharts = {};
+
+    statisticsView.innerHTML = `
+        <div class="detail-header">
+            <h2>Estatísticas de Serviços</h2>
+            <a href="#/" class="btn-secondary">Voltar</a>
+        </div>
+        <div class="statistics-grid">
+            <!-- CORREÇÃO: Layout 2x2 -->
+            <div class="statistic-card" id="status-chart-card">
+                <h3>Serviços por Status</h3>
+                <div class="chart-container">
+                    <canvas id="status-chart"></canvas>
+                </div>
+            </div>
+            <div class="statistic-card" id="summary-card">
+                <h3>Resumo Geral</h3>
+                <div class="summary-card-container" id="statistics-summary"></div>
+            </div>
+            <div class="statistic-card" id="category-chart-card">
+                <h3>Serviços por Categoria</h3>
+                <div class="chart-container">
+                    <canvas id="category-chart"></canvas>
+                </div>
+            </div>
+            <div class="statistic-card" id="responsible-chart-card">
+                <h3>Serviços por Responsável</h3>
+                <div class="chart-container">
+                    <canvas id="responsible-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 1. Dados para o gráfico de Status
+    const completedCount = services.filter(s => calculateOverallProgress(s).percentage === 100).length;
+    const inProgressCount = services.length - completedCount;
+
+    // 2. Dados para o gráfico de Categoria
+    const servicesByCategory = services.reduce((acc, service) => {
+        const category = service.category || 'Sem Categoria';
+        acc[category] = (acc[category] || 0) + 1;
+        return acc;
+    }, {});
+
+    // 3. Dados para o gráfico de Responsável
+    const servicesByResponsible = services.reduce((acc, service) => {
+        const responsibleName = teamMemberMap.get(service.responsible) || 'Não Atribuído';
+        acc[responsibleName] = (acc[responsibleName] || 0) + 1;
+        return acc;
+    }, {});
+
+    // 4. Dados para o Resumo
+    const totalServices = services.length;
+    const overdueServices = services.filter(s => getDueDateStatus(s.dueDate).className === 'overdue').length;
+    const totalProgress = services.reduce((sum, s) => sum + calculateOverallProgress(s).percentage, 0);
+    const averageProgress = totalServices > 0 ? Math.round(totalProgress / totalServices) : 0;
+
+    // MUDANÇA: Adiciona classe de destaque se houver serviços atrasados
+    const overdueHighlightClass = overdueServices > 0 ? 'has-overdue' : '';
+
+    // Renderiza o resumo
+    document.getElementById('statistics-summary').innerHTML = `
+        <div class="summary-item">
+            <div class="summary-item-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" /></svg></div>
+            <div class="summary-item-content">
+                <span class="summary-value">${totalServices}</span>
+                <span class="summary-label">Total de Serviços</span>
+            </div>
+        </div>
+        <div class="summary-item ${overdueHighlightClass}">
+            <div class="summary-item-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" /></svg></div>
+            <div class="summary-item-content">
+                <span class="summary-value">${overdueServices}</span>
+                <span class="summary-label">Serviços Atrasados</span>
+            </div>
+        </div>
+        <div class="summary-item summary-item-full-width">
+            <div class="summary-item-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z" /></svg></div>
+            <div class="summary-item-content">
+                <span class="summary-value">${averageProgress}%</span>
+                <span class="summary-label">Progresso Médio</span>
+            </div>
+        </div>
+    `;
+
+    // Cria os gráficos
+    createChart('status-chart', 'pie', {
+        labels: ['Em Produção', 'Concluídos'],
+        datasets: [{
+            label: 'Serviços',
+            data: [inProgressCount, completedCount],
+            backgroundColor: ['#FFB300', '#43A047'],
+        }]
+    });
+
+    createChart('category-chart', 'bar', {
+        labels: Object.keys(servicesByCategory),
+        datasets: [{
+            label: 'Nº de Serviços',
+            data: Object.values(servicesByCategory),
+            backgroundColor: '#007bff',
+        }]
+    });
+
+    createChart('responsible-chart', 'bar', {
+        labels: Object.keys(servicesByResponsible),
+        datasets: [{
+            label: 'Nº de Serviços Atribuídos',
+            data: Object.values(servicesByResponsible),
+            backgroundColor: '#87CEFA',
+        }]
+    }, { indexAxis: 'y' }); // Opção para gráfico de barras horizontal
+  }
+
+  // MUDANÇA: Função auxiliar para criar gráficos com Chart.js
+  function createChart(canvasId, type, data, options = {}) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+
+    // Configurações padrão para todos os gráficos
+    const defaultOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', }, title: { display: false, } }
+    };
+
+    const finalOptions = { ...defaultOptions, ...options };
+
+    window.myCharts[canvasId] = new Chart(ctx, {
+        type: type,
+        data: data,
+        options: finalOptions
+    });
+  }
+
+  // MUDANÇA: Nova função para exportar a tabela de status para CSV
+  function exportProductionStatusToCSV() {
+    // 1. Obter os dados filtrados e ordenados (mesma lógica da renderização da tabela)
+    const filterCategory = document.getElementById('status-filter-category').value;
+    const filterStatus = document.getElementById('status-filter-status').value;
+    const searchTerm = document.getElementById('status-search-input').value;
+    const filterResponsible = document.getElementById('status-filter-responsible').value;
+    const filterPriority = document.getElementById('status-filter-priority').value;
+    const filterDueDate = document.getElementById('status-filter-due-date').value;
+
+    const filteredServices = services.filter(service => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        const categoryMatch = filterCategory === 'all' || service.category === filterCategory;
+        const responsibleMatch = filterResponsible === 'all' || service.responsible === filterResponsible;
+        const priorityMatch = filterPriority === 'all' || (service.priority || 'Média') === filterPriority;
+
+        const progress = calculateOverallProgress(service);
+        let statusMatch = true;
+        if (filterStatus === 'ready') { statusMatch = progress.percentage === 100; } 
+        else if (filterStatus === 'in-progress') { statusMatch = progress.percentage < 100; }
+
+        let dueDateMatch = true;
+        if (filterDueDate !== 'all') {
+            const dueDateInfo = getDueDateStatus(service.dueDate);
+            if (filterDueDate === 'overdue') {
+                dueDateMatch = dueDateInfo.className === 'overdue';
+            } else if (filterDueDate === 'due-today') {
+                dueDateMatch = dueDateInfo.text.includes('Vence Hoje');
+            } else if (filterDueDate === 'due-week') {
+                dueDateMatch = dueDateInfo.className === 'due-soon';
+            } else if (filterDueDate === 'no-due-date') {
+                dueDateMatch = !service.dueDate;
+            }
+        }
+
+        if (!categoryMatch || !statusMatch || !responsibleMatch || !priorityMatch || !dueDateMatch) return false;
+        if (searchTerm === '') return true;
+
+        const name = service.name.toLowerCase();
+        const category = (service.category || '').toLowerCase();
+        const responsible = (teamMemberMap.get(service.responsible) || '').toLowerCase();
+        const priority = (service.priority || '').toLowerCase();
+        const dueDateText = getDueDateStatus(service.dueDate).text.toLowerCase();
+        const currentStepName = progress.percentage < 100 ? (service.steps.find(step => (step.subtasks || []).some(st => !st.completed))?.name || "revisão final").toLowerCase() : "finalizado";
+
+        return name.includes(lowerCaseSearchTerm) || category.includes(lowerCaseSearchTerm) || responsible.includes(lowerCaseSearchTerm) || currentStepName.includes(lowerCaseSearchTerm) || priority.includes(lowerCaseSearchTerm) || dueDateText.includes(lowerCaseSearchTerm);
+    });
+
+    // Ordena os serviços
+    filteredServices.sort((a, b) => {
+        const dir = productionStatusSort.direction === 'asc' ? 1 : -1;
+        const col = productionStatusSort.column;
+        let valA, valB;
+        if (col === 'name') { valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); }
+        else if (col === 'category') { valA = (a.category || '').toLowerCase(); valB = (b.category || '').toLowerCase(); }
+        else if (col === 'responsible') { valA = (teamMemberMap.get(a.responsible) || '').toLowerCase(); valB = (teamMemberMap.get(b.responsible) || '').toLowerCase(); }
+        else if (col === 'progress') { valA = calculateOverallProgress(a).percentage; valB = calculateOverallProgress(b).percentage; }
+        else if (col === 'priority') { const order = { 'alta': 3, 'média': 2, 'baixa': 1 }; valA = order[(a.priority || 'média').toLowerCase()] || 0; valB = order[(b.priority || 'média').toLowerCase()] || 0; }
+        else if (col === 'dueDate') { valA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity; valB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity; }
+        else { valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); }
+        if (valA < valB) return -1 * dir; if (valA > valB) return 1 * dir; return 0;
+    });
+
+    // 2. Montar o conteúdo do CSV
+    // CORREÇÃO: Usa ponto e vírgula como separador para compatibilidade com Excel (PT-BR)
+    const separator = ';';
+    const headers = ['Material', 'Categoria', 'Responsável', 'Etapa Atual', 'Prioridade', 'Entrega', 'Progresso (%)'];
+    const csvRows = [headers.join(separator)]; // Adiciona o cabeçalho
+
+    for (const service of filteredServices) {
+        const progress = calculateOverallProgress(service);
+        const responsibleName = teamMemberMap.get(service.responsible) || "Não atribuído";
+        const currentStepName = progress.percentage === 100 ? "Finalizado" : (service.steps.find(step => (step.subtasks || []).some(st => !st.completed))?.name || "Revisão Final");
+        const dueDateText = getDueDateStatus(service.dueDate).text || 'N/A';
+
+        // CORREÇÃO: Função para escapar aspas duplas dentro dos campos.
+        // O campo inteiro é envolvido por aspas para garantir que separadores (;) dentro do texto não quebrem o CSV.
+        const escape = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+
+        const row = [
+            escape(service.name),
+            escape(service.category),
+            escape(responsibleName),
+            escape(currentStepName),
+            escape(service.priority),
+            escape(dueDateText),
+            Math.round(progress.percentage)
+        ].join(separator);
+        csvRows.push(row);
+    }
+
+    // 3. Criar e baixar o arquivo
+    // CORREÇÃO: Adiciona o BOM (Byte Order Mark) para UTF-8, garantindo que o Excel leia os acentos corretamente.
+    const csvContent = '\uFEFF' + csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', 'status_producao.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
   // MUDANÇA: Função para ouvir e renderizar comentários em tempo real
   function listenForComments(serviceId) {
@@ -1413,6 +1777,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isUserManagement = hash.startsWith("#/users");
     const isCategoryManagement = hash.startsWith("#/categories");
     const isProductionStatus = hash.startsWith("#/production-status"); // MUDANÇA
+    const isStatistics = hash.startsWith("#/statistics"); // MUDANÇA
 
     // MUDANÇA: Limpa o listener de comentários se não estiver na página de detalhes
     if (!isServiceDetail && unsubscribeFromComments) { 
@@ -1429,9 +1794,10 @@ document.addEventListener("DOMContentLoaded", () => {
     userManagementView.classList.toggle("hidden", !isUserManagement);
     categoryManagementView.classList.toggle("hidden", !isCategoryManagement);
     productionStatusView.classList.toggle("hidden", !isProductionStatus); // MUDANÇA
+    statisticsView.classList.toggle("hidden", !isStatistics); // MUDANÇA
 
     // Adiciona uma classe ao body para estilizar o header de forma diferente
-    const isSubPage = isServiceDetail || isProfile || isRequests || isServices || isUserManagement || isCategoryManagement || isProductionStatus;
+    const isSubPage = isServiceDetail || isProfile || isRequests || isServices || isUserManagement || isCategoryManagement || isProductionStatus || isStatistics;
     document.body.classList.toggle("detail-view-active", isSubPage);
 
     // Carrega o conteúdo da view ativa
@@ -1470,6 +1836,8 @@ document.addEventListener("DOMContentLoaded", () => {
       renderCategoryManagementPage(); // MUDANÇA
     } else if (isProductionStatus) { // MUDANÇA
       renderProductionStatusPage();
+    } else if (isStatistics) { // MUDANÇA
+      renderStatisticsPage();
     } else if (isServices) {
       // A view padrão é a lista de serviços
       // MUDANÇA: Adiciona o botão de gerenciar categorias apenas para admins
@@ -1498,6 +1866,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const wrapper = document.getElementById("service-list-wrapper");
       if (wrapper) wrapper.innerHTML = '';
       renderServiceCards(); // Renderiza os cards iniciais
+    } else {
+        window.location.hash = '#/'; // Rota padrão se nenhuma corresponder
     }
   }
 
@@ -1512,6 +1882,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (e.target.id === 'make-request-btn') {
         openMakeRequestModal();
+    }
+
+    // MUDANÇA: Botão para exportar a tabela de status para CSV
+    if (e.target.id === 'export-status-csv-btn') {
+        exportProductionStatusToCSV();
     }
 
 
@@ -2255,7 +2630,6 @@ document.addEventListener("DOMContentLoaded", () => {
       requestsView.classList.add("hidden");
       categoryManagementView.classList.add("hidden");
       notificationContainer.classList.add("hidden");
-      userManagementView.classList.add("hidden");
 
       // Garante que o layout volte ao normal
       document.body.classList.remove("detail-view-active");

@@ -191,6 +191,16 @@
                     <p>Consulte o andamento de todos os materiais em produção.</p>
                 </a>
             </div>
+            <!-- MUDANÇA: Novo card para Estatísticas -->
+            <div class="dashboard-card">
+                <a href="#/statistics">
+                    <div class="dashboard-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z" /></svg>
+                    </div>
+                    <h2>Estatísticas <span class="beta-tag">(beta)</span></h2>
+                    <p>Visualize gráficos e dados sobre o desempenho da produção.</p>
+                </a>
+            </div>
             <div class="dashboard-card" id="requests-dashboard-card">
                 <a href="#/requests">
                     <div class="dashboard-card-icon">
@@ -228,6 +238,11 @@
 
         <!-- MUDANÇA: Nova seção para a página de Status da Produção -->
         <section id="production-status-view" class="hidden">
+            <!-- O conteúdo será inserido aqui pelo JavaScript -->
+        </section>
+
+        <!-- MUDANÇA: Nova seção para a página de Estatísticas -->
+        <section id="statistics-view" class="hidden">
             <!-- O conteúdo será inserido aqui pelo JavaScript -->
         </section>
 
@@ -353,6 +368,8 @@
     </div>
     <!-- MUDANÇA: Adiciona a biblioteca SortableJS para a funcionalidade de arrastar e soltar -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- MUDANÇA: Adiciona a biblioteca Chart.js para os gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Link para o script JavaScript -->
     <script type="module" src="script.js"></script>
 </body>

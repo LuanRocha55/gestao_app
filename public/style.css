@@ -628,6 +628,17 @@ main {
 .priority-tag.média { background-color: #FFB300; } /* Âmbar */
 .priority-tag.baixa { background-color: #43A047; } /* Verde */
 
+/* MUDANÇA: Estilo para a tag de prioridade na tabela */
+.priority-tag-table {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+}
+.priority-tag-table.alta { background-color: #E53935; } .priority-tag-table.média { background-color: #FFB300; } .priority-tag-table.baixa { background-color: #43A047; }
+
 /* MUDANÇA: Estilo da tag na página de detalhes */
 .priority-tag-detail {
     font-weight: 700;
@@ -662,7 +673,13 @@ main {
     transition: opacity 0.2s ease, color 0.3s ease, background-color 0.2s ease;
 }
 
-.step-item .btn-delete-subtask-detail {
+.step-item .btn-delete-.summary-item-icon svg {
+    width: 36px;
+    height: 36px;
+    fill: var(--accent-color);
+    opacity: 0.8;
+}
+btask-detail {
     visibility: hidden;
     opacity: 0;
 }
@@ -1175,17 +1192,17 @@ body.detail-view-active .header-content {
 }
 
 /* MUDANÇA: Aplica o mesmo layout para a view de detalhes e de perfil */
-#service-container, #task-detail-view, #profile-view, #user-management-view, #category-management-view, #production-status-view {
+#task-detail-view, #profile-view, #user-management-view, #category-management-view {
     padding: 40px;
     max-width: 900px;
     margin: 0 auto;
 }
 
 /* MUDANÇA: Padroniza as views de lista */
-#service-container,
-#requests-view, #dashboard-view {
+#service-container, #production-status-view,
+#requests-view, #dashboard-view, #statistics-view {
     padding: 40px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
@@ -1244,6 +1261,15 @@ body.detail-view-active .header-content {
     margin-bottom: 10px;
 }
 
+.dashboard-card h2 .beta-tag {
+    color: #E53935;
+    font-size: 0.6em;
+    vertical-align: super;
+    font-weight: 600;
+    margin-left: 5px;
+    text-transform: uppercase;
+}
+
 .dashboard-badge {
     position: absolute;
     top: 15px;
@@ -1294,6 +1320,8 @@ body.detail-view-active .header-content {
     background-color: var(--card-bg);
     padding: 25px;
     border-radius: 10px;
+    /* MUDANÇA: Adiciona uma borda superior colorida para destaque */
+    border-top: 4px solid var(--accent-color);
     margin-bottom: 30px;    box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
 }
 
@@ -2044,8 +2072,16 @@ body.dark-theme .request-card[data-status="rejected"] {
 }
 
 /* --- MUDANÇA: Estilos para a Tabela de Status da Produção --- */
+/* MUDANÇA: Adiciona sombra interna para indicar que há mais conteúdo para rolar no mobile */
 .table-container {
     overflow-x: auto; /* Permite scroll horizontal em telas pequenas */
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        box-shadow: inset -10px 0 8px -8px rgba(0,0,0,0.1);
+    }
 }
 
 table {
@@ -2100,12 +2136,28 @@ table thead th.sort-active::after { opacity: 1; }
 table thead th.sort-asc::after { border-bottom-color: var(--accent-color); }
 table thead th.sort-desc::after { border-top-color: var(--accent-color); }
 
-/* REVISÃO: Reajusta a largura de todas as colunas para uma distribuição ideal */
-table th:nth-child(1), table td:nth-child(1) { width: 30%; padding-left: 25px; } /* Material */
-table th:nth-child(2), table td:nth-child(2) { width: 17%; } /* Categoria */
-table th:nth-child(3), table td:nth-child(3) { width: 18%; } /* Responsável */
-table th:nth-child(4), table td:nth-child(4) { width: 18%; } /* Etapa Atual */
-table th:nth-child(5), table td:nth-child(5) { width: 16%; } /* Progresso */
+/* MUDANÇA: Substitui larguras fixas por larguras mínimas para responsividade */
+table th[data-sort="name"], table td:has(a[href*="#/service/"]) { min-width: 250px; } /* Material */
+table th[data-sort="category"] { min-width: 150px; } /* Categoria */
+table th[data-sort="responsible"] { min-width: 180px; } /* Responsável */
+table th[data-sort="step"] { min-width: 180px; } /* Etapa Atual */
+table th[data-sort="priority"] { min-width: 120px; text-align: center; } /* Prioridade */
+table th[data-sort="dueDate"] { min-width: 180px; text-align: center; } /* Entrega */
+table th[data-sort="progress"] { min-width: 120px; } /* Progresso */
+
+/* MUDANÇA: Estilos para a célula da etapa atual */
+.step-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.step-color-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0,0,0,0.1);
+}
 
 /* MUDANÇA: Estilos para o indicador de progresso */
 .progress-cell {
@@ -2115,6 +2167,14 @@ table th:nth-child(5), table td:nth-child(5) { width: 16%; } /* Progresso */
     gap: 8px;
     white-space: nowrap; /* CORREÇÃO: Impede que o conteúdo da célula quebre a linha */
 }
+
+/* MUDANÇA: Estilos para a célula de data de entrega */
+.due-date-cell {
+    font-weight: 600;
+}
+.due-date-cell.due-soon { color: #856404; }
+.due-date-cell.overdue { color: #721c24; }
+
 .progress-dot {
     width: 10px;
     height: 10px;
@@ -2167,4 +2227,19 @@ footer {
 
 body.dark-theme footer {
     color: #000000;
+}
+
+/* MUDANÇA: Ajusta o wrapper da barra de pesquisa para ocupar uma linha */
+#production-status-view .search-bar-wrapper {
+    margin-bottom: 20px;
+    max-width: none; /* Permite ocupar a largura do container */
+}
+
+/* MUDANÇA: Ajusta o grid de filtros para acomodar mais itens */
+.table-filters {
+    /* CORREÇÃO: Altera para flexbox para manter os filtros em uma única linha */
+    display: flex;
+    gap: 20px;
+    overflow-x: auto; /* Adiciona scroll horizontal se os itens não couberem */
+    padding-bottom: 10px; /* Espaço para a barra de scroll não sobrepor o conteúdo */
 }
