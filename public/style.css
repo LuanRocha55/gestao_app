@@ -1375,6 +1375,14 @@ body.detail-view-active .header-content {
 .detail-header h2 {
   color: var(--accent-color);
   font-size: 2em;
+  /* MUDANÇA: Adiciona flexbox para alinhar o botão de copiar */
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+/* MUDANÇA: Estilo para o botão de copiar nome do serviço */
+.btn-copy-service-name {
+  opacity: 0.5;
 }
 
 .requests-header h2 {
@@ -2378,6 +2386,19 @@ body.dark-theme footer {
   padding-bottom: 10px; /* Espaço para a barra de scroll não sobrepor o conteúdo */
 }
 
+/* --- MUDANÇA: Estilos para a seção de cabeçalho da página de estatísticas --- */
+.statistics-header-section {
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* --- MUDANÇA: Estilos para o filtro da página de estatísticas --- */
+.statistics-filters {
+  max-width: 300px; /* Limita a largura do filtro */
+}
+
 /* --- MUDANÇA: Estilos Refinados para a Página de Estatísticas --- */
 .statistics-grid {
   display: grid;
@@ -2431,15 +2452,36 @@ body.dark-theme footer {
 
 .summary-card-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* MUDANÇA: Torna o resumo mais responsivo */
   gap: 20px;
   height: 100%;
   align-content: center; /* MUDANÇA: Centraliza o conteúdo verticalmente */
 }
 
 .summary-item {
-  text-align: center;
+  /* MUDANÇA: Usa flexbox para alinhar o ícone e o texto */
+  display: flex;
+  align-items: center;
+  gap: 15px;
   padding: 10px;
+}
+
+/* MUDANÇA: Estilos para o container do ícone no resumo */
+.summary-item-icon {
+  flex-shrink: 0; /* Impede que o ícone encolha */
+}
+
+.summary-item-icon svg {
+  width: 40px; /* CORREÇÃO: Reduz o tamanho do ícone */
+  height: 40px; /* CORREÇÃO: Reduz o tamanho do ícone */
+  fill: var(--card-bg);
+  opacity: 0.7; /* CORREÇÃO: Deixa o ícone um pouco mais sutil */
+}
+
+/* MUDANÇA: Container para o valor e o rótulo */
+.summary-item-content {
+  text-align: left; /* Alinha o texto à esquerda dentro deste container */
+  flex-grow: 1;
 }
 
 /* MUDANÇA: Estilo para destacar os números no resumo */
@@ -2477,4 +2519,11 @@ body.dark-theme .summary-item.has-overdue .summary-value {
   opacity: 0.6;
   text-align: center;
   padding: 20px;
+}
+
+@media (max-width: 768px) {
+  /* MUDANÇA: Ajusta o grid do card de resumo para uma única coluna no mobile */
+  .summary-card-container {
+    grid-template-columns: 1fr;
+  }
 }

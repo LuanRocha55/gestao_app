@@ -912,7 +912,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let headerActionsHtml;
 
     // Atualiza o título do serviço
-    serviceNameEl.innerHTML = `${service.name} ${progress.percentage === 100 ? '<span class="completion-badge">Concluído</span>' : ''}`;
+    // MUDANÇA: Adiciona um botão para copiar o nome do serviço
+    serviceNameEl.innerHTML = `
+        <span id="detail-service-name-text">${service.name}</span>
+        <button class="btn-icon btn-copy-service-name" title="Copiar nome do serviço">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg>
+        </button>
+        ${progress.percentage === 100 ? '<span class="completion-badge">Concluído</span>' : ''}`;
 
     if (isEditing) {
         // MODO EDIÇÃO
@@ -1556,29 +1562,39 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // MUDANÇA: Nova função para renderizar a página de Estatísticas
+  // CORREÇÃO: A função agora renderiza a estrutura e chama uma função interna para atualizar os dados.
   function renderStatisticsPage() {
-    // Limpa gráficos existentes para evitar sobreposição
-    if (window.myCharts) {
-        Object.values(window.myCharts).forEach(chart => chart.destroy());
-    }
-    window.myCharts = {};
-
     statisticsView.innerHTML = `
         <div class="detail-header">
             <h2>Estatísticas de Serviços</h2>
             <a href="#/" class="btn-secondary">Voltar</a>
         </div>
-        <div class="statistics-grid">
-            <!-- CORREÇÃO: Layout 2x2 -->
-            <div class="statistic-card" id="status-chart-card">
-                <h3>Serviços por Status</h3>
-                <div class="chart-container">
-                    ${createChartPlaceholder()}
+        <!-- MUDANÇA: Filtro e Resumo agora ficam acima da grade de gráficos -->
+        <div class="statistics-header-section">
+            <div class="statistics-filters">
+                <div class="form-group">
+                    <label for="stats-period-filter">Mostrar dados de:</label>
+                    <select id="stats-period-filter">
+                        <option value="all">Todo o período</option>
+                        <option value="last7days">Últimos 7 dias</option>
+                        <option value="last30days">Últimos 30 dias</option>
+                        <option value="thisMonth">Este mês</option>
+                        <option value="lastMonth">Mês passado</option>
+                    </select>
                 </div>
             </div>
             <div class="statistic-card" id="summary-card">
                 <h3>Resumo Geral</h3>
                 <div class="summary-card-container" id="statistics-summary">${createChartPlaceholder("Carregando resumo...")}</div>
+            </div>
+        </div>
+
+        <div class="statistics-grid">
+            <div class="statistic-card" id="status-chart-card">
+                <h3>Serviços por Status</h3>
+                <div class="chart-container">
+                    ${createChartPlaceholder()}
+                </div>
             </div>
             <div class="statistic-card" id="category-chart-card">
                 <h3>Serviços por Categoria</h3>
@@ -1592,97 +1608,210 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${createChartPlaceholder()}
                 </div>
             </div>
+            <!-- MUDANÇA: Novo card para o gráfico de prioridades -->
+            <div class="statistic-card" id="priority-chart-card">
+                <h3>Serviços por Prioridade</h3>
+                <div class="chart-container">
+                    ${createChartPlaceholder()}
+                </div>
+            </div>
         </div>
     `;
 
-    // 1. Dados para o gráfico de Status
-    const completedCount = services.filter(s => calculateOverallProgress(s).percentage === 100).length;
-    // CORREÇÃO: Garante que a renderização dos gráficos aconteça após o DOM ser atualizado.
-    setTimeout(() => {
+    // Adiciona o listener para o filtro
+    document.getElementById('stats-period-filter').addEventListener('change', updateStatisticsCharts);
 
-    // Se não houver serviços, exibe mensagens nos placeholders
-    if (services.length === 0) {
-        document.querySelectorAll('.chart-container').forEach(c => c.innerHTML = createChartPlaceholder("Nenhum serviço para exibir."));
-        document.getElementById('statistics-summary').innerHTML = createChartPlaceholder("Nenhum dado para resumir.");
-        return;
-    }
-    const inProgressCount = services.length - completedCount;
+    // Chama a função para popular os gráficos pela primeira vez
+    updateStatisticsCharts();
+  }
 
-    // 2. Dados para o gráfico de Categoria
-    const servicesByCategory = services.reduce((acc, service) => {
-        const category = service.category || 'Sem Categoria';
-        acc[category] = (acc[category] || 0) + 1;
-        return acc;
-    }, {});
+  // MUDANÇA: Nova função para atualizar os gráficos com base no filtro de período
+  function updateStatisticsCharts() {
+      const period = document.getElementById('stats-period-filter').value;
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // 3. Dados para o gráfico de Responsável
-    const servicesByResponsible = services.reduce((acc, service) => {
-        const responsibleName = teamMemberMap.get(service.responsible) || 'Não Atribuído';
-        acc[responsibleName] = (acc[responsibleName] || 0) + 1;
-        return acc;
-    }, {});
+      const filteredServices = services.filter(service => {
+          if (!service.createdAt?.toDate) return false; // Ignora serviços sem data
+          const createdAt = service.createdAt.toDate();
 
-    // 4. Dados para o Resumo
-    const totalServices = services.length;
-    const overdueServices = services.filter(s => getDueDateStatus(s.dueDate).className === 'overdue').length;
-    const totalProgress = services.reduce((sum, s) => sum + calculateOverallProgress(s).percentage, 0);
-    const averageProgress = totalServices > 0 ? Math.round(totalProgress / totalServices) : 0;
+          switch (period) {
+              case 'last7days':
+                  const sevenDaysAgo = new Date(today);
+                  sevenDaysAgo.setDate(today.getDate() - 7);
+                  return createdAt >= sevenDaysAgo;
+              case 'last30days':
+                  const thirtyDaysAgo = new Date(today);
+                  thirtyDaysAgo.setDate(today.getDate() - 30);
+                  return createdAt >= thirtyDaysAgo;
+              case 'thisMonth':
+                  return createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear();
+              case 'lastMonth':
+                  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                  const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                  return createdAt >= lastMonth && createdAt < startOfThisMonth;
+              case 'all':
+              default:
+                  return true;
+          }
+      });
 
-    // MUDANÇA: Adiciona classe de destaque se houver serviços atrasados
-    const overdueHighlightClass = overdueServices > 0 ? 'has-overdue' : '';
+      // Limpa gráficos existentes para evitar sobreposição
+      if (window.myCharts) {
+          Object.values(window.myCharts).forEach(chart => chart.destroy());
+      }
+      window.myCharts = {};
 
-    // Renderiza o resumo
-    document.getElementById('statistics-summary').innerHTML = `
-        <div class="summary-item">
-            <span class="summary-value">${totalServices}</span>
-            <span class="summary-label">Total de Serviços</span>
-        </div>
-        <div class="summary-item ${overdueHighlightClass}">
-            <span class="summary-value">${overdueServices}</span>
-            <span class="summary-label">Serviços Atrasados</span>
-        </div>
-        <div class="summary-item" style="grid-column: 1 / -1;">
-            <span class="summary-value">${averageProgress}%</span>
-            <span class="summary-label">Progresso Médio</span>
-        </div>
-    `;
+      // Garante que a renderização dos gráficos aconteça após o DOM ser atualizado.
+      setTimeout(() => {
+          // Se não houver serviços, exibe mensagens nos placeholders
+          if (filteredServices.length === 0) {
+              document.querySelectorAll('.chart-container').forEach(c => c.innerHTML = createChartPlaceholder("Nenhum serviço para exibir neste período."));
+              document.getElementById('statistics-summary').innerHTML = createChartPlaceholder("Nenhum dado para resumir.");
+              return;
+          }
 
-    // Cria os gráficos
-    const statusChartContainer = document.querySelector('#status-chart-card .chart-container');
-    statusChartContainer.innerHTML = '<canvas id="status-chart"></canvas>';
-    // MUDANÇA: Alterado para 'doughnut' e adicionado espaçamento para um visual mais moderno
-    createChart('status-chart', 'doughnut', {
-        labels: ['Em Produção', 'Concluídos'],
-        datasets: [{
-            data: [inProgressCount, completedCount],
-            // MUDANÇA: Cores ajustadas para Verde (Em Progresso) e Azul (Concluído)
-            backgroundColor: ['#43A047', '#007bff'],
-            borderColor: 'var(--card-bg)', // Cor de fundo do card para criar o espaçamento
-            borderWidth: 2, // CORREÇÃO: Reduz a largura da borda para um visual mais sutil
-            hoverBorderColor: 'var(--card-bg)',
-            cutout: '70%', // Transforma o gráfico de pizza em rosca (doughnut)
-        }]
-    },
-    // MUDANÇA: Opções individuais para este gráfico (adiciona legenda na parte inferior)
-    {
-        plugins: {
-            legend: {
-                display: true,
-                position: 'bottom'
-            }
-        }
-    });
+          // 1. Dados para o gráfico de Status
+          const completedCount = filteredServices.filter(s => calculateOverallProgress(s).percentage === 100).length;
+          const inProgressCount = filteredServices.length - completedCount;
+
+          // 2. Dados para o gráfico de Categoria
+          const servicesByCategory = filteredServices.reduce((acc, service) => {
+              const category = service.category || 'Sem Categoria';
+              acc[category] = (acc[category] || 0) + 1;
+              return acc;
+          }, {});
+
+          // 3. Dados para o gráfico de Responsável
+          const servicesByResponsible = filteredServices.reduce((acc, service) => {
+              const responsibleName = teamMemberMap.get(service.responsible) || 'Não Atribuído';
+              acc[responsibleName] = (acc[responsibleName] || 0) + 1;
+              return acc;
+          }, {});
+
+          // MUDANÇA: Adiciona dados para o novo gráfico de Prioridade
+          const servicesByPriority = filteredServices.reduce((acc, service) => {
+              const priority = service.priority || 'Média';
+              acc[priority] = (acc[priority] || 0) + 1;
+              return acc;
+          }, {});
+
+          // MUDANÇA: Calcula os dados adicionais para o resumo
+          const topCategory = Object.entries(servicesByCategory).reduce((top, current) => current[1] > top[1] ? current : top, ["N/A", 0]);
+          const topResponsible = Object.entries(servicesByResponsible).reduce((top, current) => current[1] > top[1] ? current : top, ["N/A", 0]);
+          const highPriorityCount = servicesByPriority['Alta'] || 0;
+
+          // MUDANÇA: Função auxiliar para encontrar o valor máximo em um objeto
+          const findTopEntry = (dataObject) => {
+              let topEntry = ["N/A", -1];
+              for (const [key, value] of Object.entries(dataObject)) {
+                  if (value > topEntry[1]) {
+                      topEntry = [key, value];
+                  }
+              }
+              // Retorna o nome e a contagem, ou N/A se o objeto estiver vazio
+              return topEntry[1] > 0 ? `${topEntry[0]} (${topEntry[1]})` : "N/A";
+          };
+          const topCategoryText = findTopEntry(servicesByCategory);
+          const topResponsibleText = findTopEntry(servicesByResponsible);
+
+          // 4. Dados para o Resumo
+          const totalServices = filteredServices.length;
+          const overdueServices = filteredServices.filter(s => getDueDateStatus(s.dueDate).className === 'overdue').length;
+          const totalProgress = filteredServices.reduce((sum, s) => sum + calculateOverallProgress(s).percentage, 0);
+          const averageProgress = totalServices > 0 ? Math.round(totalProgress / totalServices) : 0;
+
+          const overdueHighlightClass = overdueServices > 0 ? 'has-overdue' : '';
+
+          document.getElementById('statistics-summary').innerHTML = `
+              <!-- MUDANÇA: Adiciona um ícone e um container para o conteúdo de texto -->
+              <div class="summary-item">
+                  <div class="summary-item-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z" /></svg>
+                  </div>
+                  <div class="summary-item-content">
+                      <span class="summary-value">${totalServices}</span>
+                      <span class="summary-label">Total de Serviços</span>
+                  </div>
+              </div>
+              <div class="summary-item ${overdueHighlightClass}">
+                  <div class="summary-item-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z" /></svg>
+                  </div>
+                  <div class="summary-item-content">
+                      <span class="summary-value">${overdueServices}</span>
+                      <span class="summary-label">Serviços Atrasados</span>
+                  </div>
+              </div>
+              <div class="summary-item">
+                  <div class="summary-item-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M10,17L5,12L6.41,10.59L10,14.17L17.59,6.58L19,8L10,17Z"/></svg>
+                  </div>
+                  <div class="summary-item-content">
+                      <span class="summary-value">${completedCount}</span>
+                      <span class="summary-label">Serviços Concluídos</span>
+                  </div>
+              </div>
+              <div class="summary-item ${highPriorityCount > 0 ? 'has-overdue' : ''}">
+                  <div class="summary-item-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" /></svg>
+                  </div>
+                  <div class="summary-item-content">
+                      <span class="summary-value">${highPriorityCount}</span>
+                      <span class="summary-label">Prioridade Alta</span>
+                  </div>
+              </div>
+              <div class="summary-item">
+                  <div class="summary-item-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,16C14.21,16 16,14.21 16,12C16,9.79 14.21,8 12,8C9.79,8 8,9.79 8,12C8,14.21 9.79,16 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M10,4L12,2L14,4H10M14,20L12,22L10,20H14M4,10L2,12L4,14V10M20,10V14L22,12L20,10M17.66,6.34L19.07,4.93L20.5,6.34L19.07,7.75L17.66,6.34M6.34,17.66L4.93,19.07L6.34,20.5L7.75,19.07L6.34,17.66M4.93,6.34L6.34,4.93L7.75,6.34L6.34,7.75L4.93,6.34M19.07,17.66L17.66,19.07L19.07,20.5L20.5,19.07L19.07,17.66Z" /></svg>
+                  </div>
+                  <div class="summary-item-content">
+                      <span class="summary-value" style="font-size: 2em;">${averageProgress}%</span>
+                      <span class="summary-label">Progresso Médio</span>
+                  </div>
+              </div>
+              <div class="summary-item" style="grid-column: span 2;">
+                  <div class="summary-item-content">
+                      <span class="summary-value" style="font-size: 1.5em; line-height: 1.2;">${topCategoryText}</span>
+                      <span class="summary-label">Top Categoria</span>
+                  </div>
+                  <div class="summary-item-content">
+                      <span class="summary-value" style="font-size: 1.5em; line-height: 1.2;">${topResponsibleText}</span>
+                      <span class="summary-label">Top Responsável</span>
+                  </div>
+              </div>
+          `;
+
+          // Cria os gráficos
+          const statusChartContainer = document.querySelector('#status-chart-card .chart-container');
+          statusChartContainer.innerHTML = '<canvas id="status-chart"></canvas>';
+          createChart('status-chart', 'doughnut', {
+              labels: ['Em Produção', 'Concluídos'],
+              datasets: [{
+                  data: [inProgressCount, completedCount],
+                  backgroundColor: ['#43A047', '#007bff'],
+                  borderColor: 'var(--card-bg)',
+                  borderWidth: 2,
+                  hoverBorderColor: 'var(--card-bg)',
+                  cutout: '70%',
+              }]
+          }, {
+              plugins: {
+                  legend: {
+                      display: true,
+                      position: 'bottom'
+                  }
+              }
+          });
 
     const categoryChartContainer = document.querySelector('#category-chart-card .chart-container');
     categoryChartContainer.innerHTML = '<canvas id="category-chart"></canvas>';
-    // MUDANÇA: Usa as cores das categorias ou gera cores aleatórias
     const categoryLabels = Object.keys(servicesByCategory);
     const categoryColors = categoryLabels.map(label => {
         const category = predefinedCategories.find(c => c.name === label);
-        return category?.color || generateChartColors(1)[0]; // Usa a cor da categoria ou uma cor padrão
+        return category?.color || generateChartColors(1)[0];
     });
 
-    // MUDANÇA: Adicionado 'borderRadius' para barras com cantos arredondados
     createChart('category-chart', 'bar', {
         labels: categoryLabels,
         datasets: [{
@@ -1692,9 +1821,7 @@ document.addEventListener("DOMContentLoaded", () => {
             borderRadius: 6,
             barThickness: 'flex'
         }],
-    },
-    // MUDANÇA: Opções individuais para este gráfico (adiciona cor de fundo na área do gráfico)
-    {
+    }, {
         plugins: {
             chartAreaBackgroundColor: { color: 'rgba(0, 0, 0, 0.03)' },
             legend: { display: false }
@@ -1712,16 +1839,41 @@ document.addEventListener("DOMContentLoaded", () => {
             backgroundColor: generateChartColors(responsibleLabels.length),
             borderRadius: 6,
         }],
-    },
-    // MUDANÇA: Opções individuais para o gráfico de barras horizontal
-    {
-        indexAxis: 'y', // Torna o gráfico horizontal
+    }, {
+        indexAxis: 'y',
         plugins: {
-            legend: { display: false } // Remove a legenda, pois é redundante
+            legend: { display: false }
         },
-        layout: { padding: { left: 20 } } // Adiciona espaço à esquerda para os rótulos
+        layout: { padding: { left: 20 } }
     });
-    }, 0); // CORREÇÃO: Fecha o setTimeout aqui, englobando toda a lógica do gráfico.
+
+    // MUDANÇA: Cria o novo gráfico de Prioridade
+    const priorityChartContainer = document.querySelector('#priority-chart-card .chart-container');
+    priorityChartContainer.innerHTML = '<canvas id="priority-chart"></canvas>';
+    const priorityLabels = Object.keys(servicesByPriority);
+    // CORREÇÃO: Mapeia as cores dinamicamente para garantir que a cor certa seja usada para cada prioridade.
+    const priorityColors = priorityLabels.map(label => {
+        if (label === 'Alta') return '#E53935'; // Vermelho
+        if (label === 'Média') return '#FFB300'; // Amarelo/Âmbar
+        if (label === 'Baixa') return '#43A047'; // Verde
+        return '#808080'; // Cor padrão
+    });
+
+    createChart('priority-chart', 'pie', {
+        labels: priorityLabels,
+        datasets: [{
+            data: Object.values(servicesByPriority),
+            backgroundColor: priorityColors,
+            borderColor: 'var(--card-bg)',
+            borderWidth: 2,
+        }]
+    }, {
+        plugins: {
+            legend: { display: true, position: 'bottom' }
+        }
+    });
+
+      }, 0);
   }
   function createChart(canvasId, type, data, options = {}) {
     const ctx = document.getElementById(canvasId);
@@ -2170,6 +2322,29 @@ document.addEventListener("DOMContentLoaded", () => {
             hideLoading();
         }
     }
+
+    // MUDANÇA: Botão para copiar o nome do serviço
+    const copyServiceNameBtn = e.target.closest(".btn-copy-service-name");
+    if (copyServiceNameBtn) {
+        const serviceNameText = document.getElementById('detail-service-name-text')?.innerText;
+        if (serviceNameText) {
+            navigator.clipboard.writeText(serviceNameText).then(() => {
+                // Fornece feedback visual
+                const originalIcon = copyServiceNameBtn.innerHTML;
+                copyServiceNameBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>`;
+                copyServiceNameBtn.style.color = '#43a047'; // Verde
+
+                setTimeout(() => {
+                    copyServiceNameBtn.innerHTML = originalIcon;
+                    copyServiceNameBtn.style.color = ''; // Volta à cor original
+                }, 1500);
+            }).catch(err => {
+                console.error('Falha ao copiar texto: ', err);
+                alert('Não foi possível copiar o nome do serviço.');
+            });
+        }
+    }
+
 
     // MUDANÇA: Botão de deletar categoria
     const deleteCategoryBtn = e.target.closest(".btn-delete-category");
