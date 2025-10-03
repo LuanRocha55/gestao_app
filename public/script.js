@@ -13,6 +13,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   updateProfile,
   collection,
   doc,
@@ -3247,9 +3248,15 @@ document.addEventListener("DOMContentLoaded", () => {
             to: delegateUserEmail,
             message: {
               subject: `[Painel de Gestão] Uma solicitação foi encaminhada para você`,
-              html: `Olá, ${delegateUserName}!<br><br>
-                                   A solicitação <strong>"${requestData.title}"</strong> foi encaminhada para você por <strong>${currentUser.displayName}</strong>.<br><br>
-                                   Acesse o painel para ver os detalhes.`,
+              html: createStyledEmailHtml({
+                title: "Uma Solicitação foi Encaminhada",
+                body: `<p>Olá, ${delegateUserName}!</p>
+                       <p>A solicitação <strong>"${requestData.title}"</strong> foi encaminhada para você por <strong>${currentUser.displayName}</strong>.</p>`,
+                button: {
+                  text: "Ver Solicitação",
+                  url: "https://uniateneu-nead-gestao.web.app/#/requests", // MUDANÇA: Link direto para a página
+                },
+              }),
             },
           });
         }
@@ -3477,6 +3484,68 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // --- MUDANÇA: Nova função para criar um template de e-mail HTML estilizado ---
+  function createStyledEmailHtml({ title, body, button }) {
+    const appName = "Painel de Gestão";
+    const footerText = `&copy; ${new Date().getFullYear()} ${appName}. Todos os direitos reservados.`;
+
+    // Estilos inline para máxima compatibilidade com clientes de e-mail
+    return `
+      <!DOCTYPE html>
+      <html lang="pt-br">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+        <style>
+          body { margin: 0; padding: 0; background-color: #f4f7fa; font-family: 'Montserrat', sans-serif; }
+          .container { width: 100%; max-width: 600px; margin: 0 auto; }
+          .header { background-color: #001f3f; color: #ffffff; padding: 20px; text-align: center; font-size: 24px; font-weight: 700; }
+          .content { background-color: #ffffff; padding: 40px 30px; color: #333; }
+          .content h1 { color: #001f3f; font-size: 22px; margin-top: 0; }
+          .content p { font-size: 16px; line-height: 1.6; }
+          .button-container { text-align: center; margin: 30px 0; }
+          .button { background-color: #001f3f; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: 600; display: inline-block; }
+          .footer { background-color: #f4f7fa; color: #888; padding: 20px; text-align: center; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td align="center" style="padding: 20px 0;">
+              <table class="container" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td class="header">${appName}</td>
+                </tr>
+                <tr>
+                  <td class="content">
+                    <h1>${title}</h1>
+                    ${body}
+                    ${
+                      button
+                        ? `
+                    <div class="button-container">
+                      <a href="${button.url}" class="button">${button.text}</a>
+                    </div>
+                    `
+                        : ""
+                    }
+                  </td>
+                </tr>
+                <tr>
+                  <td class="footer">
+                    ${footerText}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  }
 
   // MUDANÇA: Seletor de tipo de sub-etapa no modal
   document.addEventListener("change", (e) => {
@@ -3779,25 +3848,27 @@ document.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, async (user) => {
     // Esta função é chamada sempre que o estado de login do usuário muda.
     // CORREÇÃO: Adiciona a verificação de e-mail diretamente no listener principal.
-    if (user && user.emailVerified) {
-      // Garante que o perfil do usuário no Firestore está atualizado com nome, email, etc.
+    if (user && !user.emailVerified) {
+      // Se o usuário existe mas o e-mail não foi verificado, mostra a tela de verificação.
+      // Isso acontece logo após o registro.
+      // MUDANÇA: Garante que todas as outras caixas de autenticação estejam ocultas.
+      loginBox.classList.add("hidden");
+      registerBox.classList.add("hidden");
+      continueAsBox.classList.add("hidden");
+      showVerificationScreen(user.email);
+    } else if (user && user.emailVerified) {
+      // MUDANÇA: Se o usuário está logado e verificado, mostra a tela "Continuar como"
+      // em vez de logar diretamente.
       await updateUserInFirestore(user);
-
-      // Busca o perfil completo para ter os dados mais recentes (incluindo o 'role')
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
       if (userDocSnap.exists()) {
         currentUser = { ...user, ...userDocSnap.data() };
       } else {
-        currentUser = user;
+        currentUser = user; // Fallback
       }
+      showContinueAsScreen(currentUser);
 
-      // Chama a função que monta a interface principal do aplicativo.
-      initializeAppUI(currentUser);
-    } else if (user && !user.emailVerified) {
-      // Se o usuário existe mas o e-mail não foi verificado, mostra a tela de verificação.
-      // Isso acontece logo após o registro.
-      showVerificationScreen(user.email);
     } else {
       // --- O USUÁRIO ESTÁ DESLOGADO ---
       currentUser = null;
@@ -3916,6 +3987,25 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("hashchange", handleRouteChange);
   }
   // Evento de login com E-mail e Senha
+  // MUDANÇA: Nova função para exibir a tela "Continuar como"
+  function showContinueAsScreen(user) {
+    // Esconde todas as outras caixas de autenticação
+    loginBox.classList.add("hidden");
+    registerBox.classList.add("hidden");
+    verifyEmailBox.classList.add("hidden");
+
+    // Popula os dados do usuário
+    document.getElementById("continue-as-name").textContent = user.displayName || user.email;
+    document.getElementById("continue-as-photo").src = user.photoURL || "./assets/default-avatar.png";
+
+    // Esconde a UI principal e mostra o container de login
+    appHeader.classList.add("hidden");
+    document.querySelector(".app-content").style.display = "none";
+    loginContainer.classList.remove("hidden");
+
+    // Mostra a caixa "Continuar como"
+    continueAsBox.classList.remove("hidden");
+  }
   emailLoginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = emailLoginForm["login-email"].value;
@@ -4087,11 +4177,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // MUDANÇA: Nova função para mostrar a tela de verificação de e-mail
   function showVerificationScreen(email) {
-    document.getElementById("verify-email-address").textContent = email;
+    // CORREÇÃO: Garante que todos os containers de autenticação e a UI principal estejam ocultos.
     loginBox.classList.add("hidden");
     registerBox.classList.add("hidden");
     continueAsBox.classList.add("hidden");
+    document.getElementById("app-header").classList.add("hidden");
+    document.querySelector("footer").style.display = "none";
+    document.querySelector(".app-content").style.display = "none";
+    document.body.classList.remove("detail-view-active");
+
+    // Agora, exibe apenas o container de login com a caixa de verificação.
+    document.getElementById("verify-email-address").textContent = email;
     verifyEmailBox.classList.remove("hidden");
+    loginContainer.classList.remove("hidden"); // Mostra o container de autenticação
   }
 
   // MUDANÇA: Nova função para popular as sugestões de categoria
@@ -4434,9 +4532,15 @@ document.addEventListener("DOMContentLoaded", () => {
             to: mentionedUserEmail,
             message: {
               subject: `[Painel de Gestão] Você foi mencionado em uma solicitação!`,
-              html: `Olá, ${mentionedUserName}!<br><br>
-                             O usuário <strong>${currentUser.displayName}</strong> mencionou você na solicitação: <strong>"${title}"</strong>.<br><br>
-                             Acesse o painel para ver os detalhes.`,
+              html: createStyledEmailHtml({
+                title: "Você foi Mencionado!",
+                body: `<p>Olá, ${mentionedUserName}!</p>
+                       <p>O usuário <strong>${currentUser.displayName}</strong> mencionou você na solicitação: <strong>"${title}"</strong>.</p>`,
+                button: {
+                  text: "Ver Solicitação",
+                  url: "https://uniateneu-nead-gestao.web.app/#/requests", // MUDANÇA: Link direto para a página
+                },
+              }),
             },
           });
         }

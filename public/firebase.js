@@ -1,7 +1,7 @@
 // Importa as funções que você precisa dos SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getFirestore, collection, doc, addDoc, updateDoc, writeBatch, onSnapshot, getDocs, query, where, setDoc, getDoc, deleteDoc, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
 // A configuração do Firebase do seu aplicativo da web
@@ -22,4 +22,4 @@ const auth = getAuth(app);
 const storage = getStorage(app);
 
 // Exporta as instâncias e funções para serem usadas em outros lugares
-export { db, auth, storage, ref, uploadBytes, getDownloadURL, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, collection, doc, addDoc, updateDoc, writeBatch, onSnapshot, getDocs, query, where, setDoc, getDoc, deleteDoc, serverTimestamp, orderBy };
+export { db, auth, storage, ref, uploadBytes, getDownloadURL, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, sendEmailVerification, collection, doc, addDoc, updateDoc, writeBatch, onSnapshot, getDocs, query, where, setDoc, getDoc, deleteDoc, serverTimestamp, orderBy };
