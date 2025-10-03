@@ -3528,6 +3528,67 @@ document.addEventListener("DOMContentLoaded", () => {
     return steps;
   }
 
+  // --- MUDANÇA: Nova função para enviar notificações de atribuição de etapa ---
+  async function sendStepAssignmentNotifications(
+    serviceId,
+    serviceName,
+    oldSteps,
+    newSteps
+  ) {
+    for (let i = 0; i < newSteps.length; i++) {
+      const newStep = newSteps[i];
+      // Encontra a etapa correspondente antiga (se existir) pelo nome,
+      // já que a ordem pode mudar.
+      const oldStep = oldSteps.find((s) => s.name === newStep.name);
+
+      const newResponsibleId = newStep.responsibleId;
+      const oldResponsibleId = oldStep ? oldStep.responsibleId : null;
+
+      // Condições para enviar notificação:
+      // 1. A etapa tem um novo responsável.
+      // 2. O responsável é diferente do anterior (evita notificar a mesma pessoa).
+      // 3. O responsável não é o próprio usuário que está fazendo a alteração.
+      if (
+        newResponsibleId &&
+        newResponsibleId !== oldResponsibleId &&
+        newResponsibleId !== currentUser.uid
+      ) {
+        const responsibleUser = allUsersData.find(
+          (u) => u.id === newResponsibleId
+        );
+        if (!responsibleUser) continue; // Pula se o usuário não for encontrado
+
+        const notificationText = `Você foi atribuído à etapa "${newStep.name}" no serviço "${serviceName}".`;
+
+        // 1. Envia notificação no app
+        await addDoc(notificationsCollection, {
+          userId: newResponsibleId,
+          text: notificationText,
+          link: `#/service/${serviceId}`,
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+
+        // 2. Envia notificação por e-mail
+        if (responsibleUser.email) {
+          await addDoc(collection(db, "mail"), {
+            to: responsibleUser.email,
+            message: {
+              subject: `[Painel de Gestão] Você foi atribuído a uma nova etapa`,
+              html: createStyledEmailHtml({
+                title: "Nova Atribuição de Etapa",
+                body: `<p>Olá, ${responsibleUser.displayName}!</p><p>${notificationText}</p>`,
+                button: {
+                  text: "Ver Serviço",
+                  url: `https://uniateneu-nead-gestao.web.app/#/service/${serviceId}`,
+                },
+              }),
+            },
+          });
+        }
+      }
+    }
+  }
   // --- MUDANÇA: Nova função para criar um template de e-mail HTML estilizado ---
   function createStyledEmailHtml({ title, body, button }) {
     const appName = "Painel de Gestão";
@@ -4502,8 +4563,14 @@ document.addEventListener("DOMContentLoaded", () => {
         // --- MODO EDIÇÃO ---
         const serviceRef = doc(db, "services", currentEditServiceId);
         // Não sobrescrevemos a data de criação
+        // MUDANÇA: Pega o estado antigo das etapas para comparar
+        const oldService = services.find((s) => s.id === currentEditServiceId);
+        const oldSteps = oldService ? oldService.steps : [];
+
         const { createdAt, files, ...updateData } = serviceData;
         await updateDoc(serviceRef, updateData);
+        // MUDANÇA: Envia notificações após a atualização
+        await sendStepAssignmentNotifications(currentEditServiceId, serviceName, oldSteps, steps);
         alert("Serviço atualizado com sucesso!");
       } else {
         // --- MODO ADIÇÃO ---
@@ -4511,6 +4578,8 @@ document.addEventListener("DOMContentLoaded", () => {
           ...serviceData,
           createdAt: serverTimestamp(),
         });
+        // MUDANÇA: Envia notificações após a criação (oldSteps é um array vazio)
+        await sendStepAssignmentNotifications(newServiceRef.id, serviceName, [], steps);
         alert("Serviço adicionado com sucesso!");
       }
 
