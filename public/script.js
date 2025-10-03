@@ -3467,6 +3467,53 @@ document.addEventListener("DOMContentLoaded", () => {
         hideLoading();
       }
     }
+
+    // MUDANÇA: Formulário para delegar solicitação (movido do evento 'click')
+    if (e.target.id === "delegate-request-form") {
+      e.preventDefault();
+      const form = e.target;
+      const requestId = form.querySelector('[name="requestId"]').value;
+      const delegateUserId = form.querySelector(
+        '[name="delegateUserId"]'
+      ).value;
+      const delegateUserName = teamMemberMap.get(delegateUserId);
+
+      // CORREÇÃO: Busca a solicitação no banco de dados para garantir que os dados (como o título) estejam corretos.
+      if (!requestId || !delegateUserId) return;
+
+      showLoading();
+      try {
+        const requestRef = doc(db, "requests", requestId);
+        const requestSnap = await getDoc(requestRef);
+        if (!requestSnap.exists()) throw new Error("Solicitação não encontrada.");
+
+        const requestData = requestSnap.data();
+
+        // Atualiza o usuário mencionado, que efetivamente "delega" a tarefa
+        await updateDoc(requestRef, {
+          mentionedUserId: delegateUserId,
+          mentionedUserName: delegateUserName,
+        });
+
+        // Envia uma notificação para o novo usuário
+        await addDoc(notificationsCollection, {
+          userId: delegateUserId,
+          text: `A solicitação "${requestData.title}" foi encaminhada para você por ${currentUser.displayName}.`,
+          link: "#/requests",
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+
+        alert(`Solicitação encaminhada para ${delegateUserName} com sucesso!`);
+        document.getElementById("delegate-request-modal").style.display =
+          "none";
+      } catch (error) {
+        console.error("Erro ao delegar solicitação:", error);
+        alert("Falha ao delegar a solicitação.");
+      } finally {
+        hideLoading();
+      }
+    }
   });
 
   // MUDANÇA: Lógica para o botão "Continuar como"
