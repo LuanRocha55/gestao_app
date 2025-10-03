@@ -63,17 +63,28 @@ header {
   align-items: center;
 }
 
+/* CORREÇÃO: Usa grid para um layout de 3 colunas (esquerda, centro, direita) */
 .header-content {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* Colunas flexíveis nas laterais, conteúdo automático no centro */
   align-items: center;
-  flex-grow: 1; /* Permite que este container ocupe o espaço disponível */
-  min-width: 0; /* Previne que o flex item cause overflow */
-  justify-content: space-between;
+  width: 100%;
 }
 
-/* MUDANÇA: Faz o conteúdo principal crescer para empurrar o rodapé para baixo */
-.app-content {
-  flex-grow: 1;
+.header-section {
+  display: flex;
+  align-items: center;
+}
+
+.header-left {
+  justify-content: flex-start;
+}
+.header-center {
+  justify-content: center;
+}
+.header-right {
+  justify-content: flex-end;
+  gap: 15px; /* Espaço entre o botão home e os outros ícones */
 }
 
 header h1 a {
@@ -131,11 +142,11 @@ input[type="color"] {
   flex-wrap: wrap; /* Permite quebrar a linha em telas menores */
 }
 
-/* MUDANÇA: Container para os controles que ficam visíveis no mobile */
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+/* CORREÇÃO: Garante que os itens do menu sejam exibidos em linha por padrão (desktop) */
+#header-menu-items {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 /* MUDANÇA: Estilo de destaque para botões de ícone importantes */
@@ -1204,16 +1215,6 @@ body.dark-theme .btn-primary:hover {
     padding: 30px 20px;
   }
 
-  /* MUDANÇA: Reorganiza o header no mobile */
-  .header-right {
-    order: 3; /* Move para o final */
-    width: 100%;
-    display: none; /* Escondido por padrão */
-    flex-direction: column;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
   #header-menu-items.open {
     display: flex; /* Mostra quando o menu está aberto */
   }
@@ -2255,6 +2256,23 @@ table thead th {
   border-bottom-width: 2px; /* Destaca a linha do cabeçalho */
 }
 /* MUDANÇA: Estilos para cabeçalhos de tabela ordenáveis */
+table thead th {
+  position: relative; /* Necessário para o manipulador de redimensionamento */
+}
+
+/* MUDANÇA: Estilos para o manipulador de redimensionamento de coluna */
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 1;
+}
+
+
+/* MUDANÇA: Estilos para cabeçalhos de tabela ordenáveis */
 table thead th[data-sort] {
   cursor: pointer;
   position: relative;
@@ -2290,7 +2308,7 @@ table thead th.sort-desc::after {
 /* MUDANÇA: Substitui larguras fixas por larguras mínimas para responsividade */
 table th[data-sort="name"],
 table td:has(a[href*="#/service/"]) {
-  min-width: 250px;
+  min-width: 300px;
 } /* Material */
 table th[data-sort="category"] {
   min-width: 150px;
@@ -2302,15 +2320,15 @@ table th[data-sort="step"] {
   min-width: 180px;
 } /* Etapa Atual */
 table th[data-sort="priority"] {
-  min-width: 120px;
+  min-width: 100px;
   text-align: center;
 } /* Prioridade */
 table th[data-sort="dueDate"] {
-  min-width: 180px;
+  min-width: 100px;
   text-align: center;
 } /* Entrega */
 table th[data-sort="progress"] {
-  min-width: 120px;
+  min-width: 100px;
 } /* Progresso */
 
 /* MUDANÇA: Estilos para a célula da etapa atual */
@@ -2444,6 +2462,11 @@ body.dark-theme footer {
   gap: 20px; /* MUDANÇA: Deixa o layout mais compacto */
 }
 
+/* MUDANÇA: Estilo para um card que ocupa a largura total da grid */
+.statistic-card.full-width-card {
+    grid-column: 1 / -1;
+}
+
 /* MUDANÇA: Limita a altura máxima dos gráficos de rosca/pizza para manter a proporção */
 #status-chart-card .chart-container {
   max-height: 300px;
@@ -2560,6 +2583,10 @@ body.dark-theme footer {
 }
 body.dark-theme .summary-item.has-overdue .summary-value {
   color: #f5c6cb; /* Vermelho claro para alerta no tema escuro */
+}
+/* MUDANÇA: Estilo para destacar a pontualidade se estiver baixa */
+.summary-item.has-low-ontime .summary-value {
+  color: #e53935; /* Vermelho para alerta */
 }
 
 /* --- MUDANÇA: Estilos para o Skeleton/Placeholder do Gráfico --- */

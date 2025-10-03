@@ -18,58 +18,44 @@
 <body>
 
     <header>
+        <!-- CORREÇÃO: A estrutura do header foi reorganizada para centralizar o título -->
         <div id="app-header" class="header-content hidden">
-            <!-- MUDANÇA: Agrupa o botão Home e o Título à esquerda -->
-            <h1><a href="#/">Painel de Gestão</a></h1>
-
-            <!-- MUDANÇA: Agrupa os controles do canto direito (visíveis no mobile) -->
-            <div class="header-controls">
-                <!-- MUDANÇA: Itens do Menu que serão mostrados/escondidos no mobile -->
-                <div id="header-menu-items"></div>
-
-                <!-- MUDANÇA: Botão Home movido para a direita -->
-                <a href="#/" class="btn-icon" id="home-btn" title="Início">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z" />
-                    </svg>
-                </a>
-                <!-- MUDANÇA: Container para o sino de notificação -->
-                <div id="notification-container">
-                    <!-- CORREÇÃO: Removida a classe 'hidden' para que o sino sempre apareça -->
-                    <div id="notification-bell" class="btn-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path
-                                d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19Z" />
-                        </svg>
-                        <span id="notification-count" class="badge hidden"></span>
-                    </div>
-                    <div id="notification-panel" class="hidden">
-                        <div class="notification-panel-header">
-                            <h3>Notificações</h3>
-                        </div>
-                        <ul id="notification-list"></ul>
-                    </div>
-                </div>
-                <!-- MUDANÇA: Botão de troca de tema com ícones de sol/lua -->
-                <button id="theme-toggle-btn" class="btn-icon" title="Alternar tema">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path
-                            d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 0 1 20 12A8 8 0 0 1 12 20V4Z" />
-                    </svg>
-                </button>
-                <!-- MUDANÇA: Perfil do usuário movido para o final dos controles -->
-                <div id="user-profile" class="user-profile-container hidden">
-                    <img id="user-photo" src="" alt="Foto do usuário">
-                    <a href="#/profile" class="user-profile-link">
-                        <span id="user-name"></span>
-                    </a>
-                    <button id="logout-btn" class="btn-secondary">Sair</button>
-                </div>
+            <div class="header-section header-left">
                 <button id="mobile-menu-toggle" class="btn-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
                     </svg>
                 </button>
+            </div>
+            <div class="header-section header-center">
+                <h1><a href="#/">Painel de Gestão</a></h1>
+            </div>
+            <div class="header-section header-right">
+                <a href="#/" class="btn-icon" id="home-btn" title="Início">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z" />
+                    </svg>
+                </a>
+                <div id="header-menu-items">
+                    <div id="notification-container">
+                        <div id="notification-bell" class="btn-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19Z" /></svg>
+                            <span id="notification-count" class="badge hidden"></span>
+                        </div>
+                        <div id="notification-panel" class="hidden">
+                            <div class="notification-panel-header"><h3>Notificações</h3></div>
+                            <ul id="notification-list"></ul>
+                        </div>
+                    </div>
+                    <button id="theme-toggle-btn" class="btn-icon" title="Alternar tema">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 0 1 20 12A8 8 0 0 1 12 20V4Z" /></svg>
+                    </button>
+                    <div id="user-profile" class="user-profile-container hidden">
+                        <img id="user-photo" src="" alt="Foto do usuário">
+                        <a href="#/profile" class="user-profile-link"><span id="user-name"></span></a>
+                        <button id="logout-btn" class="btn-secondary">Sair</button>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -116,6 +102,15 @@
                 <button type="submit" class="btn-primary">Registrar</button>
             </form>
             <p class="auth-toggle">Já tem uma conta? <a href="#" id="toggle-to-login">Faça login</a></p>
+        </div>
+        <!-- MUDANÇA: Box para "Continuar como" -->
+        <div id="verify-email-box" class="auth-box hidden">
+            <h1>Verifique seu E-mail</h1>
+            <p>Enviamos um link de verificação para <strong id="verify-email-address"></strong>. Por favor, verifique sua caixa de entrada e spam.</p>
+            <p>Após verificar, você pode fazer o login.</p>
+            <div class="auth-separator"></div>
+            <button id="resend-verification-btn" class="btn-secondary">Reenviar E-mail de Verificação</button>
+            <p class="auth-toggle"><a href="#" id="back-to-login-link">Voltar para o Login</a></p>
         </div>
         <!-- MUDANÇA: Box para "Continuar como" -->
         <div id="continue-as-box" class="auth-box hidden">

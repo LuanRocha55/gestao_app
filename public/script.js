@@ -56,6 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginBox = document.getElementById("login-box");
   const registerBox = document.getElementById("register-box");
   const emailLoginForm = document.getElementById("email-login-form");
+  const verifyEmailBox = document.getElementById("verify-email-box"); // MUDANÇA
+  const resendVerificationBtn = document.getElementById(
+    "resend-verification-btn"
+  ); // MUDANÇA
+  const backToLoginLink = document.getElementById("back-to-login-link"); // MUDANÇA
   const continueAsBox = document.getElementById("continue-as-box"); // MUDANÇA
   const continueAsBtn = document.getElementById("continue-as-btn"); // MUDANÇA
   const switchAccountLink = document.getElementById("switch-account-link"); // MUDANÇA
@@ -414,12 +419,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- MUDANÇA: Funções para gerenciar a lista de usuários ---
   async function updateUserInFirestore(user) {
-    const userDocRef = doc(db, "users", user.uid);
+    // CORREÇÃO: Garante que estamos usando os dados mais recentes do Auth.
+    // Isso é crucial após o registro, quando o displayName é atualizado.
+    const freshUser = auth.currentUser;
+    if (!freshUser || freshUser.uid !== user.uid) return; // Verificação de segurança
+
+    const userDocRef = doc(db, "users", freshUser.uid);
     const userData = {
-      uid: user.uid,
-      displayName: user.displayName || user.email,
-      email: user.email,
-      photoURL: user.photoURL,
+      uid: freshUser.uid,
+      displayName: freshUser.displayName || freshUser.email,
+      email: freshUser.email,
+      photoURL: freshUser.photoURL,
     };
     // Usa set com merge:true para criar ou atualizar.
     // Se o documento não existir, adiciona o campo 'role' como 'member'.
@@ -1673,21 +1683,12 @@ document.addEventListener("DOMContentLoaded", () => {
       // MUDANÇA: Gera as linhas da tabela dinamicamente com base na ordem das colunas
       const tableRowsHtml = filteredServices
         .map((service) => {
+          // CORREÇÃO: Lógica para determinar o responsável e a etapa atual
           const progress = calculateOverallProgress(service);
-          const responsibleName =
-            teamMemberMap.get(service.responsible) || "Não atribuído";
-          const dueDateStatus = getDueDateStatus(service.dueDate);
-          const priority = service.priority || "Média";
-          const priorityTagHtml = `<span class="priority-tag-table ${priority.toLowerCase()}">${priority}</span>`;
-
-          let progressColorClass =
-            progress.percentage === 0
-              ? "progress-yellow"
-              : progress.percentage === 100
-              ? "progress-blue"
-              : "progress-green";
+          let responsibleIdToShow = service.responsible; // Padrão: responsável geral
           let currentStepName = "N/A",
             currentStepColor = "var(--progress-bar-bg)";
+
           if (progress.percentage === 100) {
             currentStepName = "Finalizado";
           } else {
@@ -1698,10 +1699,27 @@ document.addEventListener("DOMContentLoaded", () => {
               currentStepName = firstUnfinishedStep.name;
               currentStepColor =
                 firstUnfinishedStep.color || "var(--progress-bar-bg)";
+              // Se a etapa atual tiver um responsável, usa ele. Senão, mantém o geral.
+              if (firstUnfinishedStep.responsibleId) {
+                responsibleIdToShow = firstUnfinishedStep.responsibleId;
+              }
             } else {
               currentStepName = "Revisão Final";
             }
           }
+
+          const responsibleName =
+            teamMemberMap.get(responsibleIdToShow) || "Não atribuído";
+          const dueDateStatus = getDueDateStatus(service.dueDate);
+          const priority = service.priority || "Média";
+          const priorityTagHtml = `<span class="priority-tag-table ${priority.toLowerCase()}">${priority}</span>`;
+
+          let progressColorClass =
+            progress.percentage === 0
+              ? "progress-yellow"
+              : progress.percentage === 100
+              ? "progress-blue"
+              : "progress-green";
 
           // Mapeia os dados para cada chave de coluna
           const cellData = {
@@ -1853,6 +1871,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     updateTable(); // Chama a função uma vez para popular a tabela inicialmente.
     initializeColumnSorting(); // MUDANÇA: Ativa o drag-and-drop nas colunas
+    initializeColumnResizing(); // MUDANÇA: Ativa o redimensionamento das colunas
   }
 
   // MUDANÇA: Função movida para o escopo global para ser acessível por outras funções.
@@ -1862,6 +1881,69 @@ document.addEventListener("DOMContentLoaded", () => {
       "productionStatusColumnOrder",
       JSON.stringify(newOrder)
     );
+  };
+
+  // MUDANÇA: Nova função para permitir o redimensionamento das colunas da tabela
+  const initializeColumnResizing = () => {
+    const table = productionStatusView.querySelector("table");
+    if (!table) return;
+
+    const headers = table.querySelectorAll("thead th");
+    headers.forEach((th) => {
+      const resizer = document.createElement("div");
+      resizer.className = "col-resizer";
+      th.appendChild(resizer);
+
+      resizer.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        const startX = e.pageX;
+        const startWidth = th.offsetWidth;
+
+        const handleMouseMove = (moveEvent) => {
+          const newWidth = startWidth + (moveEvent.pageX - startX);
+          if (newWidth > 50) {
+            // Largura mínima de 50px
+            th.style.width = `${newWidth}px`;
+          }
+        };
+
+        const handleMouseUp = () => {
+          document.removeEventListener("mousemove", handleMouseMove);
+          document.removeEventListener("mouseup", handleMouseUp);
+
+          // Salva as novas larguras no localStorage
+          const columnWidths = {};
+          table.querySelectorAll("thead th").forEach((header) => {
+            const key = header.dataset.columnKey;
+            if (key) {
+              columnWidths[key] = header.style.width;
+            }
+          });
+          localStorage.setItem(
+            "productionStatusColumnWidths",
+            JSON.stringify(columnWidths)
+          );
+        };
+
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+      });
+    });
+  };
+
+  // MUDANÇA: Função para aplicar as larguras salvas
+  const applyColumnWidths = () => {
+    const table = productionStatusView.querySelector("table");
+    if (!table) return;
+
+    const savedWidths =
+      JSON.parse(localStorage.getItem("productionStatusColumnWidths")) || {};
+    table.querySelectorAll("thead th").forEach((th) => {
+      const key = th.dataset.columnKey;
+      if (key && savedWidths[key]) {
+        th.style.width = savedWidths[key];
+      }
+    });
   };
 
   // MUDANÇA: Função movida para o escopo global e tornada mais robusta.
@@ -1969,6 +2051,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${createChartPlaceholder()}
                 </div>
             </div>
+            <!-- MUDANÇA: Novo card para o gráfico de linha, que ocupa a largura toda -->
+            <div class="statistic-card full-width-card" id="timeline-chart-card">
+                <h3>Criados vs. Concluídos ao Longo do Tempo</h3>
+                <div class="chart-container">
+                    ${createChartPlaceholder()}
+                </div>
+            </div>
         </div>
     `;
 
@@ -1983,6 +2072,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // MUDANÇA: Nova função para atualizar os gráficos com base no filtro de período
   function updateStatisticsCharts() {
+    if (!document.getElementById("stats-period-filter")) return;
     const period = document.getElementById("stats-period-filter").value;
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -2037,6 +2127,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 "Nenhum serviço para exibir neste período."
               ))
           );
+        document
+          .getElementById("timeline-chart-card")
+          .querySelector(".chart-container").innerHTML = createChartPlaceholder(
+          "Nenhum serviço para exibir neste período."
+        );
         document.getElementById("statistics-summary").innerHTML =
           createChartPlaceholder("Nenhum dado para resumir.");
         return;
@@ -2107,6 +2202,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const averageProgress =
         totalServices > 0 ? Math.round(totalProgress / totalServices) : 0;
 
+      // MUDANÇA: Calcula novas métricas para o resumo
+      const inProgressServices = totalServices - completedCount;
+      const completedOnTimeServices = filteredServices.filter(
+        (s) =>
+          calculateOverallProgress(s).percentage === 100 &&
+          getDueDateStatus(s.dueDate).className !== "overdue"
+      ).length;
+      const onTimePercentage =
+        completedCount > 0
+          ? Math.round((completedOnTimeServices / completedCount) * 100)
+          : 100; // Se nenhum foi concluído, a pontualidade é 100%
+      const onTimeHighlightClass = onTimePercentage < 80 ? "has-overdue" : "";
+
       const overdueHighlightClass = overdueServices > 0 ? "has-overdue" : "";
 
       document.getElementById("statistics-summary").innerHTML = `
@@ -2147,6 +2255,26 @@ document.addEventListener("DOMContentLoaded", () => {
                   <div class="summary-item-content">
                       <span class="summary-value">${highPriorityCount}</span>
                       <span class="summary-label">Prioridade Alta</span>
+                  </div>
+              </div>
+              <!-- MUDANÇA: Novo card para serviços em produção -->
+              <div class="summary-item">
+                  <div class="summary-item-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2,12A10,10 0 0,1 12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12H16A4,4 0 0,0 12,8V6Z" /></svg>
+                  </div>
+                  <div class="summary-item-content">
+                      <span class="summary-value">${inProgressServices}</span>
+                      <span class="summary-label">Em Produção</span>
+                  </div>
+              </div>
+              <!-- MUDANÇA: Novo card para pontualidade -->
+              <div class="summary-item ${onTimeHighlightClass}">
+                  <div class="summary-item-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,19H5V8H19M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M16.53,11.06L15.47,10L10.5,14.97L8.47,12.94L7.41,14L10.5,17.09L16.53,11.06Z" /></svg>
+                  </div>
+                  <div class="summary-item-content">
+                      <span class="summary-value summary-value-small">${onTimePercentage}%</span>
+                      <span class="summary-label">Pontualidade</span>
                   </div>
               </div>
               <div class="summary-item">
@@ -2296,6 +2424,95 @@ document.addEventListener("DOMContentLoaded", () => {
         {
           plugins: {
             legend: { display: true, position: "bottom" },
+          },
+        }
+      );
+
+      // MUDANÇA: Lógica para o gráfico de linha (Criados vs. Concluídos)
+      const timelineChartContainer = document.querySelector(
+        "#timeline-chart-card .chart-container"
+      );
+      timelineChartContainer.innerHTML =
+        '<canvas id="timeline-chart"></canvas>';
+
+      // Agrupa os dados por data (dia ou mês)
+      const dataByDate = {};
+      const isShortPeriod = period === "last7days" || period === "last30days";
+
+      const getGroupKey = (date) => {
+        if (isShortPeriod) {
+          return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+            .toISOString()
+            .split("T")[0];
+        } else {
+          // Agrupa por mês para períodos mais longos
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+            2,
+            "0"
+          )}`;
+        }
+      };
+
+      filteredServices.forEach((service) => {
+        // Contabiliza criados
+        const createdDateKey = getGroupKey(service.createdAt.toDate());
+        if (!dataByDate[createdDateKey])
+          dataByDate[createdDateKey] = { created: 0, completed: 0 };
+        dataByDate[createdDateKey].created++;
+
+        // Contabiliza concluídos
+        if (service.completedAt) {
+          const completedDateKey = getGroupKey(service.completedAt.toDate());
+          if (!dataByDate[completedDateKey])
+            dataByDate[completedDateKey] = { created: 0, completed: 0 };
+          dataByDate[completedDateKey].completed++;
+        }
+      });
+
+      const sortedDates = Object.keys(dataByDate).sort();
+      const timelineLabels = sortedDates.map((dateStr) => {
+        if (isShortPeriod) {
+          const [y, m, d] = dateStr.split("-");
+          return `${d}/${m}`;
+        }
+        const [y, m] = dateStr.split("-");
+        return `${m}/${y}`; // Formato Mês/Ano
+      });
+      const createdData = sortedDates.map((date) => dataByDate[date].created);
+      const completedData = sortedDates.map(
+        (date) => dataByDate[date].completed
+      );
+
+      createChart(
+        "timeline-chart",
+        "line",
+        {
+          labels: timelineLabels,
+          datasets: [
+            {
+              label: "Serviços Criados",
+              data: createdData,
+              borderColor: "#007bff",
+              backgroundColor: "rgba(0, 123, 255, 0.1)",
+              fill: true,
+              tension: 0.3,
+            },
+            {
+              label: "Serviços Concluídos",
+              data: completedData,
+              borderColor: "#28a745",
+              backgroundColor: "rgba(40, 167, 69, 0.1)",
+              fill: true,
+              tension: 0.3,
+            },
+          ],
+        },
+        {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1 }, // Garante que o eixo Y mostre apenas números inteiros
+            },
           },
         }
       );
@@ -3021,6 +3238,22 @@ document.addEventListener("DOMContentLoaded", () => {
           createdAt: serverTimestamp(),
         });
 
+        // CORREÇÃO: Adiciona a lógica de envio de e-mail aqui.
+        const delegateUserEmail = allUsersData.find(
+          (u) => u.id === delegateUserId
+        )?.email;
+        if (delegateUserEmail) {
+          await addDoc(collection(db, "mail"), {
+            to: delegateUserEmail,
+            message: {
+              subject: `[Painel de Gestão] Uma solicitação foi encaminhada para você`,
+              html: `Olá, ${delegateUserName}!<br><br>
+                                   A solicitação <strong>"${requestData.title}"</strong> foi encaminhada para você por <strong>${currentUser.displayName}</strong>.<br><br>
+                                   Acesse o painel para ver os detalhes.`,
+            },
+          });
+        }
+
         alert(`Solicitação encaminhada para ${delegateUserName} com sucesso!`);
         document.getElementById("delegate-request-modal").style.display =
           "none";
@@ -3285,11 +3518,21 @@ document.addEventListener("DOMContentLoaded", () => {
         service.steps[stepIndex].subtasks[subtaskIndex].completed =
           checkbox.checked;
 
+        // MUDANÇA: Verifica se o serviço foi concluído para adicionar a data
+        const progress = calculateOverallProgress(service);
+        const updateData = { steps: service.steps };
+
+        // Se o serviço atingiu 100% e ainda não tem uma data de conclusão, adiciona-a.
+        if (progress.percentage === 100 && !service.completedAt) {
+          updateData.completedAt = serverTimestamp();
+        } else if (progress.percentage < 100 && service.completedAt) {
+          // Se for reaberto, remove a data de conclusão
+          updateData.completedAt = null;
+        }
+
         // Salva a alteração no Firestore
         const serviceRef = doc(db, "services", taskId);
-        await updateDoc(serviceRef, {
-          steps: service.steps,
-        });
+        await updateDoc(serviceRef, updateData);
       }
     }
 
@@ -3485,7 +3728,8 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const requestRef = doc(db, "requests", requestId);
         const requestSnap = await getDoc(requestRef);
-        if (!requestSnap.exists()) throw new Error("Solicitação não encontrada.");
+        if (!requestSnap.exists())
+          throw new Error("Solicitação não encontrada.");
 
         const requestData = requestSnap.data();
 
@@ -3534,11 +3778,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   onAuthStateChanged(auth, async (user) => {
     // Esta função é chamada sempre que o estado de login do usuário muda.
-    if (user) {
+    // CORREÇÃO: Adiciona a verificação de e-mail diretamente no listener principal.
+    if (user && user.emailVerified) {
       // Garante que o perfil do usuário no Firestore está atualizado com nome, email, etc.
       await updateUserInFirestore(user);
 
-      // MUDANÇA: Busca o perfil completo para ter os dados mais recentes
+      // Busca o perfil completo para ter os dados mais recentes (incluindo o 'role')
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
       if (userDocSnap.exists()) {
@@ -3547,8 +3792,12 @@ document.addEventListener("DOMContentLoaded", () => {
         currentUser = user;
       }
 
-      // MUDANÇA: Em vez de logar direto, mostra a tela "Continuar como"
-      showContinueAsScreen(currentUser);
+      // Chama a função que monta a interface principal do aplicativo.
+      initializeAppUI(currentUser);
+    } else if (user && !user.emailVerified) {
+      // Se o usuário existe mas o e-mail não foi verificado, mostra a tela de verificação.
+      // Isso acontece logo após o registro.
+      showVerificationScreen(user.email);
     } else {
       // --- O USUÁRIO ESTÁ DESLOGADO ---
       currentUser = null;
@@ -3611,19 +3860,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // MUDANÇA: Nova função para mostrar a tela "Continuar como"
-  function showContinueAsScreen(user) {
-    const photoEl = document.getElementById("continue-as-photo");
-    const nameEl = document.getElementById("continue-as-name");
-
-    photoEl.src = user.photoURL || "./assets/default-avatar.png";
-    nameEl.textContent = user.displayName || user.email;
-
-    loginBox.classList.add("hidden");
-    registerBox.classList.add("hidden");
-    continueAsBox.classList.remove("hidden");
-  }
-
   // MUDANÇA: Nova função para inicializar a UI após o login confirmado
   async function initializeAppUI(user) {
     // --- O USUÁRIO ESTÁ LOGADO ---
@@ -3652,7 +3888,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Mostra os controles do usuário ao logar
     document.getElementById("home-btn").style.display = "inline-flex";
     document.getElementById("notification-container").style.display = "block";
-    document.getElementById("user-profile").style.display = "flex";
+    userProfile.style.display = "flex"; // CORREÇÃO: Garante que o perfil seja exibido
     // O botão de menu mobile é controlado por CSS, então não precisa de 'display: block' aqui.
 
     document.querySelector("footer").style.display = "block";
@@ -3670,6 +3906,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Começa a ouvir por notificações
     listenForNotifications(user.uid);
 
+    // CORREÇÃO: Move o listener do botão de logout para dentro da inicialização da UI.
+    // Isso garante que o evento seja sempre atrelado ao botão quando a UI é montada.
+    const logoutBtn = document.getElementById("logout-btn");
+    logoutBtn.addEventListener("click", () => signOut(auth));
+
     // Verifica a URL para mostrar a view correta
     handleRouteChange();
     window.addEventListener("hashchange", handleRouteChange);
@@ -3679,12 +3920,31 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const email = emailLoginForm["login-email"].value;
     const password = emailLoginForm["login-password"].value;
-    loginErrorEl.classList.add("hidden");
 
     showLoading();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // O onAuthStateChanged cuidará de atualizar a UI
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      // MUDANÇA: Verifica se o e-mail foi verificado antes de prosseguir
+      // CORREÇÃO: Se o e-mail não for verificado, o próprio onAuthStateChanged vai lidar com isso.
+      // Apenas deslogamos o usuário para forçar a verificação.
+      if (userCredential.user && !userCredential.user.emailVerified) {
+        loginErrorEl.innerHTML = `Seu e-mail ainda não foi verificado. Por favor, verifique sua caixa de entrada. <a href="#" id="resend-verification-link-login">Reenviar e-mail</a>.`;
+        loginErrorEl.classList.remove("hidden");
+        // Adiciona listener para o link de reenvio
+        document
+          .getElementById("resend-verification-link-login")
+          .addEventListener("click", async (e) => {
+            e.preventDefault();
+            await sendEmailVerification(userCredential.user);
+            alert("E-mail de verificação reenviado!");
+          });
+        await signOut(auth); // Desloga o usuário para forçar a verificação
+      }
+      // Se o login for bem-sucedido e o e-mail verificado, o onAuthStateChanged cuidará do resto.
     } catch (error) {
       console.error("Erro no login:", error);
       loginErrorEl.textContent = "E-mail ou senha inválidos.";
@@ -3748,7 +4008,9 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       // Atualiza o perfil do novo usuário com o nome fornecido
       await updateProfile(userCredential.user, { displayName: name });
-      // O onAuthStateChanged cuidará de logar o usuário e atualizar a UI
+      // MUDANÇA: Envia o e-mail de verificação
+      await sendEmailVerification(userCredential.user); // O onAuthStateChanged vai detectar o usuário não verificado e mostrar a tela correta.
+      // Não é mais necessário chamar showVerificationScreen manualmente.
     } catch (error) {
       console.error("Erro no registro:", error);
       registerErrorEl.textContent =
@@ -3759,15 +4021,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Evento para o botão de Sair
-  logoutBtn.addEventListener("click", () => {
-    signOut(auth);
-  });
-
   // Eventos para alternar entre as telas de login e registro
   toggleToRegister.addEventListener("click", () => {
+    loginErrorEl.classList.add("hidden");
     loginBox.classList.add("hidden");
     registerBox.classList.remove("hidden");
+  });
+
+  // CORREÇÃO: Adiciona listener para o botão de reenviar e-mail na tela de verificação
+  resendVerificationBtn.addEventListener("click", async () => {
+    if (auth.currentUser) {
+      await sendEmailVerification(auth.currentUser);
+      alert("E-mail de verificação reenviado!");
+    }
+  });
+  // MUDANÇA: Evento para o botão de menu mobile
+  backToLoginLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    verifyEmailBox.classList.add("hidden");
+    loginBox.classList.remove("hidden");
+    signOut(auth); // Garante que o usuário seja deslogado
   });
 
   // MUDANÇA: Evento para o botão de menu mobile
@@ -3811,6 +4084,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
   // --- MUDANÇA: LÓGICA DOS MODAIS ---
+
+  // MUDANÇA: Nova função para mostrar a tela de verificação de e-mail
+  function showVerificationScreen(email) {
+    document.getElementById("verify-email-address").textContent = email;
+    loginBox.classList.add("hidden");
+    registerBox.classList.add("hidden");
+    continueAsBox.classList.add("hidden");
+    verifyEmailBox.classList.remove("hidden");
+  }
 
   // MUDANÇA: Nova função para popular as sugestões de categoria
   function populateCategorySuggestions() {
@@ -4160,6 +4442,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      // CORREÇÃO: Adiciona a lógica de envio de e-mail aqui, dentro do submit.
+      if (mentionedUserId) {
+        const mentionedUserEmail = allUsersData.find(
+          (u) => u.id === mentionedUserId
+        )?.email;
+        if (mentionedUserEmail) {
+          const mentionedUserName = teamMemberMap.get(mentionedUserId);
+          await addDoc(collection(db, "mail"), {
+            to: mentionedUserEmail,
+            message: {
+              subject: `[Painel de Gestão] Você foi mencionado em uma solicitação!`,
+              html: `Olá, ${mentionedUserName}!<br><br>
+                                   O usuário <strong>${currentUser.displayName}</strong> mencionou você na solicitação: <strong>"${title}"</strong>.<br><br>
+                                   Acesse o painel para ver os detalhes.`,
+            },
+          });
+        }
+      }
+
       alert("Solicitação enviada com sucesso!");
     } catch (error) {
       console.error("Erro ao enviar solicitação:", error);
@@ -4168,48 +4469,6 @@ document.addEventListener("DOMContentLoaded", () => {
       hideLoading();
     }
   });
-
-  // MUDANÇA: Função movida para o escopo global para ser reutilizável.
-  // Coleta dados das etapas de um formulário (modal ou inline) e preserva o estado 'completed'.
-  function collectStepsFromForm(stepGroups, originalService = null) {
-    return Array.from(stepGroups).map((group, stepIndex) => {
-      const stepName = group.querySelector('[name="stepName"]').value;
-      const stepColor = group.querySelector('[name="stepColor"]').value;
-      const stepResponsibleId = group.querySelector(
-        '[name="stepResponsible"]'
-      ).value;
-      const substepInputs = group.querySelectorAll('[name="substepName"]');
-
-      const subtasks = Array.from(substepInputs).map((input, subtaskIndex) => {
-        // --- LÓGICA DE MESCLAGEM CORRIGIDA ---
-        const subtaskId = input.dataset.id;
-        const newName = input.value.trim();
-        const newPendingDescription =
-          group.querySelector(`select[data-id="${subtaskId}"]`)?.value.trim() ||
-          "";
-
-        // Tenta encontrar a sub-etapa original pelo índice. Isso é seguro porque a ordem não muda durante a edição.
-        const originalSubtask =
-          originalService?.steps[stepIndex]?.subtasks[subtaskIndex];
-
-        // Preserva o status 'completed' da sub-etapa original, se ela existir.
-        const isCompleted = originalSubtask ? originalSubtask.completed : false;
-
-        return {
-          name: newName,
-          completed: isCompleted,
-          pendingDescription: newPendingDescription,
-        };
-      });
-
-      return {
-        name: stepName,
-        color: stepColor,
-        responsibleId: stepResponsibleId || null,
-        subtasks,
-      };
-    });
-  }
 
   // --- MUDANÇA: Funções para o sistema de notificação ---
   function listenForNotifications(userId) {
