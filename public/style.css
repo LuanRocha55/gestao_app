@@ -2648,3 +2648,122 @@ body.dark-theme .summary-item.has-overdue .summary-value {
   text-align: center;
   padding: 20px;
 }
+
+/* --- MUDANÇA: Estilos para as novas páginas de features (Escrita e Vídeo) --- */
+#writing-view,
+#video-view {
+    padding: 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.feature-page-description {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border-left: 4px solid var(--accent-color);
+}
+
+.feature-service-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.feature-service-item {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: var(--shadow-color) 0px 2px 8px 0px;
+    overflow: hidden; /* Garante que o conteúdo do formulário não vaze */
+}
+
+.feature-service-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.feature-service-info:hover {
+    background-color: var(--bg-color);
+}
+
+.feature-service-info strong {
+    font-size: 1.1em;
+}
+
+.feature-service-info span {
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+.status-tag {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 700;
+    color: var(--text-color);
+    background-color: var(--progress-bar-bg);
+}
+.status-tag.completed { background-color: #43a047; color: #fff; }
+.status-tag.processing { background-color: #ffb300; color: #000; }
+
+.video-generation-form-container {
+    padding: 20px;
+    background-color: var(--bg-color);
+    border-top: 1px solid var(--progress-bar-bg);
+}
+.video-player-container {
+    margin-bottom: 20px;
+}
+
+/* --- MUDANÇA: Estilos para as novas seções de Features (Escrita e Vídeo) --- */
+
+.feature-controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.ebook-container {
+  margin-top: 20px;
+  padding: 25px;
+  background-color: var(--bg-color);
+  border-radius: 8px;
+  border: 1px solid var(--progress-bar-bg);
+  min-height: 100px;
+  line-height: 1.7;
+}
+
+.ebook-container h1, .ebook-container h2, .ebook-container h3 {
+  color: var(--accent-color);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  border-bottom: 1px solid var(--progress-bar-bg);
+  padding-bottom: 5px;
+}
+
+.ebook-container h1:first-child, .ebook-container h2:first-child, .ebook-container h3:first-child {
+    margin-top: 0;
+}
+
+#video-status-container {
+    margin-bottom: 20px;
+}
+
+.spinner-inline {
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--progress-bar-bg);
+    border-top-color: var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+}

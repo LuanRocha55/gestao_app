@@ -2,6 +2,8 @@
 import {
   db,
   auth,
+  functions,
+  httpsCallable,
   storage,
   ref,
   uploadBytes,
@@ -92,6 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const productionStatusView = document.getElementById(
     "production-status-view"
   ); // MUDANÇA
+  const writingView = document.getElementById("writing-view"); // MUDANÇA
+  const videoView = document.getElementById("video-view"); // MUDANÇA
   const statisticsView = document.getElementById("statistics-view"); // MUDANÇA
   const addStepBtn = document.getElementById("add-step-btn");
   const dashboardView = document.getElementById("dashboard-view");
@@ -1055,7 +1059,10 @@ document.addEventListener("DOMContentLoaded", () => {
       !generalInfoContent ||
       !stepsList ||
       !fileList ||
-      !stickyFooterContainer
+      !stickyFooterContainer ||
+      // CORREÇÃO: Garante que os novos containers também existam antes de prosseguir.
+      !document.getElementById("collaborative-writing-content") ||
+      !document.getElementById("video-generation-content")
     )
       return;
 
@@ -2783,6 +2790,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const isCategoryManagement = hash.startsWith("#/categories");
     const isProductionStatus = hash.startsWith("#/production-status"); // MUDANÇA
     const isStatistics = hash.startsWith("#/statistics"); // MUDANÇA
+    const isWriting = hash.startsWith("#/writing"); // MUDANÇA
+    const isVideo = hash.startsWith("#/video"); // MUDANÇA
 
     // MUDANÇA: Limpa o listener de comentários se não estiver na página de detalhes
     if (!isServiceDetail && unsubscribeFromComments) {
@@ -2800,6 +2809,8 @@ document.addEventListener("DOMContentLoaded", () => {
     categoryManagementView.classList.toggle("hidden", !isCategoryManagement);
     productionStatusView.classList.toggle("hidden", !isProductionStatus); // MUDANÇA
     statisticsView.classList.toggle("hidden", !isStatistics); // MUDANÇA
+    writingView.classList.toggle("hidden", !isWriting); // MUDANÇA
+    videoView.classList.toggle("hidden", !isVideo); // MUDANÇA
 
     // Adiciona uma classe ao body para estilizar o header de forma diferente
     const isSubPage =
@@ -2810,7 +2821,9 @@ document.addEventListener("DOMContentLoaded", () => {
       isUserManagement ||
       isCategoryManagement ||
       isProductionStatus ||
-      isStatistics;
+      isStatistics ||
+      isWriting ||
+      isVideo;
     document.body.classList.toggle("detail-view-active", isSubPage);
 
     // Carrega o conteúdo da view ativa
@@ -2855,6 +2868,12 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (isStatistics) {
       // MUDANÇA
       renderStatisticsPage();
+    } else if (isWriting) {
+      // MUDANÇA
+      renderWritingPage();
+    } else if (isVideo) {
+      // MUDANÇA
+      renderVideoPage();
     } else if (isServices) {
       // A view padrão é a lista de serviços
       // MUDANÇA: Adiciona o botão de gerenciar categorias apenas para admins
@@ -2905,6 +2924,53 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Botão para exportar a tabela de status para CSV
     if (e.target.id === "export-status-csv-btn") {
       exportProductionStatusToCSV();
+    }
+
+    // MUDANÇA: Listeners para a página de Escrita Colaborativa
+    const writingBtn = e.target.closest('[data-action="handle-writing"]');
+    if (writingBtn) {
+      const serviceId = writingBtn.dataset.serviceId;
+      const service = services.find(s => s.id === serviceId);
+      if (service) {
+        handleCollaborativeWriting(service.id, service.name, service.googleDocId);
+      }
+    }
+
+    const ebookBtn = e.target.closest('[data-action="render-ebook"]');
+    if (ebookBtn) {
+        const serviceId = ebookBtn.dataset.serviceId;
+        const service = services.find(s => s.id === serviceId);
+        if (service) {
+            openEbookModal(service.googleDocId, service.name);
+        }
+    }
+
+    // MUDANÇA: Listener para fechar o modal do eBook
+    const ebookModal = e.target.closest("#ebook-modal");
+    if (ebookModal && (e.target.classList.contains('close-btn') || e.target.id === 'ebook-modal')) {
+        ebookModal.remove();
+    }
+
+    // MUDANÇA: Listeners para a página de Geração de Vídeo
+    const toggleVideoFormBtn = e.target.closest('[data-action="toggle-video-form"]');
+    if (toggleVideoFormBtn) {
+        const formContainer = toggleVideoFormBtn.nextElementSibling;
+        formContainer.classList.toggle('hidden');
+    }
+
+    const videoForm = e.target.closest('.video-generation-form');
+    if (videoForm) {
+        e.preventDefault();
+        const serviceId = videoForm.closest('.feature-service-item').dataset.serviceId;
+        const text = videoForm.querySelector('textarea').value;
+        const avatarId = videoForm.querySelector('input[type="text"]').value;
+        
+        // Reutiliza a função handleVideoGeneration, mas passa os dados diretamente
+        handleVideoGeneration({
+            serviceId,
+            text,
+            avatarId
+        });
     }
 
     if (e.target.matches(".detail-header a.btn-secondary")) {

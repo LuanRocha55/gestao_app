@@ -220,6 +220,26 @@
                     <p>Visualize gráficos e dados sobre o desempenho da produção.</p>
                 </a>
             </div>
+            <!-- MUDANÇA: Novo card para Escrita Colaborativa -->
+            <div class="dashboard-card" id="writing-dashboard-card">
+                <a href="#/writing">
+                    <div class="dashboard-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z" /></svg>
+                    </div>
+                    <h2>Escrita Colaborativa</h2>
+                    <p>Crie e edite eBooks usando a API do Google Docs.</p>
+                </a>
+            </div>
+            <!-- MUDANÇA: Novo card para Geração de Vídeo -->
+            <div class="dashboard-card" id="video-dashboard-card">
+                <a href="#/video">
+                    <div class="dashboard-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.5,12A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 20.5,12A1.5,1.5 0 0,1 19,13.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 17.5,8A1.5,1.5 0 0,1 16,9.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 12.5,8A1.5,1.5 0 0,1 11,9.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 9.5,12A1.5,1.5 0 0,1 8,13.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A9,9 0 0,0 21,12A9,9 0 0,0 12,3Z" /></svg>
+                    </div>
+                    <h2>Geração de Vídeo IA</h2>
+                    <p>Crie vídeos a partir de texto com avatares do HeyGen.</p>
+                </a>
+            </div>
             <div class="dashboard-card" id="requests-dashboard-card">
                 <a href="#/requests">
                     <div class="dashboard-card-icon">
@@ -281,6 +301,16 @@
 
         <!-- MUDANÇA: Nova seção para a página de Gerenciamento de Categorias (Admin) -->
         <section id="category-management-view" class="hidden">
+            <!-- O conteúdo será inserido aqui pelo JavaScript -->
+        </section>
+
+        <!-- MUDANÇA: Nova seção para a página de Escrita Colaborativa -->
+        <section id="writing-view" class="hidden">
+            <!-- O conteúdo será inserido aqui pelo JavaScript -->
+        </section>
+
+        <!-- MUDANÇA: Nova seção para a página de Geração de Vídeo -->
+        <section id="video-view" class="hidden">
             <!-- O conteúdo será inserido aqui pelo JavaScript -->
         </section>
     </main>
@@ -421,6 +451,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <!-- MUDANÇA: Adiciona a biblioteca Chart.js para os gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- MUDANÇA: Adiciona a biblioteca cliente do Google para a API -->
+    <script async defer src="https://apis.google.com/js/api.js"></script>
     <!-- Link para o script JavaScript -->
     <script type="module" src="script.js"></script>
 </body>

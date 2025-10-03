@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getFirestore, collection, doc, addDoc, updateDoc, writeBatch, onSnapshot, getDocs, query, where, setDoc, getDoc, deleteDoc, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-functions.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
 // A configuração do Firebase do seu aplicativo da web
@@ -19,7 +20,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const functions = getFunctions(app, 'southamerica-east1'); // MUDANÇA: Inicializa o Functions na região correta
 const storage = getStorage(app);
 
 // Exporta as instâncias e funções para serem usadas em outros lugares
-export { db, auth, storage, ref, uploadBytes, getDownloadURL, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, sendEmailVerification, collection, doc, addDoc, updateDoc, writeBatch, onSnapshot, getDocs, query, where, setDoc, getDoc, deleteDoc, serverTimestamp, orderBy };
+export { db, auth, functions, httpsCallable, storage, ref, uploadBytes, getDownloadURL, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, sendEmailVerification, collection, doc, addDoc, updateDoc, writeBatch, onSnapshot, getDocs, query, where, setDoc, getDoc, deleteDoc, serverTimestamp, orderBy };
