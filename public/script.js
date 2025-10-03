@@ -1724,15 +1724,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Mapeia os dados para cada chave de coluna
           const cellData = {
-            name: `<td><a href="#/service/${service.id}">${service.name}</a></td>`,
-            category: `<td>${service.category || "N/A"}</td>`,
-            responsible: `<td>${responsibleName}</td>`,
-            step: `<td class="step-cell"><span class="step-color-indicator" style="background-color: ${currentStepColor};"></span><span>${currentStepName}</span></td>`,
-            priority: `<td>${priorityTagHtml}</td>`,
-            dueDate: `<td class="due-date-cell ${dueDateStatus.className}">${
+            name: `<td data-label="Material"><a href="#/service/${service.id}">${service.name}</a></td>`,
+            category: `<td data-label="Categoria">${service.category || "N/A"}</td>`,
+            responsible: `<td data-label="Responsável">${responsibleName}</td>`,
+            step: `<td data-label="Etapa Atual" class="step-cell"><span class="step-color-indicator" style="background-color: ${currentStepColor};"></span><span>${currentStepName}</span></td>`,
+            priority: `<td data-label="Prioridade">${priorityTagHtml}</td>`,
+            dueDate: `<td data-label="Entrega" class="due-date-cell ${dueDateStatus.className}">${
               dueDateStatus.text || "N/A"
             }</td>`,
-            progress: `<td class="progress-cell"><span class="progress-dot ${progressColorClass}"></span><span>${Math.round(
+            progress: `<td data-label="Progresso" class="progress-cell"><span class="progress-dot ${progressColorClass}"></span><span>${Math.round(
               progress.percentage
             )}%</span></td>`,
           };
@@ -3484,6 +3484,49 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // MUDANÇA: Função para coletar dados de etapas e sub-etapas de um formulário
+  function collectStepsFromForm(stepGroups, originalService = null) {
+    const steps = [];
+    stepGroups.forEach((group, stepIndex) => {
+      const stepName = group.querySelector('[name="stepName"]').value;
+      const stepColor = group.querySelector('[name="stepColor"]').value;
+      const stepResponsibleId = group.querySelector(
+        '[name="stepResponsible"]'
+      ).value;
+
+      const substepRows = group.querySelectorAll(".substep-input-row");
+      const subtasks = [];
+      substepRows.forEach((row, subtaskIndex) => {
+        const substepName = row.querySelector('[name="substepName"]').value;
+        const substepPending = row.querySelector(
+          '[name="substepPendingDescription"]'
+        ).value;
+
+        // Tenta preservar o status 'completed' da sub-etapa original se estiver editando
+        let isCompleted = false;
+        if (
+          originalService &&
+          originalService.steps[stepIndex] &&
+          originalService.steps[stepIndex].subtasks[subtaskIndex]
+        ) {
+          isCompleted =
+            originalService.steps[stepIndex].subtasks[subtaskIndex].completed;
+        }
+
+        subtasks.push({
+          name: substepName,
+          completed: isCompleted,
+          pendingDescription: substepPending,
+        });
+      });
+
+      if (stepName) {
+        steps.push({ name: stepName, color: stepColor, responsibleId: stepResponsibleId, subtasks: subtasks });
+      }
+    });
+    return steps;
+  }
 
   // --- MUDANÇA: Nova função para criar um template de e-mail HTML estilizado ---
   function createStyledEmailHtml({ title, body, button }) {
