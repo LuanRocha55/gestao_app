@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let allUsersData = []; // MUDANÇA: Variável para armazenar dados de todos os usuários
   let currentEditServiceId = null; // MUDANÇA: Para rastrear o serviço em edição
   let sortableSteps = null; // MUDANÇA: Para a instância do SortableJS
+  let allRequests = []; // MUDANÇA: Armazena todas as solicitações para os selos
   let unsubscribeFromComments = null; // MUDANÇA: Listener para comentários
   let unsubscribeFromRequests = null; // MUDANÇA: Listener para solicitações
   let unsubscribeFromNotifications = null; // MUDANÇA: Listener para notificações
@@ -98,6 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const videoView = document.getElementById("video-view"); // MUDANÇA
   const statisticsView = document.getElementById("statistics-view"); // MUDANÇA
   const addStepBtn = document.getElementById("add-step-btn");
+  const sidebarToggleBtn = document.getElementById("sidebar-toggle-btn"); // MUDANÇA
+  const sidebar = document.getElementById("sidebar"); // MUDANÇA: Referência para a nova sidebar
   const dashboardView = document.getElementById("dashboard-view");
   const stepsContainer = document.getElementById("steps-container");
   const makeRequestModal = document.getElementById("make-request-modal");
@@ -253,6 +256,34 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }, 50);
   });
+  // --- Funções Utilitárias ---
+
+  // MUDANÇA: Lógica para o botão de recolher/expandir a sidebar
+  sidebarToggleBtn.addEventListener("click", () => {
+    document.body.classList.toggle("sidebar-collapsed");
+    // Salva o estado no localStorage
+    if (document.body.classList.contains("sidebar-collapsed")) {
+      sidebarToggleBtn.setAttribute("title", "Expandir menu");
+      // MUDANÇA: Mostra o botão de promoção se estiver na home
+      if (window.location.hash === "" || window.location.hash === "#/") {
+        document.getElementById("sidebar-promo-button-container").classList.remove("hidden");
+      }
+      localStorage.setItem("sidebarState", "collapsed");
+    } else {
+      sidebarToggleBtn.setAttribute("title", "Recolher menu");
+      // MUDANÇA: Esconde o botão de promoção
+      document.getElementById("sidebar-promo-button-container").classList.add("hidden");
+      localStorage.setItem("sidebarState", "expanded");
+    }
+    // MUDANÇA: Gira o ícone da seta
+    sidebarToggleBtn.querySelector("svg").style.transform = document.body.classList.contains("sidebar-collapsed") ? "rotate(180deg)" : "rotate(0deg)";
+  });
+
+  // MUDANÇA: Lógica para o novo botão de promoção da sidebar
+  document.getElementById("sidebar-promo-btn").addEventListener("click", () => {
+    sidebarToggleBtn.click(); // Simula um clique no botão de toggle para expandir
+  });
+
   // --- Funções Utilitárias ---
   const emailRegex =
     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -1732,13 +1763,15 @@ document.addEventListener("DOMContentLoaded", () => {
           // Mapeia os dados para cada chave de coluna
           const cellData = {
             name: `<td data-label="Material"><a href="#/service/${service.id}">${service.name}</a></td>`,
-            category: `<td data-label="Categoria">${service.category || "N/A"}</td>`,
+            category: `<td data-label="Categoria">${
+              service.category || "N/A"
+            }</td>`,
             responsible: `<td data-label="Responsável">${responsibleName}</td>`,
             step: `<td data-label="Etapa Atual" class="step-cell"><span class="step-color-indicator" style="background-color: ${currentStepColor};"></span><span>${currentStepName}</span></td>`,
             priority: `<td data-label="Prioridade">${priorityTagHtml}</td>`,
-            dueDate: `<td data-label="Entrega" class="due-date-cell ${dueDateStatus.className}">${
-              dueDateStatus.text || "N/A"
-            }</td>`,
+            dueDate: `<td data-label="Entrega" class="due-date-cell ${
+              dueDateStatus.className
+            }">${dueDateStatus.text || "N/A"}</td>`,
             progress: `<td data-label="Progresso" class="progress-cell"><span class="progress-dot ${progressColorClass}"></span><span>${Math.round(
               progress.percentage
             )}%</span></td>`,
@@ -2778,10 +2811,31 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleRouteChange() {
     if (!currentUser) return; // Não faz nada se o usuário não estiver logado
 
+    // MUDANÇA: Atualiza o link ativo na barra lateral
+    const activeLink = sidebar.querySelector("a.active");
+    if (activeLink) {
+      activeLink.classList.remove("active");
+    }
+    const newActiveLink = sidebar.querySelector(
+      `a[href="${window.location.hash}"]`
+    );
+    if (newActiveLink) {
+      newActiveLink.classList.add("active");
+    }
+
     const hash = window.location.hash;
 
     // Define qual view está ativa com base na URL
     const isDashboard = hash === "" || hash === "#/";
+
+    // MUDANÇA: Controla a visibilidade do botão de promoção da sidebar
+    const promoBtnContainer = document.getElementById("sidebar-promo-button-container");
+    if (isDashboard && document.body.classList.contains("sidebar-collapsed")) {
+      promoBtnContainer.classList.remove("hidden");
+    } else {
+      promoBtnContainer.classList.add("hidden");
+    }
+
     const isServices = hash === "#/services"; // MUDANÇA: Verifica a correspondência exata para a lista
     const isServiceDetail = hash.startsWith("#/service/");
     const isProfile = hash.startsWith("#/profile");
@@ -2930,47 +2984,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const writingBtn = e.target.closest('[data-action="handle-writing"]');
     if (writingBtn) {
       const serviceId = writingBtn.dataset.serviceId;
-      const service = services.find(s => s.id === serviceId);
+      const service = services.find((s) => s.id === serviceId);
       if (service) {
-        handleCollaborativeWriting(service.id, service.name, service.googleDocId);
+        handleCollaborativeWriting(
+          service.id,
+          service.name,
+          service.googleDocId
+        );
       }
     }
 
     const ebookBtn = e.target.closest('[data-action="render-ebook"]');
     if (ebookBtn) {
-        const serviceId = ebookBtn.dataset.serviceId;
-        const service = services.find(s => s.id === serviceId);
-        if (service) {
-            openEbookModal(service.googleDocId, service.name);
-        }
-    }
-
-    // MUDANÇA: Listener para fechar o modal do eBook
-    const ebookModal = e.target.closest("#ebook-modal");
-    if (ebookModal && (e.target.classList.contains('close-btn') || e.target.id === 'ebook-modal')) {
-        ebookModal.remove();
+      const serviceId = ebookBtn.dataset.serviceId;
+      const service = services.find((s) => s.id === serviceId);
+      if (service) {
+        openEbookModal(service.googleDocId, service.name);
+      }
     }
 
     // MUDANÇA: Listeners para a página de Geração de Vídeo
-    const toggleVideoFormBtn = e.target.closest('[data-action="toggle-video-form"]');
+    const toggleVideoFormBtn = e.target.closest(
+      '[data-action="toggle-video-form"]'
+    );
     if (toggleVideoFormBtn) {
-        const formContainer = toggleVideoFormBtn.nextElementSibling;
-        formContainer.classList.toggle('hidden');
-    }
-
-    const videoForm = e.target.closest('.video-generation-form');
-    if (videoForm) {
-        e.preventDefault();
-        const serviceId = videoForm.closest('.feature-service-item').dataset.serviceId;
-        const text = videoForm.querySelector('textarea').value;
-        const avatarId = videoForm.querySelector('input[type="text"]').value;
-        
-        // Reutiliza a função handleVideoGeneration, mas passa os dados diretamente
-        handleVideoGeneration({
-            serviceId,
-            text,
-            avatarId
-        });
+      const formContainer = toggleVideoFormBtn.nextElementSibling;
+      formContainer.classList.toggle("hidden");
     }
 
     if (e.target.matches(".detail-header a.btn-secondary")) {
@@ -3551,6 +3590,268 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // MUDANÇA: Nova função para renderizar a barra lateral
+  function renderSidebar() {
+    if (!sidebar) return;
+
+    const pendingRequestsCount = allRequests.filter(
+      (req) => req.status === "pending"
+    ).length;
+
+    const navLinks = [
+      {
+        href: "#/services",
+        text: "Gerenciar Serviços",
+        icon: "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z",
+      },
+      {
+        href: "#/production-status",
+        text: "Status da Produção",
+        icon: "M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z",
+      },
+      {
+        href: "#/statistics",
+        text: "Estatísticas",
+        icon: "M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z",
+      },
+      {
+        href: "#/writing",
+        text: "Escrita Colaborativa",
+        icon: "M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z",
+      },
+      {
+        href: "#/video",
+        text: "Geração de Vídeo IA",
+        icon: "M4,3.5A1.5,1.5 0 0,1 5.5,2H18.5A1.5,1.5 0 0,1 20,3.5V16.5A1.5,1.5 0 0,1 18.5,18H14V20H16V22H8V20H10V18H5.5A1.5,1.5 0 0,1 4,16.5V3.5M18,4H6V16H18V4M10,6V14L15,10",
+      },
+      {
+        href: "#/requests",
+        text: "Ver Solicitações",
+        icon: "M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6,7.5L12,10.85L18,7.5L12,4.15M5,15.91L11,19.29V12.58L5,9.21V15.91Z",
+        badge: pendingRequestsCount,
+      },
+      {
+        href: "#/profile",
+        text: "Meu Perfil",
+        icon: "M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z",
+      },
+    ];
+
+    if (currentUser && currentUser.role === "admin") {
+      navLinks.push({
+        href: "#/users",
+        text: "Gerenciar Usuários",
+        icon: "M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7A3,3 0 0,1 15,10A3,3 0 0,1 12,13A3,3 0 0,1 9,10A3,3 0 0,1 12,7M17.5,17.13C15.93,18.54 14,19.38 12,19.82C10,19.38 8.07,18.54 6.5,17.13C6.83,16.06 9.11,15 12,15C14.89,15 17.17,16.06 17.5,17.13Z",
+      });
+    }
+
+    const linksHtml = navLinks
+      .map((link) => {
+        const badgeHtml =
+          link.badge > 0
+            ? `<span class="sidebar-badge">${link.badge}</span>`
+            : "";
+        return `
+        <li>
+          <a href="${link.href}" class="${
+          window.location.hash === link.href ? "active" : ""
+        }">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="${
+              link.icon
+            }" /></svg>
+            <span>${link.text}</span>
+            ${badgeHtml}
+          </a>
+        </li>
+      `;
+      })
+      .join("");
+
+    const sidebarNav = document.getElementById("sidebar-nav");
+    if (sidebarNav) {
+      sidebarNav.innerHTML = `<ul>${linksHtml}</ul>`;
+    }
+
+    // Adiciona evento para destacar o link ativo
+    sidebar.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        sidebar.querySelector("a.active")?.classList.remove("active");
+        link.classList.add("active");
+      });
+    });
+  }
+
+  // --- MUDANÇA: Funções para a página de Escrita Colaborativa (SIMPLIFICADO) ---
+  function renderWritingPage() {
+    if (!writingView) return;
+
+    // MUDANÇA: Remove o filtro de categoria para que todos os serviços apareçam.
+    // Agora, qualquer serviço pode ser usado para a escrita colaborativa.
+    const relevantServices = services;
+
+    const servicesHtml =
+      relevantServices.length > 0
+        ? relevantServices
+            .map((service) => {
+              const docId = service.googleDocId;
+              const statusHtml = docId
+                ? `<span class="status-tag completed">Documento Criado</span>`
+                : `<span class="status-tag">Nenhum documento</span>`;
+
+              return `
+                <li class="feature-service-item" data-service-id="${
+                  service.id
+                }">
+                    <div class="feature-service-info">
+                        <div>
+                            <strong>${service.name}</strong>
+                            <p>Responsável: ${
+                              teamMemberMap.get(service.responsible) || "N/A"
+                            }</p>
+                        </div>
+                        <div style="text-align: right;">${statusHtml}</div>
+                    </div>
+                    <div class="feature-controls">
+                        <button class="btn-primary" data-action="handle-writing" data-service-id="${
+                          service.id
+                        }">${
+                docId ? "Abrir Documento" : "Criar Documento"
+              }</button>
+                        <button class="btn-secondary" data-action="render-ebook" data-service-id="${
+                          service.id
+                        }" ${!docId ? "disabled" : ""}>Visualizar eBook</button>
+                    </div>
+                </li>
+            `;
+            })
+            .join("")
+        : "<p>Nenhum serviço encontrado. Crie um novo serviço para começar a usar a escrita colaborativa.</p>";
+
+    writingView.innerHTML = `
+        <div class="detail-header">
+            <h2>Escrita Colaborativa com IA</h2>
+            <a href="#/" class="btn-secondary">Voltar</a>
+        </div>
+        <div class="feature-page-description">
+            <p>Use esta seção para criar e editar o conteúdo de seus eBooks diretamente no Google Docs. A integração permite que você visualize o conteúdo formatado como um eBook a qualquer momento.</p>
+        </div>
+        <ul class="feature-service-list">${servicesHtml}</ul>
+    `;
+  }
+
+  // --- MUDANÇA: Funções para a página de Geração de Vídeo (SIMPLIFICADO) ---
+  function renderVideoPage() {
+    if (!videoView) return;
+
+    // MUDANÇA: Restaura a lógica para listar todos os serviços, removendo o filtro de categoria.
+    const relevantServices = services;
+
+    const servicesHtml =
+      relevantServices.length > 0
+        ? relevantServices
+            .map((service) => {
+              let statusHtml = `<span class="status-tag">Não iniciado</span>`;
+              if (service.videoStatus === "processing") {
+                statusHtml = `<span class="status-tag processing">Processando...</span>`;
+              } else if (service.videoStatus === "completed") {
+                statusHtml = `<span class="status-tag completed">Concluído</span>`;
+              }
+
+              return `
+                <li class="feature-service-item" data-service-id="${
+                  service.id
+                }">
+                    <div class="feature-service-info" data-action="toggle-video-form">
+                        <div>
+                            <strong>${service.name}</strong>
+                            <p>Responsável: ${
+                              teamMemberMap.get(service.responsible) || "N/A"
+                            }</p>
+                        </div>
+                        <div style="text-align: right;">${statusHtml}</div>
+                    </div>
+                    <div class="video-generation-form-container hidden">
+                        ${
+                          service.videoStatus === "completed" &&
+                          service.videoUrl
+                            ? `
+                            <div class="video-player-container">
+                                <video controls width="100%">
+                                    <source src="${service.videoUrl}" type="video/mp4">
+                                    Seu navegador não suporta a tag de vídeo.
+                                </video>
+                            </div>`
+                            : ""
+                        }
+                        <form class="video-generation-form">
+                            <div class="form-group">
+                                <label>Texto para o vídeo (roteiro):</label>
+                                <textarea rows="5" placeholder="Digite o texto que o avatar irá falar..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>ID do Avatar (HeyGen)</label>
+                                <input type="text" value="6da7b2c7257a4e16a23a4a3c2e5156a1" placeholder="Cole o ID do avatar aqui" required />
+                            </div>
+                            <button type="submit" class="btn-primary">Gerar Vídeo</button>
+                            <div id="video-status-${
+                              service.id
+                            }" class="video-status-container"></div>
+                        </form>
+                    </div>
+                </li>
+            `;
+            })
+            .join("")
+        : "<p>Nenhum serviço encontrado. Crie um novo serviço para começar a gerar vídeos.</p>";
+
+    videoView.innerHTML = `
+        <div class="detail-header">
+            <h2>Geração de Vídeo com Avatares de IA</h2>
+             <a href="#/" class="btn-secondary">Voltar</a>
+        </div>
+        <div class="feature-page-description">
+            <p>Crie vídeos rapidamente usando avatares realistas da HeyGen. Selecione um serviço, insira o roteiro e o ID do avatar para iniciar a geração. O vídeo aparecerá aqui quando estiver pronto.</p>
+        </div>
+        <ul class="feature-service-list">${servicesHtml}</ul>
+    `;
+  }
+
+  // --- MUDANÇA: Funções de Ação para as Novas Features ---
+
+  // Função para mostrar o conteúdo do eBook em um modal
+  async function openEbookModal(googleDocId, serviceName) {
+    // Esta função também será implementada futuramente.
+    // Ela buscará o conteúdo do Google Doc e o renderizará em um modal.
+    alert(
+      `Visualização de eBook em desenvolvimento!\nID do Documento: ${googleDocId}`
+    );
+  }
+
+  // Função para chamar a Cloud Function de geração de vídeo
+  async function handleVideoGeneration({ serviceId, text, avatarId }) {
+    const statusContainer = document.getElementById(
+      `video-status-${serviceId}`
+    );
+    if (!statusContainer) return;
+
+    statusContainer.innerHTML = `Iniciando geração... <div class="spinner-inline"></div>`;
+
+    try {
+      const generateVideo = httpsCallable(functions, "generateHeyGenVideo");
+      const result = await generateVideo({ serviceId, text, avatarId });
+
+      if (result.data.success) {
+        statusContainer.innerHTML = `<p style="color: var(--accent-color);">✅ Geração iniciada! O vídeo aparecerá aqui quando estiver pronto. Isso pode levar alguns minutos.</p>`;
+        // O listener do onSnapshot atualizará a UI quando o vídeo estiver pronto.
+      } else {
+        throw new Error(result.data.message || "Erro desconhecido.");
+      }
+    } catch (error) {
+      console.error("Erro ao gerar vídeo:", error);
+      statusContainer.innerHTML = `<p class="auth-error">❌ Falha ao gerar vídeo: ${error.message}</p>`;
+    }
+  }
+
   // MUDANÇA: Função para coletar dados de etapas e sub-etapas de um formulário
   function collectStepsFromForm(stepGroups, originalService = null) {
     const steps = [];
@@ -3588,7 +3889,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (stepName) {
-        steps.push({ name: stepName, color: stepColor, responsibleId: stepResponsibleId, subtasks: subtasks });
+        steps.push({
+          name: stepName,
+          color: stepColor,
+          responsibleId: stepResponsibleId,
+          subtasks: subtasks,
+        });
       }
     });
     return steps;
@@ -3903,6 +4209,24 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // MUDANÇA: Formulário para gerar vídeo
+    const videoForm = e.target.closest(".video-generation-form");
+    if (videoForm) {
+      e.preventDefault();
+      const serviceId = videoForm.closest(".feature-service-item").dataset
+        .serviceId;
+      const text = videoForm.querySelector("textarea").value;
+      const avatarId = videoForm.querySelector('input[type="text"]').value;
+
+      if (text && avatarId) {
+        handleVideoGeneration({
+          serviceId,
+          text,
+          avatarId,
+        });
+      }
+    }
+
     // Formulário de Adicionar Link de Arquivo
     if (e.target.id === "add-file-form") {
       e.preventDefault();
@@ -3999,14 +4323,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // MUDANÇA: Lógica para o botão "Continuar como"
-  continueAsBtn.addEventListener("click", () => {
-    if (currentUser) {
-      // O usuário já está autenticado, apenas procedemos para o app
-      initializeAppUI(currentUser);
-    }
-  });
-
   // MUDANÇA: Lógica para "Entrar com outra conta"
   switchAccountLink.addEventListener("click", (e) => {
     e.preventDefault();
@@ -4038,7 +4354,9 @@ document.addEventListener("DOMContentLoaded", () => {
         currentUser = user; // Fallback
       }
       showContinueAsScreen(currentUser);
-
+      // MUDANÇA: Adiciona listener para o botão "Continuar"
+      document.getElementById("continue-as-btn").onclick = () =>
+        initializeAppUI(currentUser);
     } else {
       // --- O USUÁRIO ESTÁ DESLOGADO ---
       currentUser = null;
@@ -4074,6 +4392,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Atualiza a UI para o estado "deslogado", mostrando a tela de login
       loginContainer.classList.remove("hidden");
       appHeader.classList.remove("hidden"); // MUDANÇA: Mantém o header visível
+      sidebar.classList.add("hidden"); // MUDANÇA: Esconde a sidebar
       document.querySelector("footer").style.display = "block"; // MUDANÇA: Mantém o footer visível
 
       // MUDANÇA: Esconde os controles específicos do usuário no header
@@ -4112,18 +4431,23 @@ document.addEventListener("DOMContentLoaded", () => {
     // Carrega as categorias pré-definidas
     await loadPredefinedCategories();
 
-    // Atualiza a UI para o estado "logado"
+    // MUDANÇA: Verifica o estado da sidebar no localStorage
+    if (localStorage.getItem("sidebarState") === "collapsed") {
+      document.body.classList.add("sidebar-collapsed");
+      sidebarToggleBtn.setAttribute("title", "Expandir menu");
+      // MUDANÇA: Garante que o ícone esteja na posição correta ao carregar
+      sidebarToggleBtn.querySelector("svg").style.transform = "rotate(180deg)";
+      // MUDANÇA: Mostra o botão de promoção se estiver na home ao carregar
+      if (window.location.hash === "" || window.location.hash === "#/") {
+        document.getElementById("sidebar-promo-button-container").classList.remove("hidden");
+      }
+    }
+
+    // MUDANÇA: Atualiza a UI para o estado "logado"
     userNameEl.textContent = user.displayName || user.email;
     userPhotoEl.src = user.photoURL || "./assets/default-avatar.png";
 
-    // Mostra o card de gerenciamento de usuários se for admin
-    const adminCard = document.getElementById("admin-user-management-card");
-    if (user.role === "admin") {
-      adminCard.classList.remove("hidden");
-    } else {
-      adminCard.classList.add("hidden");
-    }
-
+    sidebar.classList.remove("hidden"); // MUDANÇA: Mostra a sidebar
     loginContainer.classList.add("hidden");
     appHeader.classList.remove("hidden");
     // MUDANÇA: Mostra os controles do usuário ao logar
@@ -4140,6 +4464,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Começa a ouvir por atualizações nos serviços do usuário em tempo real
     listenForServices(user);
+
+    // MUDANÇA: Renderiza a sidebar
+    renderSidebar();
 
     // Começa a ouvir as solicitações para atualizar o selo do dashboard
     listenForRequests();
@@ -4165,8 +4492,10 @@ document.addEventListener("DOMContentLoaded", () => {
     verifyEmailBox.classList.add("hidden");
 
     // Popula os dados do usuário
-    document.getElementById("continue-as-name").textContent = user.displayName || user.email;
-    document.getElementById("continue-as-photo").src = user.photoURL || "./assets/default-avatar.png";
+    document.getElementById("continue-as-name").textContent =
+      user.displayName || user.email;
+    document.getElementById("continue-as-photo").src =
+      user.photoURL || "./assets/default-avatar.png";
 
     // Esconde a UI principal e mostra o container de login
     appHeader.classList.add("hidden");
@@ -4636,16 +4965,26 @@ document.addEventListener("DOMContentLoaded", () => {
         const { createdAt, files, ...updateData } = serviceData;
         await updateDoc(serviceRef, updateData);
         // MUDANÇA: Envia notificações após a atualização
-        await sendStepAssignmentNotifications(currentEditServiceId, serviceName, oldSteps, steps);
+        await sendStepAssignmentNotifications(
+          currentEditServiceId,
+          serviceName,
+          oldSteps,
+          steps
+        );
         alert("Serviço atualizado com sucesso!");
       } else {
         // --- MODO ADIÇÃO ---
-        await addDoc(servicesCollection, {
+        const newServiceRef = await addDoc(servicesCollection, {
           ...serviceData,
           createdAt: serverTimestamp(),
         });
         // MUDANÇA: Envia notificações após a criação (oldSteps é um array vazio)
-        await sendStepAssignmentNotifications(newServiceRef.id, serviceName, [], steps);
+        await sendStepAssignmentNotifications(
+          newServiceRef.id,
+          serviceName,
+          [],
+          steps
+        ); // CORREÇÃO
         alert("Serviço adicionado com sucesso!");
       }
 

@@ -40,16 +40,26 @@ body.dark-theme {
   margin: 0;
   padding: 0;
 }
-
+/* MUDANÇA: Reestrutura o layout principal com Grid para um controle preciso */
 body {
   font-family: "Montserrat", sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: background-color 0.3s ease, color 0.3s ease;
-  /* MUDANÇA: Adiciona layout flex para o rodapé fixo */
+  display: grid;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+body.sidebar-collapsed {
+  /* A lógica de recolher agora é controlada dentro do .main-layout-container */
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* Garante que o header fique sobre o conteúdo */
 }
 
 /* --- Cabeçalho e Título --- */
@@ -58,9 +68,7 @@ header {
   background-color: var(--header-bg-color); /* MUDANÇA: Usa a nova variável */
   box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Sombra mais suave e padronizada */
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  /* O posicionamento sticky já cuida da fixação */
 }
 
 /* CORREÇÃO: Usa grid para um layout de 3 colunas (esquerda, centro, direita) */
@@ -1280,89 +1288,167 @@ body.detail-view-active .header-content {
   margin: 0 auto;
 }
 
-/* --- MUDANÇA: Estilos para o novo Dashboard --- */
-#dashboard-view {
+/* --- MUDANÇA: Layout Principal com Sidebar --- */
+.main-layout-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 30px;
-  max-width: 1100px;
-  margin: 0 auto;
+  grid-template-columns: auto 1fr; /* Sidebar e Conteúdo */
+  flex-grow: 1; /* Ocupa o espaço restante entre header e footer */
+  overflow: hidden; /* Impede que o container cresça além do necessário */
 }
 
-.dashboard-card {
-  position: relative; /* MUDANÇA: Para posicionar o selo */
+#sidebar {
+  width: 260px;
   background-color: var(--card-bg);
-  border-radius: 10px;
-  box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.dashboard-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px var(--shadow-color); /* CORREÇÃO: Sombra mais suave no hover */
-}
-
-.dashboard-card a {
+  border-right: 1px solid var(--progress-bar-bg);
+  transition: width 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 40px 25px;
-  text-decoration: none;
-  color: var(--text-color);
-  height: 100%;
+  padding: 20px;
+  overflow-y: auto; /* Permite rolagem na sidebar se o conteúdo for longo */
 }
 
-.dashboard-card-icon {
-  margin-bottom: 20px;
+body.sidebar-collapsed .main-layout-container {
+  grid-template-columns: 0px 1fr; /* Recolhe a coluna da sidebar */
+}
+
+/* MUDANÇA: Estilos para o botão de recolher/expandir */
+#sidebar-toggle {
+  margin-top: auto; /* Empurra para o final */
+  padding-top: 20px;
+  border-top: 1px solid var(--progress-bar-bg);
+  text-align: right;
+}
+
+/* --- MUDANÇA: Estilos para a Sidebar Recolhida --- */
+body.sidebar-collapsed #sidebar-toggle-btn {
+  /* MUDANÇA: Estilo mais evidente para o botão recolhido */
   background-color: var(--accent-color);
   color: var(--card-bg);
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
+  width: 50px; /* MUDANÇA: Deixa o botão maior */
+  height: 50px; /* MUDANÇA: Deixa o botão maior */
+  box-shadow: 0 4px 12px var(--shadow-color);
+  border-radius: 10px; /* MUDANÇA: Transforma o botão em um quadrado com cantos arredondados */
+}
+
+body.dark-theme body.sidebar-collapsed #sidebar-toggle-btn {
+  color: var(--primary-color); /* Garante contraste no tema escuro */
+}
+
+#sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#sidebar-nav li a {
   display: flex;
-  justify-content: center;
   align-items: center;
-}
-
-.dashboard-card-icon svg {
-  width: 36px;
-  height: 36px;
-  fill: currentColor;
-}
-
-.dashboard-card h2 {
-  color: var(--accent-color);
-  margin-bottom: 10px;
-}
-
-.dashboard-card h2 .beta-tag {
-  color: #e53935;
-  font-size: 0.6em;
-  vertical-align: super;
+  gap: 15px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-color);
   font-weight: 600;
-  margin-left: 5px;
-  text-transform: uppercase;
+  margin-bottom: 5px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  position: relative;
 }
 
-.dashboard-badge {
+#sidebar-nav li a:hover {
+  background-color: var(--bg-color);
+}
+
+#sidebar-nav li a.active {
+  background-color: var(--accent-color);
+  color: var(--card-bg);
+}
+
+#sidebar-nav li a svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.sidebar-badge {
   position: absolute;
-  top: 15px;
   right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
   background-color: #e53935;
   color: white;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  font-size: 0.75em;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+/* --- MUDANÇA: Estilos para a nova página de apresentação --- */
+.presentation-container {
+  text-align: center;
+  padding: 40px; /* MUDANÇA: Reduz o preenchimento vertical */
+}
+
+.presentation-container h1 {
+  font-size: 2.2em; /* MUDANÇA: Reduz o tamanho do título principal */
+  color: var(--accent-color);
+  margin-bottom: 20px;
+}
+
+.presentation-container p {
+  font-size: 1.1em; /* MUDANÇA: Reduz o tamanho da fonte dos parágrafos */
+  line-height: 1.7;
+  max-width: 700px;
+  margin: 0 auto 15px auto;
+  opacity: 0.8;
+}
+
+/* MUDANÇA: Garante que o container de conteúdo principal ocupe o espaço restante */
+.app-content {
+  min-height: 0;
+  overflow-y: auto; /* Permite que apenas o conteúdo principal role */
+}
+
+/* MUDANÇA: Estilos para os cards de features na apresentação */
+.presentation-features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px; /* MUDANÇA: Reduz o espaçamento */
+  max-width: 1200px; /* MUDANÇA: Aumenta a largura máxima para acomodar as colunas */
+  margin: 25px auto; /* MUDANÇA: Reduz a margem vertical */
+  text-align: left;
+}
+
+.feature-item {
+  background-color: var(--card-bg);
+  padding: 20px; /* MUDANÇA: Reduz o preenchimento interno */
+  border-radius: 10px;
+  border-left: 4px solid var(--accent-color);
+  box-shadow: var(--shadow-color) 0px 2px 8px 0px;
+}
+
+.feature-item h3 {
+  color: var(--accent-color);
+  margin-bottom: 8px; /* MUDANÇA: Reduz a margem */
+}
+
+.feature-item p {
+  font-size: 1em;
+  max-width: none; /* Remove a restrição de largura do parágrafo pai */
+}
+
+/* MUDANÇA: Estilo para o botão de promoção da sidebar */
+#sidebar-promo-button-container {
+  margin-top: 25px;
+}
+
+/* --- MUDANÇA: Estilos para o novo Dashboard --- */
+#dashboard-view {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-size: 0.8em;
-  font-weight: 700;
-  border: 2px solid var(--card-bg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transform: scale(0);
-  transition: transform 0.2s ease;
+  height: 100%;
 }
 
 .detail-header {
@@ -2080,6 +2166,17 @@ body.dark-theme .request-card[data-status="rejected"] {
     width: 100%; /* Ocupa a largura toda */
     margin-left: 0; /* Reseta a margem */
   }
+
+  /* MUDANÇA: Esconde a sidebar no mobile e ajusta o conteúdo principal */
+  .main-layout-container {
+    flex-direction: column;
+  }
+  #sidebar {
+    display: none;
+  }
+  .app-content {
+    margin-left: 0;
+  }
 }
 /* --- MUDANÇA: Estilos para o Indicador de Carregamento (Spinner) --- */
 #loading-overlay {
@@ -2453,13 +2550,11 @@ table td a:hover {
 
 /* --- MUDANÇA: Estilos do Rodapé --- */
 footer {
-  /* MUDANÇA: Usa a mesma cor de fundo do header */
   background-color: var(--header-bg-color);
   color: #ffffff; /* MUDANÇA: Define a cor do texto para combinar com o header */
   padding: 20px 40px;
-  margin-top: auto; /* Empurra o rodapé para o final do flex container */
-  flex-shrink: 0; /* Impede que o rodapé encolha */
   transition: background-color 0.3s ease, color 0.3s ease;
+  margin-top: auto; /* Empurra o rodapé para o final do flex container do body */
 }
 
 .footer-content {
@@ -2652,118 +2747,119 @@ body.dark-theme .summary-item.has-overdue .summary-value {
 /* --- MUDANÇA: Estilos para as novas páginas de features (Escrita e Vídeo) --- */
 #writing-view,
 #video-view {
-    padding: 40px;
-    max-width: 1000px;
-    margin: 0 auto;
+  padding: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .feature-page-description {
-    background-color: var(--card-bg);
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-    border-left: 4px solid var(--accent-color);
+  background-color: var(--card-bg);
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border-left: 4px solid var(--accent-color);
+  line-height: 1.6;
 }
 
 .feature-service-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .feature-service-item {
-    background-color: var(--card-bg);
-    border-radius: 8px;
-    box-shadow: var(--shadow-color) 0px 2px 8px 0px;
-    overflow: hidden; /* Garante que o conteúdo do formulário não vaze */
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow-color) 0px 2px 8px 0px;
+  overflow: hidden; /* Garante que o conteúdo do formulário não vaze */
+  transition: box-shadow 0.2s;
+}
+
+.feature-service-item:hover {
+  box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 .feature-service-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .feature-service-info:hover {
-    background-color: var(--bg-color);
+  background-color: var(--bg-color);
 }
 
 .feature-service-info strong {
-    font-size: 1.1em;
+  font-size: 1.1em;
+  color: var(--text-color);
 }
 
-.feature-service-info span {
-    font-size: 0.9em;
-    opacity: 0.7;
+.feature-service-info p {
+  font-size: 0.9em;
+  opacity: 0.7;
+  margin-top: 5px;
 }
 
 .status-tag {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    font-weight: 700;
-    color: var(--text-color);
-    background-color: var(--progress-bar-bg);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 700;
+  color: var(--text-color);
+  background-color: var(--progress-bar-bg);
+  white-space: nowrap;
 }
-.status-tag.completed { background-color: #43a047; color: #fff; }
-.status-tag.processing { background-color: #ffb300; color: #000; }
-
-.video-generation-form-container {
-    padding: 20px;
-    background-color: var(--bg-color);
-    border-top: 1px solid var(--progress-bar-bg);
+.status-tag.completed {
+  background-color: #43a047;
+  color: #fff;
 }
-.video-player-container {
-    margin-bottom: 20px;
+.status-tag.processing {
+  background-color: #ffb300;
+  color: #000;
 }
-
-/* --- MUDANÇA: Estilos para as novas seções de Features (Escrita e Vídeo) --- */
 
 .feature-controls {
   display: flex;
   gap: 15px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  padding: 0 20px 20px 20px;
+  border-top: 1px solid var(--progress-bar-bg);
+  padding-top: 20px;
 }
 
-.ebook-container {
-  margin-top: 20px;
-  padding: 25px;
+.video-generation-form-container {
+  padding: 20px;
   background-color: var(--bg-color);
-  border-radius: 8px;
-  border: 1px solid var(--progress-bar-bg);
-  min-height: 100px;
-  line-height: 1.7;
+  border-top: 1px solid var(--progress-bar-bg);
 }
 
-.ebook-container h1, .ebook-container h2, .ebook-container h3 {
-  color: var(--accent-color);
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
-  border-bottom: 1px solid var(--progress-bar-bg);
-  padding-bottom: 5px;
+.video-player-container {
+  margin-bottom: 20px;
 }
 
-.ebook-container h1:first-child, .ebook-container h2:first-child, .ebook-container h3:first-child {
-    margin-top: 0;
-}
-
-#video-status-container {
-    margin-bottom: 20px;
+.video-status-container {
+  margin-top: 15px;
+  font-weight: 600;
 }
 
 .spinner-inline {
-    width: 20px;
-    height: 20px;
-    border: 3px solid var(--progress-bar-bg);
-    border-top-color: var(--accent-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 10px;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--progress-bar-bg);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
+@media (max-width: 768px) {
+  #writing-view,
+  #video-view {
+    padding: 20px;
+  }
 }

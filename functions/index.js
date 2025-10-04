@@ -2,6 +2,7 @@
 const functions = require("firebase-functions");
 const axios = require("axios");
 const { getFirestore } = require("firebase-admin/firestore");
+const { google } = require("googleapis");
 const { initializeApp } = require("firebase-admin/app");
 
 initializeApp();
@@ -33,11 +34,6 @@ exports.generateHeyGenVideo = functions.https.onCall(async (data, context) => {
     );
   }
 
-  // MUDANÇA: Defina a Voice ID aqui.
-  // Você pode encontrar a lista de vozes disponíveis na documentação da API HeyGen ou no seu painel.
-  // Exemplo de Voice ID: "8b93b539c1c643a3a1d3345ef3365a6a"
-  const HEYGEN_VOICE_ID = "sua-voice-id-preferida"; // <-- SUBSTITUA ISTO
-
   // 3. Chamada à API do HeyGen
   try {
     const response = await axios.post(
@@ -49,7 +45,8 @@ exports.generateHeyGenVideo = functions.https.onCall(async (data, context) => {
             avatar_id: avatarId,
             avatar_style: "normal",
             input_text: text,
-            voice_id: HEYGEN_VOICE_ID, // Usa a constante
+            // MUDANÇA: Use um ID de voz válido diretamente ou de uma variável.
+            voice_id: "8b93b539c1c643a3a1d3345ef3365a6a", // ID de voz de exemplo.
           },
         ],
         test: false,
@@ -95,3 +92,54 @@ exports.heyGenWebhook = functions.https.onRequest(async (req, res) => {
     res.status(405).send("Método não permitido.");
   }
 });
+
+// MUDANÇA: Nova função para criar um Google Doc para um serviço
+exports.createGoogleDocForService = functions.https.onCall(
+  async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "Você precisa estar logado."
+      );
+    }
+
+    const { serviceId, serviceName } = data;
+    if (!serviceId || !serviceName) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "ID ou nome do serviço ausente."
+      );
+    }
+
+    try {
+      // Autentica usando as credenciais padrão do ambiente do Firebase
+      const auth = new google.auth.GoogleAuth({
+        scopes: ["https://www.googleapis.com/auth/documents"],
+      });
+      const authClient = await auth.getClient();
+      const docs = google.docs({ version: "v1", auth: authClient });
+
+      // Cria o documento
+      const createResponse = await docs.documents.create({
+        requestBody: {
+          title: serviceName,
+        },
+      });
+
+      const docId = createResponse.data.documentId;
+      const docUrl = `https://docs.google.com/document/d/${docId}/edit`;
+
+      // Salva o ID do documento no Firestore
+      const db = getFirestore();
+      await db.collection("services").doc(serviceId).update({ googleDocId: docId });
+
+      return { success: true, documentUrl: docUrl };
+    } catch (error) {
+      console.error("Erro ao criar Google Doc:", error);
+      throw new functions.https.HttpsError(
+        "internal",
+        "Falha ao criar o documento no Google Docs."
+      );
+    }
+  }
+);
