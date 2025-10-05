@@ -264,15 +264,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Salva o estado no localStorage
     if (document.body.classList.contains("sidebar-collapsed")) {
       sidebarToggleBtn.setAttribute("title", "Expandir menu");
-      // MUDANÇA: Mostra o botão de promoção se estiver na home
-      if (window.location.hash === "" || window.location.hash === "#/") {
-        document.getElementById("sidebar-promo-button-container").classList.remove("hidden");
-      }
       localStorage.setItem("sidebarState", "collapsed");
     } else {
       sidebarToggleBtn.setAttribute("title", "Recolher menu");
-      // MUDANÇA: Esconde o botão de promoção
-      document.getElementById("sidebar-promo-button-container").classList.add("hidden");
       localStorage.setItem("sidebarState", "expanded");
     }
     // MUDANÇA: Gira o ícone da seta
@@ -2829,12 +2823,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isDashboard = hash === "" || hash === "#/";
 
     // MUDANÇA: Controla a visibilidade do botão de promoção da sidebar
-    const promoBtnContainer = document.getElementById("sidebar-promo-button-container");
-    if (isDashboard && document.body.classList.contains("sidebar-collapsed")) {
-      promoBtnContainer.classList.remove("hidden");
-    } else {
-      promoBtnContainer.classList.add("hidden");
-    }
+    document.getElementById("sidebar-promo-button-container").classList.toggle("hidden", !isDashboard);
 
     const isServices = hash === "#/services"; // MUDANÇA: Verifica a correspondência exata para a lista
     const isServiceDetail = hash.startsWith("#/service/");
@@ -4392,6 +4381,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Atualiza a UI para o estado "deslogado", mostrando a tela de login
       loginContainer.classList.remove("hidden");
       appHeader.classList.remove("hidden"); // MUDANÇA: Mantém o header visível
+      sidebarToggleBtn.classList.add("hidden"); // MUDANÇA: Esconde o botão da sidebar
       sidebar.classList.add("hidden"); // MUDANÇA: Esconde a sidebar
       document.querySelector("footer").style.display = "block"; // MUDANÇA: Mantém o footer visível
 
@@ -4437,13 +4427,10 @@ document.addEventListener("DOMContentLoaded", () => {
       sidebarToggleBtn.setAttribute("title", "Expandir menu");
       // MUDANÇA: Garante que o ícone esteja na posição correta ao carregar
       sidebarToggleBtn.querySelector("svg").style.transform = "rotate(180deg)";
-      // MUDANÇA: Mostra o botão de promoção se estiver na home ao carregar
-      if (window.location.hash === "" || window.location.hash === "#/") {
-        document.getElementById("sidebar-promo-button-container").classList.remove("hidden");
-      }
     }
 
     // MUDANÇA: Atualiza a UI para o estado "logado"
+    sidebarToggleBtn.classList.remove("hidden"); // MUDANÇA: Mostra o botão da sidebar
     userNameEl.textContent = user.displayName || user.email;
     userPhotoEl.src = user.photoURL || "./assets/default-avatar.png";
 

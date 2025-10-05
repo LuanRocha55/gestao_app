@@ -1290,44 +1290,51 @@ body.detail-view-active .header-content {
 
 /* --- MUDANÇA: Layout Principal com Sidebar --- */
 .main-layout-container {
-  display: grid;
-  grid-template-columns: auto 1fr; /* Sidebar e Conteúdo */
+  display: flex;
   flex-grow: 1; /* Ocupa o espaço restante entre header e footer */
   overflow: hidden; /* Impede que o container cresça além do necessário */
+  position: relative; /* Define um contexto de posicionamento para o botão de toggle */
+}
+
+/* MUDANÇA: Posicionamento e estilo do botão de toggle */
+#sidebar-toggle-btn {
+  position: absolute; /* Desvincula o botão do fluxo normal */
+  top: 50%;
+  left: 260px; /* Posição inicial, no final da sidebar expandida */
+  transform: translate(-50%, -50%);
+  z-index: 1001; /* Garante que fique acima de outros elementos */
+  background-color: var(--card-bg);
+  border: 1px solid var(--progress-bar-bg);
+  width: 32px;
+  height: 32px;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  transition: left 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 #sidebar {
   width: 260px;
+  flex-shrink: 0; /* Impede que a sidebar encolha */
+  transition: width 0.3s ease, padding 0.3s ease;
+  /* MUDANÇA: Restaura o fundo e o padding que foram removidos acidentalmente */
   background-color: var(--card-bg);
   border-right: 1px solid var(--progress-bar-bg);
-  transition: width 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
-  display: flex;
-  flex-direction: column;
   padding: 20px;
-  overflow-y: auto; /* Permite rolagem na sidebar se o conteúdo for longo */
-}
-
-body.sidebar-collapsed .main-layout-container {
-  grid-template-columns: 0px 1fr; /* Recolhe a coluna da sidebar */
-}
-
-/* MUDANÇA: Estilos para o botão de recolher/expandir */
-#sidebar-toggle {
-  margin-top: auto; /* Empurra para o final */
-  padding-top: 20px;
-  border-top: 1px solid var(--progress-bar-bg);
-  text-align: right;
 }
 
 /* --- MUDANÇA: Estilos para a Sidebar Recolhida --- */
+body.sidebar-collapsed #sidebar {
+  width: 0;
+  padding: 20px 0; /* Remove o padding horizontal */
+  overflow: hidden; /* Esconde o conteúdo que transborda */
+}
+
 body.sidebar-collapsed #sidebar-toggle-btn {
-  /* MUDANÇA: Estilo mais evidente para o botão recolhido */
-  background-color: var(--accent-color);
-  color: var(--card-bg);
-  width: 50px; /* MUDANÇA: Deixa o botão maior */
-  height: 50px; /* MUDANÇA: Deixa o botão maior */
-  box-shadow: 0 4px 12px var(--shadow-color);
-  border-radius: 10px; /* MUDANÇA: Transforma o botão em um quadrado com cantos arredondados */
+  left: 16px; /* Posição do botão quando a sidebar está recolhida */
+}
+
+/* MUDANÇA: Adiciona um espaçamento no topo da lista de navegação */
+#sidebar-nav {
+  padding-top: 10px;
 }
 
 body.dark-theme body.sidebar-collapsed #sidebar-toggle-btn {
@@ -1406,6 +1413,7 @@ body.dark-theme body.sidebar-collapsed #sidebar-toggle-btn {
 /* MUDANÇA: Garante que o container de conteúdo principal ocupe o espaço restante */
 .app-content {
   min-height: 0;
+  flex-grow: 1; /* MUDANÇA: Faz o conteúdo principal se esticar para ocupar o espaço disponível */
   overflow-y: auto; /* Permite que apenas o conteúdo principal role */
 }
 
