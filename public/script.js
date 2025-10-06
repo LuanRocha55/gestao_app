@@ -3840,7 +3840,7 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Documento criado com sucesso! Abrindo em uma nova aba...");
         window.open(result.data.documentUrl, '_blank');
         // A UI será atualizada automaticamente pelo listener do Firestore
-      } else {
+      } else if (result.data.success === false) {
         throw new Error(result.data.message || "A função retornou um erro.");
       }
     } catch (error) {

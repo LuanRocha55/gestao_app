@@ -111,6 +111,11 @@ exports.createGoogleDocForService = functions.https.onCall(
       );
     }
 
+    // Log para depuração
+    functions.logger.info("Iniciando criação de Google Doc para o serviço:", {
+      serviceId,
+      user: context.auth.token.email,
+    });
     try {
       // Autentica usando as credenciais padrão do ambiente do Firebase
       const auth = new google.auth.GoogleAuth({
@@ -133,10 +138,12 @@ exports.createGoogleDocForService = functions.https.onCall(
 
       const docId = createResponse.data.documentId;
       const docUrl = `https://docs.google.com/document/d/${docId}/edit`;
+      functions.logger.info(`Documento ${docId} criado com sucesso.`);
 
       // MUDANÇA: Compartilha o documento com o usuário que fez a solicitação
       const userEmail = context.auth.token.email;
       if (userEmail) {
+        functions.logger.info(`Compartilhando com ${userEmail}...`);
         await drive.permissions.create({
           fileId: docId,
           requestBody: {
@@ -145,18 +152,24 @@ exports.createGoogleDocForService = functions.https.onCall(
             emailAddress: userEmail,
           },
         });
+        functions.logger.info("Documento compartilhado.");
       }
 
       // Salva o ID do documento no Firestore
       const db = getFirestore();
       await db.collection("services").doc(serviceId).update({ googleDocId: docId });
+      functions.logger.info("Firestore atualizado.");
 
       return { success: true, documentUrl: docUrl };
     } catch (error) {
-      console.error("Erro ao criar Google Doc:", error);
+      // MUDANÇA: Log de erro mais detalhado no Firebase
+      functions.logger.error("Erro ao criar Google Doc:", {
+        serviceId,
+        errorMessage: error.message,
+      });
       throw new functions.https.HttpsError(
         "internal",
-        "Falha ao criar o documento no Google Docs."
+        "Falha ao criar o documento no Google Docs. Verifique os logs da função para mais detalhes."
       );
     }
   }
