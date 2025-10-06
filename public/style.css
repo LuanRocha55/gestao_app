@@ -1100,6 +1100,18 @@ body.dark-theme .btn-primary:hover {
   }
 }
 
+/* --- MUDANÇA: Animação de entrada para a apresentação --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* --- Lista de Etapas (Checklist) --- */
 .steps-list {
   list-style: none;
@@ -1298,7 +1310,7 @@ body.detail-view-active .header-content {
 
 /* MUDANÇA: Posicionamento e estilo do botão de toggle */
 #sidebar-toggle-btn {
-  position: absolute; /* Desvincula o botão do fluxo normal */
+  position: fixed; /* MUDANÇA: Fixa o botão na tela, independente do scroll */
   top: 50%;
   left: 260px; /* Posição inicial, no final da sidebar expandida */
   transform: translate(-50%, -50%);
@@ -1390,6 +1402,20 @@ body.dark-theme body.sidebar-collapsed #sidebar-toggle-btn {
   border-radius: 10px;
 }
 
+/* MUDANÇA: Esconde os elementos da apresentação por padrão */
+#dashboard-view:not(.visible) .presentation-container > * {
+  opacity: 0;
+}
+
+/* MUDANÇA: Aplica a animação quando a view estiver visível */
+#dashboard-view.visible .presentation-container > * {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* MUDANÇA: Adiciona um atraso para animar os elementos em sequência */
+#dashboard-view.visible .presentation-container p { animation-delay: 0.2s; }
+#dashboard-view.visible .presentation-features { animation-delay: 0.4s; }
+
 /* --- MUDANÇA: Estilos para a nova página de apresentação --- */
 .presentation-container {
   text-align: center;
@@ -1400,6 +1426,8 @@ body.dark-theme body.sidebar-collapsed #sidebar-toggle-btn {
   font-size: 2.2em; /* MUDANÇA: Reduz o tamanho do título principal */
   color: var(--accent-color);
   margin-bottom: 20px;
+  /* MUDANÇA: Adiciona uma sombra sutil para dar profundidade */
+  text-shadow: 1px 1px 3px var(--shadow-color);
 }
 
 .presentation-container p {
@@ -1426,23 +1454,55 @@ body.dark-theme body.sidebar-collapsed #sidebar-toggle-btn {
   margin: 25px auto; /* MUDANÇA: Reduz a margem vertical */
   text-align: left;
 }
+/* MUDANÇA: Garante que o botão de explorar apareça quando a sidebar estiver recolhida no dashboard */
+body.sidebar-collapsed #dashboard-view #sidebar-promo-button-container {
+    display: block !important;
+}
+/* MUDANÇA: Estilo para o ícone da funcionalidade */
+.feature-icon {
+  margin-bottom: 15px;
+  color: var(--accent-color);
+}
+
+.feature-icon svg {
+  width: 40px;
+  height: 40px;
+  fill: currentColor;
+  opacity: 0.8;
+}
 
 .feature-item {
   background-color: var(--card-bg);
   padding: 20px; /* MUDANÇA: Reduz o preenchimento interno */
   border-radius: 10px;
-  border-left: 4px solid var(--accent-color);
-  box-shadow: var(--shadow-color) 0px 2px 8px 0px;
+  /* MUDANÇA: Remove a borda e aplica uma sombra mais sutil e moderna */
+  box-shadow: 0 4px 8px var(--shadow-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* MUDANÇA: Adiciona o efeito de interatividade ao passar o mouse */
+.feature-item:hover {
+  transform: translateY(-2px); /* Eleva o card sutilmente */
+  box-shadow: 0 6px 16px var(--shadow-color); /* Aumenta a sombra */
 }
 
 .feature-item h3 {
   color: var(--accent-color);
   margin-bottom: 8px; /* MUDANÇA: Reduz a margem */
+  /* MUDANÇA: Adiciona uma sombra sutil para dar profundidade */
+  text-shadow: 1px 1px 2px var(--shadow-color);
+  /* MUDANÇA: Deixa o título em negrito para melhor hierarquia */
+  font-weight: 700;
 }
 
 .feature-item p {
-  font-size: 1em;
+  font-size: 0.95em; /* REVISÃO: Ajusta o tamanho da fonte para melhor leitura dentro do card */
+  /* MUDANÇA: Garante contraste máximo para a descrição */
+  color: #212529;
   max-width: none; /* Remove a restrição de largura do parágrafo pai */
+  /* MUDANÇA: Melhora o espaçamento e a legibilidade da descrição */
+  line-height: 1.6;
+  opacity: 0.9;
 }
 
 /* MUDANÇA: Estilo para o botão de promoção da sidebar */
@@ -2869,5 +2929,16 @@ body.dark-theme .summary-item.has-overdue .summary-value {
   #writing-view,
   #video-view {
     padding: 20px;
+  }
+
+  /* REVISÃO: Ajusta a apresentação para telas menores */
+  .presentation-container h1 {
+    font-size: 2em;
+  }
+  .presentation-container p {
+    font-size: 1.1em;
+  }
+  .presentation-features {
+    grid-template-columns: 1fr; /* Uma coluna em telas de celular */
   }
 }

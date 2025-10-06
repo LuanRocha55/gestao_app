@@ -2805,6 +2805,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleRouteChange() {
     if (!currentUser) return; // Não faz nada se o usuário não estiver logado
 
+    // MUDANÇA: Garante que o botão da sidebar esteja sempre visível ao navegar entre as abas.
+    sidebarToggleBtn.classList.remove("hidden");
+
     // MUDANÇA: Atualiza o link ativo na barra lateral
     const activeLink = sidebar.querySelector("a.active");
     if (activeLink) {
@@ -2825,6 +2828,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Controla a visibilidade do botão de promoção da sidebar
     document.getElementById("sidebar-promo-button-container").classList.toggle("hidden", !isDashboard);
 
+    // MUDANÇA: Adiciona a classe 'visible' para disparar a animação de entrada
+    if (isDashboard) {
+      dashboardView.classList.add("visible");
+    }
+
     const isServices = hash === "#/services"; // MUDANÇA: Verifica a correspondência exata para a lista
     const isServiceDetail = hash.startsWith("#/service/");
     const isProfile = hash.startsWith("#/profile");
@@ -2844,6 +2852,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Esconde/mostra os containers corretos
     dashboardView.classList.toggle("hidden", !isDashboard);
+    if (!isDashboard) dashboardView.classList.remove("visible"); // MUDANÇA: Remove a classe para re-animar depois
     serviceContainer.classList.toggle("hidden", !isServices);
     taskDetailView.classList.toggle("hidden", !isServiceDetail);
     profileView.classList.toggle("hidden", !isProfile);
@@ -4421,13 +4430,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Carrega as categorias pré-definidas
     await loadPredefinedCategories();
 
-    // MUDANÇA: Verifica o estado da sidebar no localStorage
-    if (localStorage.getItem("sidebarState") === "collapsed") {
-      document.body.classList.add("sidebar-collapsed");
-      sidebarToggleBtn.setAttribute("title", "Expandir menu");
-      // MUDANÇA: Garante que o ícone esteja na posição correta ao carregar
-      sidebarToggleBtn.querySelector("svg").style.transform = "rotate(180deg)";
-    }
+    // MUDANÇA: Força a barra lateral a começar recolhida para a experiência inicial.
+    document.body.classList.add("sidebar-collapsed");
+    sidebarToggleBtn.setAttribute("title", "Expandir menu");
+    sidebarToggleBtn.querySelector("svg").style.transform = "rotate(180deg)";
+    localStorage.setItem("sidebarState", "collapsed"); // Atualiza o estado salvo
 
     // MUDANÇA: Atualiza a UI para o estado "logado"
     sidebarToggleBtn.classList.remove("hidden"); // MUDANÇA: Mostra o botão da sidebar
