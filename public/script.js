@@ -82,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userPhotoEl = document.getElementById("user-photo");
   const serviceContainer = document.getElementById("service-container");
   const themeToggleBtn = document.getElementById("theme-toggle-btn"); // MUDANÇA: Referência para o novo botão
+  const mainLayoutContainer = document.querySelector(".main-layout-container");
   const modal = document.getElementById("add-service-modal");
   const addServiceForm = document.getElementById("add-service-form");
   const serviceListWrapper = document.getElementById("service-list-wrapper");
@@ -4389,6 +4390,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Atualiza a UI para o estado "deslogado", mostrando a tela de login
       loginContainer.classList.remove("hidden");
+      mainLayoutContainer.classList.add("hidden"); // MUDANÇA: Esconde o layout principal
       appHeader.classList.remove("hidden"); // MUDANÇA: Mantém o header visível
       sidebarToggleBtn.classList.add("hidden"); // MUDANÇA: Esconde o botão da sidebar
       sidebar.classList.add("hidden"); // MUDANÇA: Esconde a sidebar
@@ -4440,6 +4442,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebarToggleBtn.classList.remove("hidden"); // MUDANÇA: Mostra o botão da sidebar
     userNameEl.textContent = user.displayName || user.email;
     userPhotoEl.src = user.photoURL || "./assets/default-avatar.png";
+    mainLayoutContainer.classList.remove("hidden"); // MUDANÇA: Mostra o layout principal
 
     sidebar.classList.remove("hidden"); // MUDANÇA: Mostra a sidebar
     loginContainer.classList.add("hidden");
