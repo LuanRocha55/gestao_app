@@ -271,7 +271,10 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("sidebarState", "expanded");
     }
     // MUDANÇA: Gira o ícone da seta
-    sidebarToggleBtn.querySelector("svg").style.transform = document.body.classList.contains("sidebar-collapsed") ? "rotate(180deg)" : "rotate(0deg)";
+    sidebarToggleBtn.querySelector("svg").style.transform =
+      document.body.classList.contains("sidebar-collapsed")
+        ? "rotate(180deg)"
+        : "rotate(0deg)";
   });
 
   // MUDANÇA: Lógica para o novo botão de promoção da sidebar
@@ -2827,7 +2830,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const isDashboard = hash === "" || hash === "#/";
 
     // MUDANÇA: Controla a visibilidade do botão de promoção da sidebar
-    document.getElementById("sidebar-promo-button-container").classList.toggle("hidden", !isDashboard);
+    document
+      .getElementById("sidebar-promo-button-container")
+      .classList.toggle("hidden", !isDashboard);
 
     // MUDANÇA: Adiciona a classe 'visible' para disparar a animação de entrada
     if (isDashboard) {
@@ -2984,12 +2989,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (writingBtn) {
       const serviceId = writingBtn.dataset.serviceId;
       const service = services.find((s) => s.id === serviceId);
-      if (service) {
-        handleCollaborativeWriting(
-          service.id,
-          service.name,
-          service.googleDocId
-        );
+      if (service) { // MUDANÇA: Chama a função implementada
+        handleCollaborativeWriting(service.id, service.name, service.googleDocId);
       }
     }
 
@@ -3816,6 +3817,39 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- MUDANÇA: Funções de Ação para as Novas Features ---
+
+  // MUDANÇA: Implementa a lógica para criar/abrir o Google Doc
+  async function handleCollaborativeWriting(serviceId, serviceName, googleDocId) {
+    // Se o documento já existe, apenas abre em uma nova aba.
+    if (googleDocId) {
+      window.open(`https://docs.google.com/document/d/${googleDocId}/edit`, '_blank');
+      return;
+    }
+
+    // Se não existe, chama a Cloud Function para criar.
+    if (!confirm(`Nenhum documento associado a "${serviceName}". Deseja criar um novo no Google Docs?`)) {
+      return;
+    }
+
+    showLoading();
+    try {
+      const createDoc = httpsCallable(functions, 'createGoogleDocForService');
+      const result = await createDoc({ serviceId, serviceName });
+
+      if (result.data.success) {
+        alert("Documento criado com sucesso! Abrindo em uma nova aba...");
+        window.open(result.data.documentUrl, '_blank');
+        // A UI será atualizada automaticamente pelo listener do Firestore
+      } else {
+        throw new Error(result.data.message || "A função retornou um erro.");
+      }
+    } catch (error) {
+      console.error("Erro ao criar Google Doc:", error);
+      alert(`Falha ao criar o documento: ${error.message}`);
+    } finally {
+      hideLoading();
+    }
+  }
 
   // Função para mostrar o conteúdo do eBook em um modal
   async function openEbookModal(googleDocId, serviceName) {

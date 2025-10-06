@@ -114,10 +114,15 @@ exports.createGoogleDocForService = functions.https.onCall(
     try {
       // Autentica usando as credenciais padrão do ambiente do Firebase
       const auth = new google.auth.GoogleAuth({
-        scopes: ["https://www.googleapis.com/auth/documents"],
+        scopes: [
+          "https://www.googleapis.com/auth/documents",
+          "https://www.googleapis.com/auth/drive.file", // MUDANÇA: Adiciona escopo do Drive para permissões
+        ],
       });
       const authClient = await auth.getClient();
       const docs = google.docs({ version: "v1", auth: authClient });
+      // MUDANÇA: Inicializa a API do Drive
+      const drive = google.drive({ version: "v3", auth: authClient });
 
       // Cria o documento
       const createResponse = await docs.documents.create({
@@ -128,6 +133,19 @@ exports.createGoogleDocForService = functions.https.onCall(
 
       const docId = createResponse.data.documentId;
       const docUrl = `https://docs.google.com/document/d/${docId}/edit`;
+
+      // MUDANÇA: Compartilha o documento com o usuário que fez a solicitação
+      const userEmail = context.auth.token.email;
+      if (userEmail) {
+        await drive.permissions.create({
+          fileId: docId,
+          requestBody: {
+            role: "writer", // Dá permissão de edição
+            type: "user",
+            emailAddress: userEmail,
+          },
+        });
+      }
 
       // Salva o ID do documento no Firestore
       const db = getFirestore();

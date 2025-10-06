@@ -39,16 +39,24 @@
                 <div id="header-menu-items">
                     <div id="notification-container">
                         <div id="notification-bell" class="btn-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19Z" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path
+                                    d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19Z" />
+                            </svg>
                             <span id="notification-count" class="badge hidden"></span>
                         </div>
                         <div id="notification-panel" class="hidden">
-                            <div class="notification-panel-header"><h3>Notificações</h3></div>
+                            <div class="notification-panel-header">
+                                <h3>Notificações</h3>
+                            </div>
                             <ul id="notification-list"></ul>
                         </div>
                     </div>
                     <button id="theme-toggle-btn" class="btn-icon" title="Alternar tema">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 0 1 20 12A8 8 0 0 1 12 20V4Z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 0 1 20 12A8 8 0 0 1 12 20V4Z" />
+                        </svg>
                     </button>
                     <div id="user-profile" class="user-profile-container hidden">
                         <img id="user-photo" src="" alt="Foto do usuário">
@@ -106,7 +114,8 @@
         <!-- MUDANÇA: Box para "Continuar como" -->
         <div id="verify-email-box" class="auth-box hidden">
             <h1>Verifique seu E-mail</h1>
-            <p>Enviamos um link de verificação para <strong id="verify-email-address"></strong>. Por favor, verifique sua caixa de entrada e spam.</p>
+            <p>Enviamos um link de verificação para <strong id="verify-email-address"></strong>. Por favor, verifique
+                sua caixa de entrada e spam.</p>
             <p>Após verificar, você pode fazer o login.</p>
             <div class="auth-separator"></div>
             <button id="resend-verification-btn" class="btn-secondary">Reenviar E-mail de Verificação</button>
@@ -136,7 +145,9 @@
 
         <!-- MUDANÇA: O botão de toggle agora é um elemento único, posicionado pelo CSS -->
         <button id="sidebar-toggle-btn" class="btn-icon" title="Recolher menu">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11V13H8L13.5 18.5L12.08 19.92L4.16 12L12.08 4.08L13.5 5.5L8 11H20Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M20 11V13H8L13.5 18.5L12.08 19.92L4.16 12L12.08 4.08L13.5 5.5L8 11H20Z" />
+            </svg>
         </button>
 
         <main class="app-content">
@@ -145,27 +156,42 @@
                 <!-- MUDANÇA: Conteúdo da apresentação expandido -->
                 <div class="presentation-container">
                     <h1>Bem-vindo ao Painel de Gestão Integrada</h1>
-                    <p>Esta é a sua central de comando para otimizar a produção de conteúdo e gerenciar projetos de forma inteligente e colaborativa.</p>
+                    <p>Esta é a sua central de comando para otimizar a produção de conteúdo e gerenciar projetos de
+                        forma inteligente e colaborativa.</p>
                     <div class="presentation-features">
                         <div class="feature-item">
-                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z"/></svg></div>
+                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path
+                                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z" />
+                                </svg></div>
                             <h3>Gerenciamento Completo</h3>
-                            <p>Acompanhe o ciclo de vida de cada serviço, desde a criação até a conclusão, com um sistema de etapas e sub-etapas detalhado.</p>
+                            <p>Acompanhe o ciclo de vida de cada serviço, desde a criação até a conclusão, com um
+                                sistema de etapas e sub-etapas detalhado.</p>
                         </div>
                         <div class="feature-item">
-                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z"/></svg></div>
+                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path
+                                        d="M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z" />
+                                </svg></div>
                             <h3>Visão em Tempo Real</h3>
-                            <p>Monitore o status da produção de todos os materiais em uma tabela interativa e exportável, com filtros avançados para encontrar exatamente o que você precisa.</p>
+                            <p>Monitore o status da produção de todos os materiais em uma tabela interativa e
+                                exportável, com filtros avançados para encontrar exatamente o que você precisa.</p>
                         </div>
                         <div class="feature-item">
-                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"/></svg></div>
+                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z" />
+                                </svg></div>
                             <h3>Decisões Baseadas em Dados</h3>
-                            <p>Acesse estatísticas e gráficos dinâmicos sobre o desempenho da equipe, produtividade por categoria e pontualidade nas entregas.</p>
+                            <p>Acesse estatísticas e gráficos dinâmicos sobre o desempenho da equipe, produtividade por
+                                categoria e pontualidade nas entregas.</p>
                         </div>
                         <div class="feature-item">
-                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,1L9,9L1,12L9,15L12,23L15,15L23,12L15,9L12,1Z" /></svg></div>
+                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M12,1L9,9L1,12L9,15L12,23L15,15L23,12L15,9L12,1Z" />
+                                </svg></div>
                             <h3>Colaboração e IA</h3>
-                            <p>Utilize a integração com o Google Docs para escrita colaborativa de eBooks e gere vídeos com avatares de IA a partir de texto, agilizando a criação de conteúdo.</p>
+                            <p>Utilize a integração com o Google Docs para escrita colaborativa de eBooks e gere vídeos
+                                com avatares de IA a partir de texto, agilizando a criação de conteúdo.</p>
                         </div>
                     </div>
                     <p>Explore o menu lateral para começar a transformar sua gestão.</p>

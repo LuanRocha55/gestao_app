@@ -152,9 +152,9 @@ input[type="color"] {
 
 /* CORREÇÃO: Garante que os itens do menu sejam exibidos em linha por padrão (desktop) */
 #header-menu-items {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 /* MUDANÇA: Estilo de destaque para botões de ícone importantes */
@@ -249,7 +249,9 @@ body.dark-theme #logout-btn {
 
 .notification-panel-header h3 {
   margin: 0;
-  color: var(--accent-color); /* CORREÇÃO: Aplica a cor de destaque para melhor visibilidade */
+  color: var(
+    --accent-color
+  ); /* CORREÇÃO: Aplica a cor de destaque para melhor visibilidade */
   font-size: 1.1em;
 }
 
@@ -1413,8 +1415,12 @@ body.dark-theme body.sidebar-collapsed #sidebar-toggle-btn {
 }
 
 /* MUDANÇA: Adiciona um atraso para animar os elementos em sequência */
-#dashboard-view.visible .presentation-container p { animation-delay: 0.2s; }
-#dashboard-view.visible .presentation-features { animation-delay: 0.4s; }
+#dashboard-view.visible .presentation-container p {
+  animation-delay: 0.2s;
+}
+#dashboard-view.visible .presentation-features {
+  animation-delay: 0.4s;
+}
 
 /* --- MUDANÇA: Estilos para a nova página de apresentação --- */
 .presentation-container {
@@ -1456,7 +1462,7 @@ body.dark-theme body.sidebar-collapsed #sidebar-toggle-btn {
 }
 /* MUDANÇA: Garante que o botão de explorar apareça quando a sidebar estiver recolhida no dashboard */
 body.sidebar-collapsed #dashboard-view #sidebar-promo-button-container {
-    display: block !important;
+  display: block !important;
 }
 /* MUDANÇA: Estilo para o ícone da funcionalidade */
 .feature-icon {
@@ -2401,7 +2407,10 @@ body.dark-theme .request-card[data-status="rejected"] {
   }
 
   /* Transforma a tabela, linhas e corpo em blocos */
-  table, table tbody, table tr, table td {
+  table,
+  table tbody,
+  table tr,
+  table td {
     display: block;
     width: 100%;
   }
@@ -2482,7 +2491,6 @@ table thead th {
   cursor: col-resize;
   z-index: 1;
 }
-
 
 /* MUDANÇA: Estilos para cabeçalhos de tabela ordenáveis */
 table thead th[data-sort] {
@@ -2674,7 +2682,7 @@ body.dark-theme footer {
 
 /* MUDANÇA: Estilo para um card que ocupa a largura total da grid */
 .statistic-card.full-width-card {
-    grid-column: 1 / -1;
+  grid-column: 1 / -1;
 }
 
 /* MUDANÇA: Limita a altura máxima dos gráficos de rosca/pizza para manter a proporção */
