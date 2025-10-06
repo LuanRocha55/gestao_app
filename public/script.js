@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("add-service-modal");
   const addServiceForm = document.getElementById("add-service-form");
   const serviceListWrapper = document.getElementById("service-list-wrapper");
-  const taskDetailView = document.getElementById("task-detail-view");
+  const serviceDetailView = document.getElementById("service-detail-view");
   const profileView = document.getElementById("profile-view");
   const requestsView = document.getElementById("requests-view");
   const userManagementView = document.getElementById("user-management-view");
@@ -1069,8 +1069,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Funções da Página de Detalhes do Serviço ---
   function renderServiceDetail(service, openSteps = [], isEditing = false) {
     // MUDANÇA: Seleciona os containers que serão atualizados
-    const serviceNameEl = document.getElementById("detail-service-name");
-    const headerActionsContainer = taskDetailView.querySelector(
+    const serviceNameEl = serviceDetailView.querySelector(
+      "#detail-service-name" // CORREÇÃO: Busca dentro da view de detalhes
+    );
+    const headerActionsContainer = serviceDetailView.querySelector(
       ".detail-header-actions"
     );
     const generalInfoContent = document.getElementById(
@@ -1088,10 +1090,7 @@ document.addEventListener("DOMContentLoaded", () => {
       !generalInfoContent ||
       !stepsList ||
       !fileList ||
-      !stickyFooterContainer ||
-      // CORREÇÃO: Garante que os novos containers também existam antes de prosseguir.
-      !document.getElementById("collaborative-writing-content") ||
-      !document.getElementById("video-generation-content")
+      !stickyFooterContainer
     )
       return;
 
@@ -1218,6 +1217,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="progress-bar" style="width: ${
                   progress.percentage
                 }%;"></div>
+            </div>
+            <!-- MUDANÇA: Adiciona botões de direcionamento para as funções criativas -->
+            <div class="feature-redirect-buttons">
+                <a href="#/writing" class="btn-primary">Escrita Colaborativa</a>
+                <a href="#/video" class="btn-primary">Geração de Vídeo</a>
             </div>
         `;
 
@@ -2859,8 +2863,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Esconde/mostra os containers corretos
     dashboardView.classList.toggle("hidden", !isDashboard);
     if (!isDashboard) dashboardView.classList.remove("visible"); // MUDANÇA: Remove a classe para re-animar depois
-    serviceContainer.classList.toggle("hidden", !isServices);
-    taskDetailView.classList.toggle("hidden", !isServiceDetail);
+    serviceContainer.classList.toggle("hidden", !isServices); // CORREÇÃO: Mantém o nome do container
+    serviceDetailView.classList.toggle("hidden", !isServiceDetail); // CORREÇÃO: Usa o novo nome da view
     profileView.classList.toggle("hidden", !isProfile);
     requestsView.classList.toggle("hidden", !isRequests);
     userManagementView.classList.toggle("hidden", !isUserManagement);
@@ -2893,7 +2897,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const openStepsIndices = [];
         document
           .querySelectorAll(
-            "#task-detail-view .step-group-title:not(.collapsed)"
+            "#service-detail-view .step-group-title:not(.collapsed)"
           )
           .forEach((title) => {
             const stepGroup = title.closest(".step-group");
@@ -2919,21 +2923,16 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (isUserManagement) {
       renderUserManagementPage();
     } else if (isCategoryManagement) {
-      renderCategoryManagementPage(); // MUDANÇA
+      renderCategoryManagementPage();
     } else if (isProductionStatus) {
-      // MUDANÇA
       renderProductionStatusPage();
     } else if (isStatistics) {
-      // MUDANÇA
       renderStatisticsPage();
     } else if (isWriting) {
-      // MUDANÇA
       renderWritingPage();
     } else if (isVideo) {
-      // MUDANÇA
       renderVideoPage();
-    } else if (isServices) {
-      // A view padrão é a lista de serviços
+    } else {
       // MUDANÇA: Adiciona o botão de gerenciar categorias apenas para admins
       const adminCategoryButton =
         currentUser.role === "admin"
@@ -2961,158 +2960,167 @@ document.addEventListener("DOMContentLoaded", () => {
       const wrapper = document.getElementById("service-list-wrapper");
       if (wrapper) wrapper.innerHTML = "";
       renderServiceCards(); // Renderiza os cards iniciais
-    } else {
-      window.location.hash = "#/"; // Rota padrão se nenhuma corresponder
     }
   }
 
-  // --- MUDANÇA: Gerenciador de eventos centralizado (Event Delegation) ---
-  // Ouve cliques em todo o documento para lidar com elementos criados dinamicamente
-  document.addEventListener("click", async (e) => {
-    // Botão "Voltar para a lista" nas páginas de detalhe/perfil
-    // MUDANÇA: Botões de ação que foram movidos
-    if (e.target.id === "add-service-btn") {
-      openAddServiceModal();
-    }
-
-    if (e.target.id === "make-request-btn") {
-      openMakeRequestModal();
-    }
-
-    // MUDANÇA: Botão para exportar a tabela de status para CSV
-    if (e.target.id === "export-status-csv-btn") {
-      exportProductionStatusToCSV();
-    }
-
-    // MUDANÇA: Listeners para a página de Escrita Colaborativa
-    const writingBtn = e.target.closest('[data-action="handle-writing"]');
-    if (writingBtn) {
-      const serviceId = writingBtn.dataset.serviceId;
-      const service = services.find((s) => s.id === serviceId);
-      if (service) { // MUDANÇA: Chama a função implementada
-        handleCollaborativeWriting(service.id, service.name, service.googleDocId);
+  // --- CORREÇÃO: Função centralizada para inicializar todos os listeners de eventos ---
+  function initializeEventListeners() {
+    // Ouve cliques em todo o documento para lidar com elementos criados dinamicamente
+    document.addEventListener("click", async (e) => {
+      // MUDANÇA: Botões de ação que foram movidos
+      if (e.target.id === "add-service-btn") {
+        openAddServiceModal();
       }
-    }
 
-    const ebookBtn = e.target.closest('[data-action="render-ebook"]');
-    if (ebookBtn) {
-      const serviceId = ebookBtn.dataset.serviceId;
-      const service = services.find((s) => s.id === serviceId);
-      if (service) {
-        openEbookModal(service.googleDocId, service.name);
+      if (e.target.id === "make-request-btn") {
+        openMakeRequestModal();
       }
-    }
 
-    // MUDANÇA: Listeners para a página de Geração de Vídeo
-    const toggleVideoFormBtn = e.target.closest(
-      '[data-action="toggle-video-form"]'
-    );
-    if (toggleVideoFormBtn) {
-      const formContainer = toggleVideoFormBtn.nextElementSibling;
-      formContainer.classList.toggle("hidden");
-    }
-
-    if (e.target.matches(".detail-header a.btn-secondary")) {
-      e.preventDefault();
-      window.location.hash = e.target.getAttribute("href"); // Navega para o href do botão
-    }
-
-    // Título de um grupo de etapas (para expandir/recolher)
-    // MUDANÇA: Agora o clique pode ser em toda a área do título da etapa.
-    const stepGroupTitle = e.target.closest(".step-group-title");
-    if (stepGroupTitle && !e.target.closest("button")) {
-      // Ignora cliques nos botões dentro do título
-      stepGroupTitle.classList.toggle("collapsed");
-      const subtaskList = stepGroupTitle.nextElementSibling;
-      if (subtaskList && subtaskList.classList.contains("subtask-list")) {
-        subtaskList.classList.toggle("hidden");
+      // CORREÇÃO: Botão "Continuar" na tela de confirmação de perfil
+      if (e.target.id === "continue-as-btn") {
+        // O currentUser já foi definido quando a tela de confirmação apareceu
+        if (currentUser) initializeAppUI(currentUser);
       }
-    }
 
-    // Botão de deletar serviço
-    const deleteBtn = e.target.closest(".btn-delete");
-    if (deleteBtn) {
-      const serviceId = deleteBtn.dataset.serviceId;
-      if (confirm("Tem certeza que deseja deletar este serviço?")) {
-        showLoading();
-        try {
-          await deleteDoc(doc(db, "services", serviceId));
-          console.log("Serviço deletado com sucesso!");
-          // A UI se atualizará automaticamente pelo onSnapshot
-        } catch (error) {
-          console.error("Erro ao deletar serviço:", error);
-          alert("Falha ao deletar o serviço.");
-        } finally {
-          hideLoading();
-        }
+      // MUDANÇA: Botão para exportar a tabela de status para CSV
+      if (e.target.id === "export-status-csv-btn") {
+        exportProductionStatusToCSV();
       }
-    }
 
-    // MUDANÇA: Lógica para o botão "Reabrir Serviço"
-    const reopenBtn = e.target.closest(".btn-reopen");
-    if (reopenBtn) {
-      const serviceId = reopenBtn.dataset.serviceId;
-      const service = services.find((s) => s.id === serviceId);
-
-      if (
-        service &&
-        confirm(
-          "Tem certeza que deseja reabrir este serviço? Ele voltará para sua categoria original."
-        )
-      ) {
-        showLoading();
-        try {
-          // Encontra a primeira sub-etapa e a desmarca
-          const firstStepWithSubtasks = service.steps.find(
-            (step) => step.subtasks && step.subtasks.length > 0
+      // MUDANÇA: Listeners para a página de Escrita Colaborativa
+      const writingBtn = e.target.closest('[data-action="handle-writing"]');
+      if (writingBtn) {
+        const serviceId = writingBtn.dataset.serviceId;
+        const service = services.find((s) => s.id === serviceId);
+        if (service) {
+          // MUDANÇA: Chama a função implementada
+          handleCollaborativeWriting(
+            service.id,
+            service.name,
+            service.googleDocId
           );
-          if (firstStepWithSubtasks) {
-            firstStepWithSubtasks.subtasks[0].completed = false;
-            const serviceRef = doc(db, "services", serviceId);
-            await updateDoc(serviceRef, { steps: service.steps });
-            // O onSnapshot cuidará de mover o card
-          }
-        } catch (error) {
-          console.error("Erro ao reabrir serviço:", error);
-          alert("Falha ao reabrir o serviço.");
-        } finally {
-          hideLoading();
         }
       }
-    }
 
-    // MUDANÇA: Abrir/fechar painel de notificações
-    if (e.target.closest("#notification-bell")) {
-      const panel = document.getElementById("notification-panel");
-      panel.classList.toggle("hidden");
-
-      // CORREÇÃO: Marca as notificações como lidas quando o painel é aberto.
-      // A verificação `!panel.classList.contains("hidden")` garante que isso só aconteça
-      // quando o painel está visível (ou seja, após o toggle o ter aberto).
-      if (!panel.classList.contains("hidden")) {
-        // Fornece feedback visual imediato zerando o contador
-        notificationCount.textContent = "0";
-        notificationCount.classList.add("hidden");
-        markNotificationsAsRead();
+      const ebookBtn = e.target.closest('[data-action="render-ebook"]');
+      if (ebookBtn) {
+        const serviceId = ebookBtn.dataset.serviceId;
+        const service = services.find((s) => s.id === serviceId);
+        if (service) {
+          openEbookModal(service.googleDocId, service.name);
+        }
       }
-    } else if (!e.target.closest("#notification-panel")) {
-      // Fecha o painel se clicar fora dele
-      document.getElementById("notification-panel").classList.add("hidden");
-    }
 
-    // MUDANÇA: Botão de editar categoria
-    const editCategoryBtn = e.target.closest(".btn-edit-category");
-    if (editCategoryBtn) {
-      const listItem = editCategoryBtn.closest(".user-list-item");
-      const categoryId = listItem.dataset.categoryId;
-      const category = predefinedCategories.find((c) => c.id === categoryId);
-      if (!category) return;
+      // MUDANÇA: Listeners para a página de Geração de Vídeo
+      const toggleVideoFormBtn = e.target.closest(
+        '[data-action="toggle-video-form"]'
+      );
+      if (toggleVideoFormBtn) {
+        const formContainer = toggleVideoFormBtn.nextElementSibling;
+        formContainer.classList.toggle("hidden");
+      }
 
-      // Salva o HTML original para poder cancelar a edição
-      listItem.dataset.originalHtml = listItem.innerHTML;
+      if (e.target.matches(".detail-header a.btn-secondary")) {
+        e.preventDefault();
+        window.location.hash = e.target.getAttribute("href"); // Navega para o href do botão
+      }
 
-      // Transforma o item da lista em um formulário de edição
-      listItem.innerHTML = `
+      // Título de um grupo de etapas (para expandir/recolher)
+      // MUDANÇA: Agora o clique pode ser em toda a área do título da etapa.
+      const stepGroupTitle = e.target.closest(".step-group-title");
+      if (stepGroupTitle && !e.target.closest("button")) {
+        // Ignora cliques nos botões dentro do título
+        stepGroupTitle.classList.toggle("collapsed");
+        const subtaskList = stepGroupTitle.nextElementSibling;
+        if (subtaskList && subtaskList.classList.contains("subtask-list")) {
+          subtaskList.classList.toggle("hidden");
+        }
+      }
+
+      // Botão de deletar serviço
+      const deleteBtn = e.target.closest(".btn-delete");
+      if (deleteBtn) {
+        const serviceId = deleteBtn.dataset.serviceId;
+        if (confirm("Tem certeza que deseja deletar este serviço?")) {
+          showLoading();
+          try {
+            await deleteDoc(doc(db, "services", serviceId));
+            console.log("Serviço deletado com sucesso!");
+            // A UI se atualizará automaticamente pelo onSnapshot
+          } catch (error) {
+            console.error("Erro ao deletar serviço:", error);
+            alert("Falha ao deletar o serviço.");
+          } finally {
+            hideLoading();
+          }
+        }
+      }
+
+      // MUDANÇA: Lógica para o botão "Reabrir Serviço"
+      const reopenBtn = e.target.closest(".btn-reopen");
+      if (reopenBtn) {
+        const serviceId = reopenBtn.dataset.serviceId;
+        const service = services.find((s) => s.id === serviceId);
+
+        if (
+          service &&
+          confirm(
+            "Tem certeza que deseja reabrir este serviço? Ele voltará para sua categoria original."
+          )
+        ) {
+          showLoading();
+          try {
+            // Encontra a primeira sub-etapa e a desmarca
+            const firstStepWithSubtasks = service.steps.find(
+              (step) => step.subtasks && step.subtasks.length > 0
+            );
+            if (firstStepWithSubtasks) {
+              firstStepWithSubtasks.subtasks[0].completed = false;
+              const serviceRef = doc(db, "services", serviceId);
+              await updateDoc(serviceRef, { steps: service.steps });
+              // O onSnapshot cuidará de mover o card
+            }
+          } catch (error) {
+            console.error("Erro ao reabrir serviço:", error);
+            alert("Falha ao reabrir o serviço.");
+          } finally {
+            hideLoading();
+          }
+        }
+      }
+
+      // MUDANÇA: Abrir/fechar painel de notificações
+      if (e.target.closest("#notification-bell")) {
+        const panel = document.getElementById("notification-panel");
+        panel.classList.toggle("hidden");
+
+        // CORREÇÃO: Marca as notificações como lidas quando o painel é aberto.
+        // A verificação `!panel.classList.contains("hidden")` garante que isso só aconteça
+        // quando o painel está visível (ou seja, após o toggle o ter aberto).
+        if (!panel.classList.contains("hidden")) {
+          // Fornece feedback visual imediato zerando o contador
+          notificationCount.textContent = "0";
+          notificationCount.classList.add("hidden");
+          markNotificationsAsRead();
+        }
+      } else if (!e.target.closest("#notification-panel")) {
+        // Fecha o painel se clicar fora dele
+        document.getElementById("notification-panel").classList.add("hidden");
+      }
+
+      // MUDANÇA: Botão de editar categoria
+      const editCategoryBtn = e.target.closest(".btn-edit-category");
+      if (editCategoryBtn) {
+        const listItem = editCategoryBtn.closest(".user-list-item");
+        const categoryId = listItem.dataset.categoryId;
+        const category = predefinedCategories.find((c) => c.id === categoryId);
+        if (!category) return;
+
+        // Salva o HTML original para poder cancelar a edição
+        listItem.dataset.originalHtml = listItem.innerHTML;
+
+        // Transforma o item da lista em um formulário de edição
+        listItem.innerHTML = `
             <div class="category-edit-form">
                 <input type="color" name="editCategoryColor" value="${
                   category.color || "#001f3f"
@@ -3130,575 +3138,581 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             </div>
         `;
-      listItem.classList.add("editing");
-    }
-
-    // MUDANÇA: Botão para cancelar a edição da categoria
-    const cancelEditCategoryBtn = e.target.closest(".btn-cancel-edit-category");
-    if (cancelEditCategoryBtn) {
-      const listItem = cancelEditCategoryBtn.closest(".user-list-item");
-      listItem.innerHTML = listItem.dataset.originalHtml;
-      listItem.classList.remove("editing");
-      delete listItem.dataset.originalHtml;
-    }
-
-    // MUDANÇA: Botão para salvar a edição da categoria
-    const saveCategoryBtn = e.target.closest(".btn-save-category");
-    if (saveCategoryBtn) {
-      const listItem = saveCategoryBtn.closest(".user-list-item");
-      const categoryId = listItem.dataset.categoryId;
-      const newName = listItem
-        .querySelector('[name="editCategoryName"]')
-        .value.trim();
-      const newColor = listItem.querySelector(
-        '[name="editCategoryColor"]'
-      ).value;
-
-      if (!newName || !categoryId) return;
-
-      showLoading();
-      try {
-        const categoryRef = doc(db, "categories", categoryId);
-        await updateDoc(categoryRef, { name: newName, color: newColor });
-        await loadPredefinedCategories(); // Recarrega os dados
-        renderCategoryManagementPage(); // Redesenha a página com os dados atualizados
-      } catch (error) {
-        console.error("Erro ao atualizar categoria:", error);
-        alert("Falha ao atualizar a categoria.");
-      } finally {
-        hideLoading();
+        listItem.classList.add("editing");
       }
-    }
 
-    // MUDANÇA: Botão para copiar o nome do serviço
-    const copyServiceNameBtn = e.target.closest(".btn-copy-service-name");
-    if (copyServiceNameBtn) {
-      const serviceNameText = document.getElementById(
-        "detail-service-name-text"
-      )?.innerText;
-      if (serviceNameText) {
-        navigator.clipboard
-          .writeText(serviceNameText)
-          .then(() => {
-            // Fornece feedback visual
-            const originalIcon = copyServiceNameBtn.innerHTML;
-            copyServiceNameBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>`;
-            copyServiceNameBtn.style.color = "#43a047"; // Verde
-
-            setTimeout(() => {
-              copyServiceNameBtn.innerHTML = originalIcon;
-              copyServiceNameBtn.style.color = ""; // Volta à cor original
-            }, 1500);
-          })
-          .catch((err) => {
-            console.error("Falha ao copiar texto: ", err);
-            alert("Não foi possível copiar o nome do serviço.");
-          });
+      // MUDANÇA: Botão para cancelar a edição da categoria
+      const cancelEditCategoryBtn = e.target.closest(
+        ".btn-cancel-edit-category"
+      );
+      if (cancelEditCategoryBtn) {
+        const listItem = cancelEditCategoryBtn.closest(".user-list-item");
+        listItem.innerHTML = listItem.dataset.originalHtml;
+        listItem.classList.remove("editing");
+        delete listItem.dataset.originalHtml;
       }
-    }
 
-    // MUDANÇA: Botão de deletar categoria
-    const deleteCategoryBtn = e.target.closest(".btn-delete-category");
-    if (deleteCategoryBtn) {
-      const categoryId =
-        deleteCategoryBtn.closest(".user-list-item").dataset.categoryId;
-      if (
-        confirm("Tem certeza que deseja deletar esta categoria pré-definida?")
-      ) {
+      // MUDANÇA: Botão para salvar a edição da categoria
+      const saveCategoryBtn = e.target.closest(".btn-save-category");
+      if (saveCategoryBtn) {
+        const listItem = saveCategoryBtn.closest(".user-list-item");
+        const categoryId = listItem.dataset.categoryId;
+        const newName = listItem
+          .querySelector('[name="editCategoryName"]')
+          .value.trim();
+        const newColor = listItem.querySelector(
+          '[name="editCategoryColor"]'
+        ).value;
+
+        if (!newName || !categoryId) return;
+
         showLoading();
         try {
-          await deleteDoc(doc(db, "categories", categoryId));
-          await loadPredefinedCategories(); // Recarrega a lista
-          renderCategoryManagementPage(); // Redesenha a página
+          const categoryRef = doc(db, "categories", categoryId);
+          await updateDoc(categoryRef, { name: newName, color: newColor });
+          await loadPredefinedCategories(); // Recarrega os dados
+          renderCategoryManagementPage(); // Redesenha a página com os dados atualizados
         } catch (error) {
-          console.error("Erro ao deletar categoria:", error);
-          alert("Falha ao deletar a categoria.");
+          console.error("Erro ao atualizar categoria:", error);
+          alert("Falha ao atualizar a categoria.");
         } finally {
           hideLoading();
         }
       }
-    }
 
-    // MUDANÇA: Botão para iniciar a edição inline na página de detalhes
-    const startInlineEditBtn = e.target.closest(".btn-start-inline-edit");
-    if (startInlineEditBtn) {
-      const serviceId = startInlineEditBtn.dataset.serviceId;
-      const service = services.find((s) => s.id === serviceId);
-      if (service) {
-        renderServiceDetail(service, [], true); // Renderiza em modo de edição
-      }
-    }
+      // MUDANÇA: Botão para copiar o nome do serviço
+      const copyServiceNameBtn = e.target.closest(".btn-copy-service-name");
+      if (copyServiceNameBtn) {
+        const serviceNameText = document.getElementById(
+          "detail-service-name-text"
+        )?.innerText;
+        if (serviceNameText) {
+          navigator.clipboard
+            .writeText(serviceNameText)
+            .then(() => {
+              // Fornece feedback visual
+              const originalIcon = copyServiceNameBtn.innerHTML;
+              copyServiceNameBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>`;
+              copyServiceNameBtn.style.color = "#43a047"; // Verde
 
-    // MUDANÇA: Botão para cancelar a edição inline
-    const cancelInlineEditBtn = e.target.closest(".btn-cancel-inline-edit");
-    if (cancelInlineEditBtn) {
-      const serviceId = window.location.hash.substring("#/service/".length);
-      const service = services.find((s) => s.id === serviceId);
-      if (service) {
-        renderServiceDetail(service, [], false); // Renderiza em modo de visualização
-      }
-    }
-
-    // MUDANÇA: Botão para salvar a edição inline
-    const saveInlineEditBtn = e.target.closest(".btn-save-inline-edit");
-    if (saveInlineEditBtn) {
-      const serviceId = saveInlineEditBtn.dataset.serviceId;
-
-      // CORREÇÃO: Busca o formulário dentro da view de detalhes
-      const generalForm = taskDetailView.querySelector(
-        "#inline-edit-general-form"
-      );
-      const category = generalForm.querySelector(
-        '[name="serviceCategory"]'
-      ).value;
-      const responsible = generalForm.querySelector(
-        '[name="responsibleName"]'
-      ).value;
-      const priority = generalForm.querySelector(
-        '[name="servicePriority"]'
-      ).value;
-      const dueDate = generalForm.querySelector(
-        '[name="serviceDueDate"]'
-      ).value;
-
-      // CORREÇÃO: Busca os grupos de etapas dentro da view de detalhes
-      const serviceToUpdate = services.find((s) => s.id === serviceId);
-      // CORREÇÃO: Passa o serviço original para a função collectStepsFromForm para preservar o status 'completed'.
-      const stepGroups = taskDetailView.querySelectorAll(
-        "#inline-steps-container .step-group-modal"
-      );
-      const steps = collectStepsFromForm(stepGroups, serviceToUpdate);
-
-      if (serviceToUpdate) {
-        showLoading();
-        try {
-          const serviceRef = doc(db, "services", serviceId);
-          await updateDoc(serviceRef, {
-            category,
-            responsible,
-            priority,
-            dueDate,
-            steps,
-          });
-          alert("Serviço atualizado com sucesso!");
-          // CORREÇÃO: Redesenha a página no modo de visualização após salvar.
-          renderServiceDetail(serviceToUpdate, [], false);
-        } catch (error) {
-          console.error("Erro ao salvar serviço:", error);
-          alert("Falha ao salvar as alterações.");
-        } finally {
-          hideLoading();
+              setTimeout(() => {
+                copyServiceNameBtn.innerHTML = originalIcon;
+                copyServiceNameBtn.style.color = ""; // Volta à cor original
+              }, 1500);
+            })
+            .catch((err) => {
+              console.error("Falha ao copiar texto: ", err);
+              alert("Não foi possível copiar o nome do serviço.");
+            });
         }
       }
-    }
 
-    // MUDANÇA: Lógica para o botão "Terceirizar"
-    const delegateBtn = e.target.closest(".btn-delegate");
-    if (delegateBtn) {
-      const requestId = delegateBtn.closest(".request-card").dataset.id;
-      const modal = document.getElementById("delegate-request-modal");
-      const form = document.getElementById("delegate-request-form");
-      const select = document.getElementById("delegate-user-select");
+      // MUDANÇA: Botão de deletar categoria
+      const deleteCategoryBtn = e.target.closest(".btn-delete-category");
+      if (deleteCategoryBtn) {
+        const categoryId =
+          deleteCategoryBtn.closest(".user-list-item").dataset.categoryId;
+        if (
+          confirm("Tem certeza que deseja deletar esta categoria pré-definida?")
+        ) {
+          showLoading();
+          try {
+            await deleteDoc(doc(db, "categories", categoryId));
+            await loadPredefinedCategories(); // Recarrega a lista
+            renderCategoryManagementPage(); // Redesenha a página
+          } catch (error) {
+            console.error("Erro ao deletar categoria:", error);
+            alert("Falha ao deletar a categoria.");
+          } finally {
+            hideLoading();
+          }
+        }
+      }
 
-      // Popula o select com os membros da equipe, exceto o usuário atual
-      select.innerHTML = teamMembers
-        .filter((member) => member.id !== currentUser.uid)
-        .map((member) => `<option value="${member.id}">${member.name}</option>`)
-        .join("");
+      // MUDANÇA: Botão para iniciar a edição inline na página de detalhes
+      const startInlineEditBtn = e.target.closest(".btn-start-inline-edit");
+      if (startInlineEditBtn) {
+        const serviceId = startInlineEditBtn.dataset.serviceId;
+        const service = services.find((s) => s.id === serviceId);
+        if (service) {
+          renderServiceDetail(service, [], true); // Renderiza em modo de edição
+        }
+      }
 
-      // Define o ID da solicitação no formulário
-      form.querySelector('[name="requestId"]').value = requestId;
+      // MUDANÇA: Botão para cancelar a edição inline
+      const cancelInlineEditBtn = e.target.closest(".btn-cancel-inline-edit");
+      if (cancelInlineEditBtn) {
+        const serviceId = window.location.hash.substring("#/service/".length);
+        const service = services.find((s) => s.id === serviceId);
+        if (service) {
+          renderServiceDetail(service, [], false); // Renderiza em modo de visualização
+        }
+      }
 
-      // Mostra o modal
-      modal.style.display = "block";
-    }
+      // MUDANÇA: Botão para salvar a edição inline
+      const saveInlineEditBtn = e.target.closest(".btn-save-inline-edit");
+      if (saveInlineEditBtn) {
+        const serviceId = saveInlineEditBtn.dataset.serviceId;
 
-    // MUDANÇA: Lógica para o formulário de delegação
-    if (e.target.id === "delegate-request-form") {
-      e.preventDefault();
-      const form = e.target;
-      const requestId = form.querySelector('[name="requestId"]').value;
-      const delegateUserId = form.querySelector(
-        '[name="delegateUserId"]'
-      ).value;
-      const delegateUserName = teamMemberMap.get(delegateUserId);
-      const request = allRequests.find((r) => r.id === requestId);
+        const generalForm = serviceDetailView.querySelector(
+          "#inline-edit-general-form"
+        );
+        const category = generalForm.querySelector(
+          '[name="serviceCategory"]'
+        ).value;
+        const responsible = generalForm.querySelector(
+          '[name="responsibleName"]'
+        ).value;
+        const priority = generalForm.querySelector(
+          '[name="servicePriority"]'
+        ).value;
+        const dueDate = generalForm.querySelector(
+          '[name="serviceDueDate"]'
+        ).value;
 
-      if (!request || !delegateUserId) return;
+        const serviceToUpdate = services.find((s) => s.id === serviceId);
 
-      showLoading();
-      try {
-        const requestRef = doc(db, "requests", requestId);
-        // Atualiza o usuário mencionado, que efetivamente "delega" a tarefa
-        await updateDoc(requestRef, {
-          mentionedUserId: delegateUserId,
-          mentionedUserName: delegateUserName,
-        });
+        const stepGroups = serviceDetailView.querySelectorAll(
+          "#inline-steps-container .step-group-modal"
+        );
+        const steps = collectStepsFromForm(stepGroups, serviceToUpdate);
 
-        // Envia uma notificação para o novo usuário
-        await addDoc(notificationsCollection, {
-          userId: delegateUserId,
-          text: `A solicitação "${request.title}" foi encaminhada para você por ${currentUser.displayName}.`,
-          link: "#/requests",
-          read: false,
-          createdAt: serverTimestamp(),
-        });
+        if (serviceToUpdate) {
+          showLoading();
+          try {
+            const serviceRef = doc(db, "services", serviceId);
+            await updateDoc(serviceRef, {
+              category,
+              responsible,
+              priority,
+              dueDate,
+              steps,
+            });
+            alert("Serviço atualizado com sucesso!");
 
-        // CORREÇÃO: Adiciona a lógica de envio de e-mail aqui.
-        const delegateUserEmail = allUsersData.find(
-          (u) => u.id === delegateUserId
-        )?.email;
-        if (delegateUserEmail) {
-          await addDoc(collection(db, "mail"), {
-            to: delegateUserEmail,
-            message: {
-              subject: `[Painel de Gestão] Uma solicitação foi encaminhada para você`,
-              html: createStyledEmailHtml({
-                title: "Uma Solicitação foi Encaminhada",
-                body: `<p>Olá, ${delegateUserName}!</p>
+            renderServiceDetail(serviceToUpdate, [], false);
+          } catch (error) {
+            console.error("Erro ao salvar serviço:", error);
+            alert("Falha ao salvar as alterações.");
+          } finally {
+            hideLoading();
+          }
+        }
+      }
+
+      // MUDANÇA: Lógica para o botão "Terceirizar"
+      const delegateBtn = e.target.closest(".btn-delegate");
+      if (delegateBtn) {
+        const requestId = delegateBtn.closest(".request-card").dataset.id;
+        const modal = document.getElementById("delegate-request-modal");
+        const form = document.getElementById("delegate-request-form");
+        const select = document.getElementById("delegate-user-select");
+
+        // Popula o select com os membros da equipe, exceto o usuário atual
+        select.innerHTML = teamMembers
+          .filter((member) => member.id !== currentUser.uid)
+          .map(
+            (member) => `<option value="${member.id}">${member.name}</option>`
+          )
+          .join("");
+
+        // Define o ID da solicitação no formulário
+        form.querySelector('[name="requestId"]').value = requestId;
+
+        // Mostra o modal
+        modal.style.display = "block";
+      }
+
+      // MUDANÇA: Lógica para o formulário de delegação
+      if (e.target.id === "delegate-request-form") {
+        e.preventDefault();
+        const form = e.target;
+        const requestId = form.querySelector('[name="requestId"]').value;
+        const delegateUserId = form.querySelector(
+          '[name="delegateUserId"]'
+        ).value;
+        const delegateUserName = teamMemberMap.get(delegateUserId);
+        const request = allRequests.find((r) => r.id === requestId);
+
+        if (!request || !delegateUserId) return;
+
+        showLoading();
+        try {
+          const requestRef = doc(db, "requests", requestId);
+          // Atualiza o usuário mencionado, que efetivamente "delega" a tarefa
+          await updateDoc(requestRef, {
+            mentionedUserId: delegateUserId,
+            mentionedUserName: delegateUserName,
+          });
+
+          // Envia uma notificação para o novo usuário
+          await addDoc(notificationsCollection, {
+            userId: delegateUserId,
+            text: `A solicitação "${request.title}" foi encaminhada para você por ${currentUser.displayName}.`,
+            link: "#/requests",
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+
+          // CORREÇÃO: Adiciona a lógica de envio de e-mail aqui.
+          const delegateUserEmail = allUsersData.find(
+            (u) => u.id === delegateUserId
+          )?.email;
+          if (delegateUserEmail) {
+            await addDoc(collection(db, "mail"), {
+              to: delegateUserEmail,
+              message: {
+                subject: `[Painel de Gestão] Uma solicitação foi encaminhada para você`,
+                html: createStyledEmailHtml({
+                  title: "Uma Solicitação foi Encaminhada",
+                  body: `<p>Olá, ${delegateUserName}!</p>
                        <p>A solicitação <strong>"${requestData.title}"</strong> foi encaminhada para você por <strong>${currentUser.displayName}</strong>.</p>`,
-                button: {
-                  text: "Ver Solicitação",
-                  url: "https://uniateneu-nead-gestao.web.app/#/requests", // MUDANÇA: Link direto para a página
-                },
-              }),
-            },
-          });
-        }
+                  button: {
+                    text: "Ver Solicitação",
+                    url: "https://uniateneu-nead-gestao.web.app/#/requests", // MUDANÇA: Link direto para a página
+                  },
+                }),
+              },
+            });
+          }
 
-        alert(`Solicitação encaminhada para ${delegateUserName} com sucesso!`);
-        document.getElementById("delegate-request-modal").style.display =
-          "none";
-      } catch (error) {
-        console.error("Erro ao delegar solicitação:", error);
-        alert("Falha ao delegar a solicitação.");
-      } finally {
-        hideLoading();
-      }
-    }
-
-    // MUDANÇA: Botão de deletar arquivo na página de detalhes
-    const deleteFileBtn = e.target.closest(".btn-delete-file");
-    if (deleteFileBtn) {
-      const fileIndex = parseInt(deleteFileBtn.dataset.fileIndex, 10);
-      const serviceId = window.location.hash.substring("#/service/".length);
-      const service = services.find((s) => s.id === serviceId);
-
-      if (service && confirm("Tem certeza que deseja deletar este arquivo?")) {
-        showLoading();
-        try {
-          const updatedFiles = service.files.filter(
-            (_, index) => index !== fileIndex
+          alert(
+            `Solicitação encaminhada para ${delegateUserName} com sucesso!`
           );
-          const serviceRef = doc(db, "services", serviceId);
-          await updateDoc(serviceRef, { files: updatedFiles });
-          // A UI se atualizará pelo onSnapshot
+          document.getElementById("delegate-request-modal").style.display =
+            "none";
         } catch (error) {
-          console.error("Erro ao deletar arquivo:", error);
-          alert("Falha ao deletar o arquivo.");
+          console.error("Erro ao delegar solicitação:", error);
+          alert("Falha ao delegar a solicitação.");
         } finally {
           hideLoading();
         }
       }
-    }
 
-    // MUDANÇA: Botão de deletar sub-etapa na página de detalhes
-    const deleteSubtaskDetailBtn = e.target.closest(
-      ".btn-delete-subtask-detail"
-    );
-    if (deleteSubtaskDetailBtn) {
-      const stepIndex = parseInt(deleteSubtaskDetailBtn.dataset.stepIndex, 10);
-      const subtaskIndex = parseInt(
-        deleteSubtaskDetailBtn.dataset.subtaskIndex,
-        10
+      // MUDANÇA: Botão de deletar arquivo na página de detalhes
+      const deleteFileBtn = e.target.closest(".btn-delete-file");
+      if (deleteFileBtn) {
+        const fileIndex = parseInt(deleteFileBtn.dataset.fileIndex, 10);
+        const serviceId = window.location.hash.substring("#/service/".length);
+        const service = services.find((s) => s.id === serviceId);
+
+        if (
+          service &&
+          confirm("Tem certeza que deseja deletar este arquivo?")
+        ) {
+          showLoading();
+          try {
+            const updatedFiles = service.files.filter(
+              (_, index) => index !== fileIndex
+            );
+            const serviceRef = doc(db, "services", serviceId);
+            await updateDoc(serviceRef, { files: updatedFiles });
+            // A UI se atualizará pelo onSnapshot
+          } catch (error) {
+            console.error("Erro ao deletar arquivo:", error);
+            alert("Falha ao deletar o arquivo.");
+          } finally {
+            hideLoading();
+          }
+        }
+      }
+
+      // MUDANÇA: Botão de deletar sub-etapa na página de detalhes
+      const deleteSubtaskDetailBtn = e.target.closest(
+        ".btn-delete-subtask-detail"
       );
-      const serviceId = window.location.hash.substring("#/service/".length);
-      const service = services.find((s) => s.id === serviceId);
+      if (deleteSubtaskDetailBtn) {
+        const stepIndex = parseInt(
+          deleteSubtaskDetailBtn.dataset.stepIndex,
+          10
+        );
+        const subtaskIndex = parseInt(
+          deleteSubtaskDetailBtn.dataset.subtaskIndex,
+          10
+        );
+        const serviceId = window.location.hash.substring("#/service/".length);
+        const service = services.find((s) => s.id === serviceId);
 
-      if (
-        service &&
-        confirm("Tem certeza que deseja deletar esta sub-etapa?")
-      ) {
+        if (
+          service &&
+          confirm("Tem certeza que deseja deletar esta sub-etapa?")
+        ) {
+          showLoading();
+          try {
+            service.steps[stepIndex].subtasks.splice(subtaskIndex, 1);
+            const serviceRef = doc(db, "services", serviceId);
+            await updateDoc(serviceRef, { steps: service.steps });
+          } catch (error) {
+            console.error("Erro ao deletar sub-etapa:", error);
+            alert("Falha ao deletar a sub-etapa.");
+          } finally {
+            hideLoading();
+          }
+        }
+      }
+
+      // MUDANÇA: Botão de deletar etapa na página de detalhes
+      const deleteStepDetailBtn = e.target.closest(".btn-delete-step-detail");
+      if (deleteStepDetailBtn) {
+        const stepIndex = parseInt(deleteStepDetailBtn.dataset.stepIndex, 10);
+        const serviceId = window.location.hash.substring("#/service/".length);
+        const service = services.find((s) => s.id === serviceId);
+
+        if (
+          service &&
+          confirm(
+            "Tem certeza que deseja deletar esta etapa e todas as suas sub-etapas?"
+          )
+        ) {
+          showLoading();
+          try {
+            service.steps.splice(stepIndex, 1);
+            const serviceRef = doc(db, "services", serviceId);
+            await updateDoc(serviceRef, { steps: service.steps });
+          } catch (error) {
+            console.error("Erro ao deletar etapa:", error);
+            alert("Falha ao deletar a etapa.");
+          } finally {
+            hideLoading();
+          }
+        }
+      }
+
+      // Lógica para upload de foto de perfil
+      if (e.target.closest("#profile-picture-upload")) {
+        document.getElementById("profile-picture-input").click();
+      }
+
+      // Lógica para selecionar um avatar predefinido
+      if (e.target.classList.contains("preset-avatar")) {
+        const newPhotoURL = e.target.dataset.url;
+        const preview = document.getElementById("profile-picture-preview");
+        preview.src = newPhotoURL; // Atualiza a visualização
+
         showLoading();
         try {
-          service.steps[stepIndex].subtasks.splice(subtaskIndex, 1);
-          const serviceRef = doc(db, "services", serviceId);
-          await updateDoc(serviceRef, { steps: service.steps });
+          await updateProfile(auth.currentUser, { photoURL: newPhotoURL });
+          await updateUserInFirestore(auth.currentUser); // Salva no Firestore também
+          userPhotoEl.src = newPhotoURL; // Atualiza o header
+          alert("Avatar atualizado com sucesso!");
         } catch (error) {
-          console.error("Erro ao deletar sub-etapa:", error);
-          alert("Falha ao deletar a sub-etapa.");
+          console.error("Erro ao atualizar avatar:", error);
+          alert("Falha ao atualizar o avatar.");
         } finally {
           hideLoading();
         }
       }
-    }
 
-    // MUDANÇA: Botão de deletar etapa na página de detalhes
-    const deleteStepDetailBtn = e.target.closest(".btn-delete-step-detail");
-    if (deleteStepDetailBtn) {
-      const stepIndex = parseInt(deleteStepDetailBtn.dataset.stepIndex, 10);
-      const serviceId = window.location.hash.substring("#/service/".length);
-      const service = services.find((s) => s.id === serviceId);
+      // MUDANÇA: Botão de editar serviço
+      const editBtn = e.target.closest(".btn-edit");
+      if (editBtn) {
+        const serviceId = editBtn.dataset.serviceId;
+        const serviceToEdit = services.find((s) => s.id === serviceId);
+        if (serviceToEdit) {
+          const isOnDetailPage = editBtn.closest("#service-detail-view");
+          if (isOnDetailPage) {
+            // Inicia a edição inline
+            renderServiceDetail(serviceToEdit, [], true);
+          } else {
+            // Abre o modal (comportamento antigo)
+            openEditModal(serviceToEdit);
+          }
+        }
+      }
 
-      if (
-        service &&
-        confirm(
-          "Tem certeza que deseja deletar esta etapa e todas as suas sub-etapas?"
-        )
-      ) {
+      // MUDANÇA: Botão de remover etapa no modal de adicionar serviço
+      const deleteStepBtn = e.target.closest(".btn-delete-step");
+      if (deleteStepBtn) {
+        // CORREÇÃO: Garante que todo o grupo da etapa seja removido, não apenas a linha do nome.
+        deleteStepBtn.closest(".step-group-modal").remove();
+      }
+
+      // MUDANÇA: Botão de adicionar sub-etapa no modal
+      const addSubstepBtn = e.target.closest(".btn-add-substep");
+      if (addSubstepBtn) {
+        const substepsContainer = addSubstepBtn.previousElementSibling;
+        substepsContainer.appendChild(createSubstepInputRow());
+      }
+
+      // MUDANÇA: Botão de adicionar sub-etapa na edição inline
+      const addSubstepBtnInline = e.target.closest(".btn-add-substep-inline");
+      if (addSubstepBtnInline) {
+        const substepsContainer = addSubstepBtnInline.previousElementSibling;
+        substepsContainer.appendChild(createSubstepInputRow());
+      }
+
+      // MUDANÇA: Botão de remover sub-etapa no modal
+      const deleteSubstepBtn = e.target.closest(".btn-delete-substep");
+      if (deleteSubstepBtn) {
+        deleteSubstepBtn.parentElement.remove();
+      }
+
+      // MUDANÇA: Botão de adicionar etapa na edição inline
+      const addStepBtnInline = e.target.closest("#add-step-btn-inline");
+      if (addStepBtnInline) {
+        const container = document.getElementById("inline-steps-container");
+        container.appendChild(createStepGroupElement());
+      }
+
+      // MUDANÇA: Lógica para aprovar/rejeitar solicitações
+      const approveBtn = e.target.closest(".btn-approve");
+      if (approveBtn) {
         showLoading();
+        const requestId = approveBtn.closest(".request-card").dataset.id;
         try {
-          service.steps.splice(stepIndex, 1);
-          const serviceRef = doc(db, "services", serviceId);
-          await updateDoc(serviceRef, { steps: service.steps });
+          // MUDANÇA: A aprovação agora apenas atualiza o status da solicitação.
+          const requestDocRef = doc(db, "requests", requestId);
+          await updateDoc(requestDocRef, { status: "approved" });
+          // O onSnapshot cuidará de redesenhar a UI.
+          alert("Solicitação aprovada e movida para 'Em Atendimento'.");
         } catch (error) {
-          console.error("Erro ao deletar etapa:", error);
-          alert("Falha ao deletar a etapa.");
+          console.error("Erro ao aprovar solicitação:", error);
+          alert("Falha ao aprovar a solicitação.");
         } finally {
           hideLoading();
         }
       }
-    }
 
-    // Lógica para upload de foto de perfil
-    if (e.target.closest("#profile-picture-upload")) {
-      document.getElementById("profile-picture-input").click();
-    }
-
-    // Lógica para selecionar um avatar predefinido
-    if (e.target.classList.contains("preset-avatar")) {
-      const newPhotoURL = e.target.dataset.url;
-      const preview = document.getElementById("profile-picture-preview");
-      preview.src = newPhotoURL; // Atualiza a visualização
-
-      showLoading();
-      try {
-        await updateProfile(auth.currentUser, { photoURL: newPhotoURL });
-        await updateUserInFirestore(auth.currentUser); // Salva no Firestore também
-        userPhotoEl.src = newPhotoURL; // Atualiza o header
-        alert("Avatar atualizado com sucesso!");
-      } catch (error) {
-        console.error("Erro ao atualizar avatar:", error);
-        alert("Falha ao atualizar o avatar.");
-      } finally {
-        hideLoading();
-      }
-    }
-
-    // MUDANÇA: Botão de editar serviço
-    const editBtn = e.target.closest(".btn-edit");
-    if (editBtn) {
-      const serviceId = editBtn.dataset.serviceId;
-      const serviceToEdit = services.find((s) => s.id === serviceId);
-      if (serviceToEdit) {
-        // MUDANÇA: Verifica se a edição é a partir do card ou da página de detalhes
-        const isOnDetailPage = editBtn.closest("#task-detail-view");
-        if (isOnDetailPage) {
-          // Inicia a edição inline
-          renderServiceDetail(serviceToEdit, [], true);
-        } else {
-          // Abre o modal (comportamento antigo)
-          openEditModal(serviceToEdit);
+      const rejectBtn = e.target.closest(".btn-reject");
+      if (rejectBtn) {
+        const requestId = rejectBtn.closest(".request-card").dataset.id;
+        showLoading();
+        try {
+          const requestRef = doc(db, "requests", requestId);
+          await updateDoc(requestRef, { status: "rejected" });
+          // O onSnapshot cuidará de redesenhar a UI
+        } catch (error) {
+          console.error("Erro ao rejeitar solicitação:", error);
+          alert("Falha ao rejeitar a solicitação.");
+        } finally {
+          hideLoading();
         }
       }
-    }
 
-    // MUDANÇA: Botão de remover etapa no modal de adicionar serviço
-    const deleteStepBtn = e.target.closest(".btn-delete-step");
-    if (deleteStepBtn) {
-      // CORREÇÃO: Garante que todo o grupo da etapa seja removido, não apenas a linha do nome.
-      deleteStepBtn.closest(".step-group-modal").remove();
-    }
-
-    // MUDANÇA: Botão de adicionar sub-etapa no modal
-    const addSubstepBtn = e.target.closest(".btn-add-substep");
-    if (addSubstepBtn) {
-      const substepsContainer = addSubstepBtn.previousElementSibling;
-      substepsContainer.appendChild(createSubstepInputRow());
-    }
-
-    // MUDANÇA: Botão de adicionar sub-etapa na edição inline
-    const addSubstepBtnInline = e.target.closest(".btn-add-substep-inline");
-    if (addSubstepBtnInline) {
-      const substepsContainer = addSubstepBtnInline.previousElementSibling;
-      substepsContainer.appendChild(createSubstepInputRow());
-    }
-
-    // MUDANÇA: Botão de remover sub-etapa no modal
-    const deleteSubstepBtn = e.target.closest(".btn-delete-substep");
-    if (deleteSubstepBtn) {
-      deleteSubstepBtn.parentElement.remove();
-    }
-
-    // MUDANÇA: Botão de adicionar etapa na edição inline
-    const addStepBtnInline = e.target.closest("#add-step-btn-inline");
-    if (addStepBtnInline) {
-      const container = document.getElementById("inline-steps-container");
-      container.appendChild(createStepGroupElement());
-    }
-
-    // MUDANÇA: Lógica para aprovar/rejeitar solicitações
-    const approveBtn = e.target.closest(".btn-approve");
-    if (approveBtn) {
-      showLoading();
-      const requestId = approveBtn.closest(".request-card").dataset.id;
-      try {
-        // MUDANÇA: A aprovação agora apenas atualiza o status da solicitação.
-        const requestDocRef = doc(db, "requests", requestId);
-        await updateDoc(requestDocRef, { status: "approved" });
-        // O onSnapshot cuidará de redesenhar a UI.
-        alert("Solicitação aprovada e movida para 'Em Atendimento'.");
-      } catch (error) {
-        console.error("Erro ao aprovar solicitação:", error);
-        alert("Falha ao aprovar a solicitação.");
-      } finally {
-        hideLoading();
+      // MUDANÇA: Nova lógica para o botão "Marcar como Resolvido"
+      const resolveBtn = e.target.closest(".btn-resolve");
+      if (resolveBtn) {
+        const requestId = resolveBtn.closest(".request-card").dataset.id;
+        showLoading();
+        try {
+          const requestRef = doc(db, "requests", requestId);
+          await updateDoc(requestRef, { status: "resolved" });
+          alert("Solicitação marcada como resolvida!");
+        } catch (error) {
+          console.error("Erro ao resolver solicitação:", error);
+          alert("Falha ao resolver a solicitação.");
+        } finally {
+          hideLoading();
+        }
       }
-    }
-
-    const rejectBtn = e.target.closest(".btn-reject");
-    if (rejectBtn) {
-      const requestId = rejectBtn.closest(".request-card").dataset.id;
-      showLoading();
-      try {
-        const requestRef = doc(db, "requests", requestId);
-        await updateDoc(requestRef, { status: "rejected" });
-        // O onSnapshot cuidará de redesenhar a UI
-      } catch (error) {
-        console.error("Erro ao rejeitar solicitação:", error);
-        alert("Falha ao rejeitar a solicitação.");
-      } finally {
-        hideLoading();
-      }
-    }
-
-    // MUDANÇA: Nova lógica para o botão "Marcar como Resolvido"
-    const resolveBtn = e.target.closest(".btn-resolve");
-    if (resolveBtn) {
-      const requestId = resolveBtn.closest(".request-card").dataset.id;
-      showLoading();
-      try {
-        const requestRef = doc(db, "requests", requestId);
-        await updateDoc(requestRef, { status: "resolved" });
-        alert("Solicitação marcada como resolvida!");
-      } catch (error) {
-        console.error("Erro ao resolver solicitação:", error);
-        alert("Falha ao resolver a solicitação.");
-      } finally {
-        hideLoading();
-      }
-    }
-  });
-
-  // MUDANÇA: Nova função para renderizar a barra lateral
-  function renderSidebar() {
-    if (!sidebar) return;
-
-    const pendingRequestsCount = allRequests.filter(
-      (req) => req.status === "pending"
-    ).length;
-
-    const navLinks = [
-      {
-        href: "#/services",
-        text: "Gerenciar Serviços",
-        icon: "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z",
-      },
-      {
-        href: "#/production-status",
-        text: "Status da Produção",
-        icon: "M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z",
-      },
-      {
-        href: "#/statistics",
-        text: "Estatísticas",
-        icon: "M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z",
-      },
-      {
-        href: "#/writing",
-        text: "Escrita Colaborativa",
-        icon: "M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z",
-      },
-      {
-        href: "#/video",
-        text: "Geração de Vídeo IA",
-        icon: "M4,3.5A1.5,1.5 0 0,1 5.5,2H18.5A1.5,1.5 0 0,1 20,3.5V16.5A1.5,1.5 0 0,1 18.5,18H14V20H16V22H8V20H10V18H5.5A1.5,1.5 0 0,1 4,16.5V3.5M18,4H6V16H18V4M10,6V14L15,10",
-      },
-      {
-        href: "#/requests",
-        text: "Ver Solicitações",
-        icon: "M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6,7.5L12,10.85L18,7.5L12,4.15M5,15.91L11,19.29V12.58L5,9.21V15.91Z",
-        badge: pendingRequestsCount,
-      },
-      {
-        href: "#/profile",
-        text: "Meu Perfil",
-        icon: "M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z",
-      },
-    ];
-
-    if (currentUser && currentUser.role === "admin") {
-      navLinks.push({
-        href: "#/users",
-        text: "Gerenciar Usuários",
-        icon: "M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7A3,3 0 0,1 15,10A3,3 0 0,1 12,13A3,3 0 0,1 9,10A3,3 0 0,1 12,7M17.5,17.13C15.93,18.54 14,19.38 12,19.82C10,19.38 8.07,18.54 6.5,17.13C6.83,16.06 9.11,15 12,15C14.89,15 17.17,16.06 17.5,17.13Z",
-      });
-    }
-
-    const linksHtml = navLinks
-      .map((link) => {
-        const badgeHtml =
-          link.badge > 0
-            ? `<span class="sidebar-badge">${link.badge}</span>`
-            : "";
-        return `
-        <li>
-          <a href="${link.href}" class="${
-          window.location.hash === link.href ? "active" : ""
-        }">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="${
-              link.icon
-            }" /></svg>
-            <span>${link.text}</span>
-            ${badgeHtml}
-          </a>
-        </li>
-      `;
-      })
-      .join("");
-
-    const sidebarNav = document.getElementById("sidebar-nav");
-    if (sidebarNav) {
-      sidebarNav.innerHTML = `<ul>${linksHtml}</ul>`;
-    }
-
-    // Adiciona evento para destacar o link ativo
-    sidebar.querySelectorAll("a").forEach((link) => {
-      link.addEventListener("click", () => {
-        sidebar.querySelector("a.active")?.classList.remove("active");
-        link.classList.add("active");
-      });
     });
-  }
 
-  // --- MUDANÇA: Funções para a página de Escrita Colaborativa (SIMPLIFICADO) ---
-  function renderWritingPage() {
-    if (!writingView) return;
+    // CORREÇÃO: Reorganiza a sidebar em categorias
+    function renderSidebar() {
+      if (!sidebar) return;
 
-    // MUDANÇA: Remove o filtro de categoria para que todos os serviços apareçam.
-    // Agora, qualquer serviço pode ser usado para a escrita colaborativa.
-    const relevantServices = services;
+      const pendingRequestsCount = allRequests.filter(
+        (req) => req.status === "pending"
+      ).length;
 
-    const servicesHtml =
-      relevantServices.length > 0
-        ? relevantServices
-            .map((service) => {
-              const docId = service.googleDocId;
-              const statusHtml = docId
-                ? `<span class="status-tag completed">Documento Criado</span>`
-                : `<span class="status-tag">Nenhum documento</span>`;
+      const navStructure = [
+        {
+          title: "FLUXO DE TRABALHO",
+          links: [
+            { href: "#/production-status", text: "Status da Produção", icon: "M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z" },
+            { href: "#/requests", text: "Ver Solicitações", icon: "M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6,7.5L12,10.85L18,7.5L12,4.15M5,15.91L11,19.29V12.58L5,9.21V15.91Z", badge: pendingRequestsCount },
+            { href: "#/services", text: "Gerenciar Serviços", icon: "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z" },
+          ]
+        },
+        {
+          title: "CRIAÇÃO E FERRAMENTAS",
+          links: [
+            { href: "#/writing", text: "Escrita Colaborativa", icon: "M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z" },
+            { href: "#/video", text: "Geração de Vídeo IA", icon: "M4,3.5A1.5,1.5 0 0,1 5.5,2H18.5A1.5,1.5 0 0,1 20,3.5V16.5A1.5,1.5 0 0,1 18.5,18H14V20H16V22H8V20H10V18H5.5A1.5,1.5 0 0,1 4,16.5V3.5M18,4H6V16H18V4M10,6V14L15,10" },
+          ]
+        },
+        {
+          title: "ANÁLISE E DADOS",
+          links: [
+            { href: "#/statistics", text: "Estatísticas", icon: "M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z" },
+          ]
+        },
+        {
+          title: "CONTA E ADMINISTRADOR",
+          links: [
+            { href: "#/profile", text: "Meu Perfil", icon: "M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" },
+          ]
+        }
+      ];
 
-              return `
+      if (currentUser && currentUser.role === "admin") {
+        // Adiciona o link de Gerenciar Usuários na categoria correta
+        const adminCategory = navStructure.find(cat => cat.title === "CONTA E ADMINISTRADOR");
+        if (adminCategory) {
+            adminCategory.links.push({
+                href: "#/users",
+                text: "Gerenciar Usuários",
+                icon: "M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7A3,3 0 0,1 15,10A3,3 0 0,1 12,13A3,3 0 0,1 9,10A3,3 0 0,1 12,7M17.5,17.13C15.93,18.54 14,19.38 12,19.82C10,19.38 8.07,18.54 6.5,17.13C6.83,16.06 9.11,15 12,15C14.89,15 17.17,16.06 17.5,17.13Z",
+            });
+        }
+      }
+
+      let finalHtml = "";
+      navStructure.forEach(category => {
+        finalHtml += `<li class="sidebar-category-title">${category.title}</li>`;
+        category.links.forEach(link => {
+            const badgeHtml = link.badge > 0 ? `<span class="sidebar-badge">${link.badge}</span>` : "";
+            finalHtml += `
+                <li>
+                    <a href="${link.href}" class="${window.location.hash === link.href ? "active" : ""}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="${link.icon}" /></svg>
+                        <span>${link.text}</span>
+                        ${badgeHtml}
+                    </a>
+                </li>
+            `;
+        });
+      });
+
+      const sidebarNav = document.getElementById("sidebar-nav");
+      if (sidebarNav) {
+        sidebarNav.innerHTML = `<ul>${finalHtml}</ul>`;
+      }
+
+      // Adiciona evento para destacar o link ativo
+      sidebar.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => {
+          sidebar.querySelector("a.active")?.classList.remove("active");
+          link.classList.add("active");
+        });
+      });
+    }
+
+    // --- MUDANÇA: Funções para a página de Escrita Colaborativa (SIMPLIFICADO) ---
+    function renderWritingPage() {
+      const listContainer = writingView.querySelector(".feature-service-list");
+      const searchInput = writingView.querySelector("#writing-search-input");
+      if (!listContainer || !searchInput) return;
+
+      const searchTerm = searchInput.value.toLowerCase();
+      const filteredServices = services.filter(service => 
+        service.name.toLowerCase().includes(searchTerm)
+      );
+
+      if (!searchInput.dataset.listenerAttached) {
+        searchInput.addEventListener("input", renderWritingPage);
+        searchInput.dataset.listenerAttached = "true";
+      }
+
+      const servicesHtml = filteredServices.length > 0
+          ? filteredServices
+              .map((service) => {
+                const docId = service.googleDocId;
+                const statusHtml = docId
+                  ? `<span class="status-tag completed">Documento Criado</span>`
+                  : `<span class="status-tag">Nenhum documento</span>`;
+
+                return `
                 <li class="feature-service-item" data-service-id="${
                   service.id
                 }">
@@ -3715,49 +3729,48 @@ document.addEventListener("DOMContentLoaded", () => {
                         <button class="btn-primary" data-action="handle-writing" data-service-id="${
                           service.id
                         }">${
-                docId ? "Abrir Documento" : "Criar Documento"
-              }</button>
+                  docId ? "Abrir Documento" : "Criar Documento"
+                }</button>
                         <button class="btn-secondary" data-action="render-ebook" data-service-id="${
                           service.id
                         }" ${!docId ? "disabled" : ""}>Visualizar eBook</button>
                     </div>
                 </li>
             `;
-            })
-            .join("")
-        : "<p>Nenhum serviço encontrado. Crie um novo serviço para começar a usar a escrita colaborativa.</p>";
+              })
+              .join("")
+          : `<p class="no-results">Nenhum serviço encontrado para "${searchInput.value}".</p>`;
 
-    writingView.innerHTML = `
-        <div class="detail-header">
-            <h2>Escrita Colaborativa com IA</h2>
-            <a href="#/" class="btn-secondary">Voltar</a>
-        </div>
-        <div class="feature-page-description">
-            <p>Use esta seção para criar e editar o conteúdo de seus eBooks diretamente no Google Docs. A integração permite que você visualize o conteúdo formatado como um eBook a qualquer momento.</p>
-        </div>
-        <ul class="feature-service-list">${servicesHtml}</ul>
-    `;
-  }
+      listContainer.innerHTML = servicesHtml;
+    }
 
-  // --- MUDANÇA: Funções para a página de Geração de Vídeo (SIMPLIFICADO) ---
-  function renderVideoPage() {
-    if (!videoView) return;
+    // --- MUDANÇA: Funções para a página de Geração de Vídeo (SIMPLIFICADO) ---
+    function renderVideoPage() {
+      const listContainer = videoView.querySelector(".feature-service-list");
+      const searchInput = videoView.querySelector("#video-search-input");
+      if (!listContainer || !searchInput) return;
 
-    // MUDANÇA: Restaura a lógica para listar todos os serviços, removendo o filtro de categoria.
-    const relevantServices = services;
+      const searchTerm = searchInput.value.toLowerCase();
+      const filteredServices = services.filter(service => 
+        service.name.toLowerCase().includes(searchTerm)
+      );
 
-    const servicesHtml =
-      relevantServices.length > 0
-        ? relevantServices
-            .map((service) => {
-              let statusHtml = `<span class="status-tag">Não iniciado</span>`;
-              if (service.videoStatus === "processing") {
-                statusHtml = `<span class="status-tag processing">Processando...</span>`;
-              } else if (service.videoStatus === "completed") {
-                statusHtml = `<span class="status-tag completed">Concluído</span>`;
-              }
+      if (!searchInput.dataset.listenerAttached) {
+        searchInput.addEventListener("input", renderVideoPage);
+        searchInput.dataset.listenerAttached = "true";
+      }
 
-              return `
+      const servicesHtml = filteredServices.length > 0
+          ? filteredServices
+              .map((service) => {
+                let statusHtml = `<span class="status-tag">Não iniciado</span>`;
+                if (service.videoStatus === "processing") {
+                  statusHtml = `<span class="status-tag processing">Processando...</span>`;
+                } else if (service.videoStatus === "completed") {
+                  statusHtml = `<span class="status-tag completed">Concluído</span>`;
+                }
+
+                return `
                 <li class="feature-service-item" data-service-id="${
                   service.id
                 }">
@@ -3800,207 +3813,209 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </li>
             `;
-            })
-            .join("")
-        : "<p>Nenhum serviço encontrado. Crie um novo serviço para começar a gerar vídeos.</p>";
+              })
+              .join("")
+          : `<p class="no-results">Nenhum serviço encontrado para "${searchInput.value}".</p>`;
 
-    videoView.innerHTML = `
-        <div class="detail-header">
-            <h2>Geração de Vídeo com Avatares de IA</h2>
-             <a href="#/" class="btn-secondary">Voltar</a>
-        </div>
-        <div class="feature-page-description">
-            <p>Crie vídeos rapidamente usando avatares realistas da HeyGen. Selecione um serviço, insira o roteiro e o ID do avatar para iniciar a geração. O vídeo aparecerá aqui quando estiver pronto.</p>
-        </div>
-        <ul class="feature-service-list">${servicesHtml}</ul>
-    `;
-  }
-
-  // --- MUDANÇA: Funções de Ação para as Novas Features ---
-
-  // MUDANÇA: Implementa a lógica para criar/abrir o Google Doc
-  async function handleCollaborativeWriting(serviceId, serviceName, googleDocId) {
-    // Se o documento já existe, apenas abre em uma nova aba.
-    if (googleDocId) {
-      window.open(`https://docs.google.com/document/d/${googleDocId}/edit`, '_blank');
-      return;
+      listContainer.innerHTML = servicesHtml;
     }
 
-    // Se não existe, chama a Cloud Function para criar.
-    if (!confirm(`Nenhum documento associado a "${serviceName}". Deseja criar um novo no Google Docs?`)) {
-      return;
-    }
+    // --- MUDANÇA: Funções de Ação para as Novas Features ---
 
-    showLoading();
-    try {
-      const createDoc = httpsCallable(functions, 'createGoogleDocForService');
-      const result = await createDoc({ serviceId, serviceName });
-
-      if (result.data.success) {
-        alert("Documento criado com sucesso! Abrindo em uma nova aba...");
-        window.open(result.data.documentUrl, '_blank');
-        // A UI será atualizada automaticamente pelo listener do Firestore
-      } else if (result.data.success === false) {
-        throw new Error(result.data.message || "A função retornou um erro.");
+    // MUDANÇA: Implementa a lógica para criar/abrir o Google Doc
+    async function handleCollaborativeWriting(
+      serviceId,
+      serviceName,
+      googleDocId
+    ) {
+      // Se o documento já existe, apenas abre em uma nova aba.
+      if (googleDocId) {
+        window.open(
+          `https://docs.google.com/document/d/${googleDocId}/edit`,
+          "_blank"
+        );
+        return;
       }
-    } catch (error) {
-      console.error("Erro ao criar Google Doc:", error);
-      alert(`Falha ao criar o documento: ${error.message}`);
-    } finally {
-      hideLoading();
-    }
-  }
 
-  // Função para mostrar o conteúdo do eBook em um modal
-  async function openEbookModal(googleDocId, serviceName) {
-    // Esta função também será implementada futuramente.
-    // Ela buscará o conteúdo do Google Doc e o renderizará em um modal.
-    alert(
-      `Visualização de eBook em desenvolvimento!\nID do Documento: ${googleDocId}`
-    );
-  }
-
-  // Função para chamar a Cloud Function de geração de vídeo
-  async function handleVideoGeneration({ serviceId, text, avatarId }) {
-    const statusContainer = document.getElementById(
-      `video-status-${serviceId}`
-    );
-    if (!statusContainer) return;
-
-    statusContainer.innerHTML = `Iniciando geração... <div class="spinner-inline"></div>`;
-
-    try {
-      const generateVideo = httpsCallable(functions, "generateHeyGenVideo");
-      const result = await generateVideo({ serviceId, text, avatarId });
-
-      if (result.data.success) {
-        statusContainer.innerHTML = `<p style="color: var(--accent-color);">✅ Geração iniciada! O vídeo aparecerá aqui quando estiver pronto. Isso pode levar alguns minutos.</p>`;
-        // O listener do onSnapshot atualizará a UI quando o vídeo estiver pronto.
-      } else {
-        throw new Error(result.data.message || "Erro desconhecido.");
+      // Se não existe, chama a Cloud Function para criar.
+      if (
+        !confirm(
+          `Nenhum documento associado a "${serviceName}". Deseja criar um novo no Google Docs?`
+        )
+      ) {
+        return;
       }
-    } catch (error) {
-      console.error("Erro ao gerar vídeo:", error);
-      statusContainer.innerHTML = `<p class="auth-error">❌ Falha ao gerar vídeo: ${error.message}</p>`;
+
+      showLoading();
+      try {
+        const createDoc = httpsCallable(functions, "createGoogleDocForService");
+        const result = await createDoc({ serviceId, serviceName });
+
+        if (result.data.success) {
+          alert("Documento criado com sucesso! Abrindo em uma nova aba...");
+          window.open(result.data.documentUrl, "_blank");
+          // A UI será atualizada automaticamente pelo listener do Firestore
+        } else if (result.data.success === false) {
+          throw new Error(result.data.message || "A função retornou um erro.");
+        }
+      } catch (error) {
+        console.error("Erro ao criar Google Doc:", error);
+        alert(`Falha ao criar o documento: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
     }
-  }
 
-  // MUDANÇA: Função para coletar dados de etapas e sub-etapas de um formulário
-  function collectStepsFromForm(stepGroups, originalService = null) {
-    const steps = [];
-    stepGroups.forEach((group, stepIndex) => {
-      const stepName = group.querySelector('[name="stepName"]').value;
-      const stepColor = group.querySelector('[name="stepColor"]').value;
-      const stepResponsibleId = group.querySelector(
-        '[name="stepResponsible"]'
-      ).value;
+    // Função para mostrar o conteúdo do eBook em um modal
+    async function openEbookModal(googleDocId, serviceName) {
+      // Esta função também será implementada futuramente.
+      // Ela buscará o conteúdo do Google Doc e o renderizará em um modal.
+      alert(
+        `Visualização de eBook em desenvolvimento!\nID do Documento: ${googleDocId}`
+      );
+    }
 
-      const substepRows = group.querySelectorAll(".substep-input-row");
-      const subtasks = [];
-      substepRows.forEach((row, subtaskIndex) => {
-        const substepName = row.querySelector('[name="substepName"]').value;
-        const substepPending = row.querySelector(
-          '[name="substepPendingDescription"]'
+    // Função para chamar a Cloud Function de geração de vídeo
+    async function handleVideoGeneration({ serviceId, text, avatarId }) {
+      const statusContainer = document.getElementById(
+        `video-status-${serviceId}`
+      );
+      if (!statusContainer) return;
+
+      statusContainer.innerHTML = `Iniciando geração... <div class="spinner-inline"></div>`;
+
+      try {
+        const generateVideo = httpsCallable(functions, "generateHeyGenVideo");
+        const result = await generateVideo({ serviceId, text, avatarId });
+
+        if (result.data.success) {
+          statusContainer.innerHTML = `<p style="color: var(--accent-color);">✅ Geração iniciada! O vídeo aparecerá aqui quando estiver pronto. Isso pode levar alguns minutos.</p>`;
+          // O listener do onSnapshot atualizará a UI quando o vídeo estiver pronto.
+        } else {
+          throw new Error(result.data.message || "Erro desconhecido.");
+        }
+      } catch (error) {
+        console.error("Erro ao gerar vídeo:", error);
+        statusContainer.innerHTML = `<p class="auth-error">❌ Falha ao gerar vídeo: ${error.message}</p>`;
+      }
+    }
+
+    // MUDANÇA: Função para coletar dados de etapas e sub-etapas de um formulário
+    function collectStepsFromForm(stepGroups, originalService = null) {
+      const steps = [];
+      stepGroups.forEach((group, stepIndex) => {
+        const stepName = group.querySelector('[name="stepName"]').value;
+        const stepColor = group.querySelector('[name="stepColor"]').value;
+        const stepResponsibleId = group.querySelector(
+          '[name="stepResponsible"]'
         ).value;
 
-        // Tenta preservar o status 'completed' da sub-etapa original se estiver editando
-        let isCompleted = false;
-        if (
-          originalService &&
-          originalService.steps[stepIndex] &&
-          originalService.steps[stepIndex].subtasks[subtaskIndex]
-        ) {
-          isCompleted =
-            originalService.steps[stepIndex].subtasks[subtaskIndex].completed;
-        }
+        const substepRows = group.querySelectorAll(".substep-input-row");
+        const subtasks = [];
+        substepRows.forEach((row, subtaskIndex) => {
+          const substepName = row.querySelector('[name="substepName"]').value;
+          const substepPending = row.querySelector(
+            '[name="substepPendingDescription"]'
+          ).value;
 
-        subtasks.push({
-          name: substepName,
-          completed: isCompleted,
-          pendingDescription: substepPending,
-        });
-      });
+          // Tenta preservar o status 'completed' da sub-etapa original se estiver editando
+          let isCompleted = false;
+          if (
+            originalService &&
+            originalService.steps[stepIndex] &&
+            originalService.steps[stepIndex].subtasks[subtaskIndex]
+          ) {
+            isCompleted =
+              originalService.steps[stepIndex].subtasks[subtaskIndex].completed;
+          }
 
-      if (stepName) {
-        steps.push({
-          name: stepName,
-          color: stepColor,
-          responsibleId: stepResponsibleId,
-          subtasks: subtasks,
-        });
-      }
-    });
-    return steps;
-  }
-
-  // --- MUDANÇA: Nova função para enviar notificações de atribuição de etapa ---
-  async function sendStepAssignmentNotifications(
-    serviceId,
-    serviceName,
-    oldSteps,
-    newSteps
-  ) {
-    for (let i = 0; i < newSteps.length; i++) {
-      const newStep = newSteps[i];
-      // Encontra a etapa correspondente antiga (se existir) pelo nome,
-      // já que a ordem pode mudar.
-      const oldStep = oldSteps.find((s) => s.name === newStep.name);
-
-      const newResponsibleId = newStep.responsibleId;
-      const oldResponsibleId = oldStep ? oldStep.responsibleId : null;
-
-      // Condições para enviar notificação:
-      // 1. A etapa tem um novo responsável.
-      // 2. O responsável é diferente do anterior (evita notificar a mesma pessoa).
-      // 3. O responsável não é o próprio usuário que está fazendo a alteração.
-      if (
-        newResponsibleId &&
-        newResponsibleId !== oldResponsibleId &&
-        newResponsibleId !== currentUser.uid
-      ) {
-        const responsibleUser = allUsersData.find(
-          (u) => u.id === newResponsibleId
-        );
-        if (!responsibleUser) continue; // Pula se o usuário não for encontrado
-
-        const notificationText = `Você foi atribuído à etapa "${newStep.name}" no serviço "${serviceName}".`;
-
-        // 1. Envia notificação no app
-        await addDoc(notificationsCollection, {
-          userId: newResponsibleId,
-          text: notificationText,
-          link: `#/service/${serviceId}`,
-          read: false,
-          createdAt: serverTimestamp(),
-        });
-
-        // 2. Envia notificação por e-mail
-        if (responsibleUser.email) {
-          await addDoc(collection(db, "mail"), {
-            to: responsibleUser.email,
-            message: {
-              subject: `[Painel de Gestão] Você foi atribuído a uma nova etapa`,
-              html: createStyledEmailHtml({
-                title: "Nova Atribuição de Etapa",
-                body: `<p>Olá, ${responsibleUser.displayName}!</p><p>${notificationText}</p>`,
-                button: {
-                  text: "Ver Serviço",
-                  url: `https://uniateneu-nead-gestao.web.app/#/service/${serviceId}`,
-                },
-              }),
-            },
+          subtasks.push({
+            name: substepName,
+            completed: isCompleted,
+            pendingDescription: substepPending,
           });
+        });
+
+        if (stepName) {
+          steps.push({
+            name: stepName,
+            color: stepColor,
+            responsibleId: stepResponsibleId,
+            subtasks: subtasks,
+          });
+        }
+      });
+      return steps;
+    }
+
+    // --- MUDANÇA: Nova função para enviar notificações de atribuição de etapa ---
+    async function sendStepAssignmentNotifications(
+      serviceId,
+      serviceName,
+      oldSteps,
+      newSteps
+    ) {
+      for (let i = 0; i < newSteps.length; i++) {
+        const newStep = newSteps[i];
+        // Encontra a etapa correspondente antiga (se existir) pelo nome,
+        // já que a ordem pode mudar.
+        const oldStep = oldSteps.find((s) => s.name === newStep.name);
+
+        const newResponsibleId = newStep.responsibleId;
+        const oldResponsibleId = oldStep ? oldStep.responsibleId : null;
+
+        // Condições para enviar notificação:
+        // 1. A etapa tem um novo responsável.
+        // 2. O responsável é diferente do anterior (evita notificar a mesma pessoa).
+        // 3. O responsável não é o próprio usuário que está fazendo a alteração.
+        if (
+          newResponsibleId &&
+          newResponsibleId !== oldResponsibleId &&
+          newResponsibleId !== currentUser.uid
+        ) {
+          const responsibleUser = allUsersData.find(
+            (u) => u.id === newResponsibleId
+          );
+          if (!responsibleUser) continue; // Pula se o usuário não for encontrado
+
+          const notificationText = `Você foi atribuído à etapa "${newStep.name}" no serviço "${serviceName}".`;
+
+          // 1. Envia notificação no app
+          await addDoc(notificationsCollection, {
+            userId: newResponsibleId,
+            text: notificationText,
+            link: `#/service/${serviceId}`,
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+
+          // 2. Envia notificação por e-mail
+          if (responsibleUser.email) {
+            await addDoc(collection(db, "mail"), {
+              to: responsibleUser.email,
+              message: {
+                subject: `[Painel de Gestão] Você foi atribuído a uma nova etapa`,
+                html: createStyledEmailHtml({
+                  title: "Nova Atribuição de Etapa",
+                  body: `<p>Olá, ${responsibleUser.displayName}!</p><p>${notificationText}</p>`,
+                  button: {
+                    text: "Ver Serviço",
+                    url: `https://uniateneu-nead-gestao.web.app/#/service/${serviceId}`,
+                  },
+                }),
+              },
+            });
+          }
         }
       }
     }
-  }
-  // --- MUDANÇA: Nova função para criar um template de e-mail HTML estilizado ---
-  function createStyledEmailHtml({ title, body, button }) {
-    const appName = "Painel de Gestão";
-    const footerText = `&copy; ${new Date().getFullYear()} ${appName}. Todos os direitos reservados.`;
+    // --- MUDANÇA: Nova função para criar um template de e-mail HTML estilizado ---
+    function createStyledEmailHtml({ title, body, button }) {
+      const appName = "Painel de Gestão";
+      const footerText = `&copy; ${new Date().getFullYear()} ${appName}. Todos os direitos reservados.`;
 
-    // Estilos inline para máxima compatibilidade com clientes de e-mail
-    return `
+      // Estilos inline para máxima compatibilidade com clientes de e-mail
+      return `
       <!DOCTYPE html>
       <html lang="pt-br">
       <head>
@@ -4054,672 +4069,623 @@ document.addEventListener("DOMContentLoaded", () => {
       </body>
       </html>
     `;
-  }
+    }
 
-  // MUDANÇA: Seletor de tipo de sub-etapa no modal
-  document.addEventListener("change", (e) => {
-    if (e.target.classList.contains("substep-type-selector")) {
-      const selector = e.target;
-      const stepGroup = selector.closest(".step-group-modal");
-      const substepsContainer = stepGroup.querySelector(
-        ".substeps-container-modal"
-      );
-      const addSubstepBtn = stepGroup.querySelector(".btn-add-substep");
+    // MUDANÇA: Seletor de tipo de sub-etapa no modal
+    document.addEventListener("change", async (e) => {
+      if (e.target.classList.contains("substep-type-selector")) {
+        const selector = e.target;
+        const stepGroup = selector.closest(".step-group-modal");
+        const substepsContainer = stepGroup.querySelector(
+          ".substeps-container-modal"
+        );
+        const addSubstepBtn = stepGroup.querySelector(".btn-add-substep");
 
-      substepsContainer.innerHTML = ""; // Limpa as sub-etapas atuais
+        substepsContainer.innerHTML = ""; // Limpa as sub-etapas atuais
 
-      if (selector.value === "units") {
-        // Adiciona 4 unidades
-        for (let i = 1; i <= 4; i++) {
-          substepsContainer.appendChild(createSubstepInputRow(`Unidade 0${i}`));
+        if (selector.value === "units") {
+          // Adiciona 4 unidades
+          for (let i = 1; i <= 4; i++) {
+            substepsContainer.appendChild(
+              createSubstepInputRow(`Unidade 0${i}`)
+            );
+          }
+          addSubstepBtn.style.display = "none";
+        } else {
+          // 'text'
+          substepsContainer.appendChild(createSubstepInputRow());
+          addSubstepBtn.style.display = "inline-block";
         }
-        addSubstepBtn.style.display = "none";
+      }
+
+      // Checkbox de uma sub-tarefa na página de detalhes
+      if (e.target.matches('#service-detail-view input[type="checkbox"]')) {
+        const checkbox = e.target;
+        const stepIndex = parseInt(checkbox.dataset.stepIndex, 10);
+        const subtaskIndex = parseInt(checkbox.dataset.subtaskIndex, 10);
+        const taskId = window.location.hash.substring("#/service/".length);
+
+        const service = services.find((s) => s.id === taskId); // CORREÇÃO: A variável já estava correta, mas o problema estava em outro lugar.
+        if (service && !isNaN(stepIndex) && !isNaN(subtaskIndex)) {
+          // Atualiza o estado localmente
+          service.steps[stepIndex].subtasks[subtaskIndex].completed =
+            checkbox.checked;
+
+          // MUDANÇA: Verifica se o serviço foi concluído para adicionar a data
+          const progress = calculateOverallProgress(service);
+          const updateData = { steps: service.steps };
+
+          // Se o serviço atingiu 100% e ainda não tem uma data de conclusão, adiciona-a.
+          if (progress.percentage === 100 && !service.completedAt) {
+            updateData.completedAt = serverTimestamp();
+          } else if (progress.percentage < 100 && service.completedAt) {
+            // Se for reaberto, remove a data de conclusão
+            updateData.completedAt = null;
+          }
+
+          // Salva a alteração no Firestore
+          const serviceRef = doc(db, "services", taskId);
+          await updateDoc(serviceRef, updateData);
+        }
+      }
+
+      // MUDANÇA: Upload de nova foto de perfil
+      if (e.target.id === "profile-picture-input") {
+        const file = e.target.files[0];
+        if (!file || !currentUser) return;
+
+        const preview = document.getElementById("profile-picture-preview");
+        const originalSrc = preview.src;
+        preview.src = URL.createObjectURL(file); // Mostra preview local
+        showLoading();
+
+        try {
+          const storageRef = ref(
+            storage,
+            `users/${currentUser.uid}/profile.jpg`
+          );
+          await uploadBytes(storageRef, file);
+          const newPhotoURL = await getDownloadURL(storageRef);
+
+          // Atualiza no Auth e no Firestore
+          await updateProfile(currentUser, { photoURL: newPhotoURL });
+          await updateUserInFirestore(currentUser);
+
+          // Atualiza a UI
+          userPhotoEl.src = newPhotoURL;
+          preview.src = newPhotoURL;
+          alert("Foto de perfil atualizada!");
+        } catch (error) {
+          console.error("Erro ao fazer upload da foto:", error);
+          alert("Falha ao atualizar a foto de perfil.");
+          preview.src = originalSrc; // Reverte em caso de erro
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // MUDANÇA: Upload de arquivo na página de detalhes
+      if (e.target.id === "file-upload-input") {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // CORREÇÃO: Captura o ID do serviço a partir do hash da URL corretamente.
+        const taskId = window.location.hash.split("/")[2];
+        showLoading();
+        await uploadAndLinkFile(taskId, file);
+        hideLoading();
+      }
+
+      // MUDANÇA: Checkbox de uma ETAPA na lista principal de serviços
+      if (e.target.matches('#service-container input[type="checkbox"]')) {
+        e.preventDefault(); // Impede a mudança visual imediata
+        const checkbox = e.target;
+        const serviceId = checkbox.closest(".service-card").dataset.id;
+        const stepIndex = parseInt(checkbox.dataset.stepIndex, 10);
+
+        const service = services.find((s) => s.id === serviceId);
+        showLoading();
+        if (service && !isNaN(stepIndex)) {
+          // Marca/desmarca TODAS as sub-tarefas daquela etapa
+          const allCompleted = checkbox.checked;
+          service.steps[stepIndex].subtasks.forEach((st) => {
+            st.completed = allCompleted;
+          });
+
+          // Salva a alteração no Firestore
+          const serviceRef = doc(db, "services", serviceId);
+          await updateDoc(serviceRef, {
+            steps: service.steps,
+          });
+          hideLoading();
+        }
+      }
+
+      // MUDANÇA: Lógica para alterar o cargo de um usuário (movido para o evento 'change')
+      if (e.target.classList.contains("user-role-selector")) {
+        const select = e.target;
+        const newRole = select.value;
+        const userId = select.closest(".user-list-item").dataset.userId;
+
+        if (!userId || userId === currentUser.uid) return;
+
+        showLoading();
+        try {
+          const userRef = doc(db, "users", userId);
+          await updateDoc(userRef, { role: newRole });
+          alert("Cargo do usuário atualizado com sucesso!");
+          // Atualiza o estado local para consistência imediata da UI
+          const userToUpdate = allUsersData.find((u) => u.id === userId);
+          if (userToUpdate) userToUpdate.role = newRole;
+        } catch (error) {
+          console.error("Erro ao atualizar cargo:", error);
+          alert("Falha ao atualizar o cargo do usuário.");
+          // Reverte a mudança na UI em caso de erro
+          const userToUpdate = allUsersData.find((u) => u.id === userId);
+          if (userToUpdate) select.value = userToUpdate.role;
+        } finally {
+          hideLoading();
+        }
+      }
+    });
+    document.addEventListener("submit", async (e) => {
+      // Este listener pode ser combinado com o de cima
+      if (e.target.id === "comment-form") {
+        e.preventDefault();
+        const input = e.target.querySelector("#comment-input");
+        const text = input.value.trim();
+        if (!text) return;
+
+        const taskId = window.location.hash.substring("#/service/".length);
+        const commentData = {
+          text: text,
+          authorId: currentUser.uid,
+          authorName: currentUser.displayName || currentUser.email,
+          authorPhotoURL: currentUser.photoURL,
+          createdAt: serverTimestamp(),
+        };
+
+        showLoading();
+        try {
+          const commentsColRef = collection(db, "services", taskId, "comments");
+          await addDoc(commentsColRef, commentData);
+          input.value = ""; // Limpa o campo
+        } catch (error) {
+          console.error("Erro ao adicionar comentário:", error);
+          alert("Falha ao enviar o comentário.");
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // MUDANÇA: Formulário para gerar vídeo
+      const videoForm = e.target.closest(".video-generation-form");
+      if (videoForm) {
+        e.preventDefault();
+        const serviceId = videoForm.closest(".feature-service-item").dataset
+          .serviceId;
+        const text = videoForm.querySelector("textarea").value;
+        const avatarId = videoForm.querySelector('input[type="text"]').value;
+
+        if (text && avatarId) {
+          handleVideoGeneration({
+            serviceId,
+            text,
+            avatarId,
+          });
+        }
+      }
+
+      // Formulário de Adicionar Link de Arquivo
+      if (e.target.id === "add-file-form") {
+        e.preventDefault();
+        const nameInput = e.target.querySelector("#file-name-input");
+        const urlInput = e.target.querySelector("#file-url-input");
+        const fileName = nameInput.value.trim();
+        const url = urlInput.value.trim();
+        if (!url || !fileName) return;
+
+        const taskId = window.location.hash.substring("#/service/".length);
+
+        const fileData = { name: fileName, url: url, isLocal: false };
+        showLoading();
+        await addFileToService(taskId, fileData);
+        hideLoading();
+        nameInput.value = "";
+        urlInput.value = "";
+      }
+
+      // Formulário de Perfil
+      if (e.target.id === "profile-form") {
+        e.preventDefault();
+        const newName = document.getElementById("profile-name").value;
+
+        // MUDANÇA: Validação do tamanho do nome
+        if (newName.length > 30) {
+          alert("O nome de exibição não pode ter mais de 30 caracteres.");
+          return;
+        }
+
+        const successMessage = document.getElementById("profile-success");
+
+        showLoading();
+        try {
+          await updateProfile(currentUser, { displayName: newName });
+          await updateUserInFirestore(currentUser); // Salva no Firestore
+          userNameEl.textContent = newName; // Atualiza o header
+          successMessage.classList.remove("hidden");
+          setTimeout(() => successMessage.classList.add("hidden"), 3000);
+        } catch (error) {
+          console.error("Erro ao atualizar perfil:", error);
+          alert("Falha ao salvar as alterações.");
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // MUDANÇA: Formulário para delegar solicitação (movido do evento 'click')
+      if (e.target.id === "delegate-request-form") {
+        e.preventDefault();
+        const form = e.target;
+        const requestId = form.querySelector('[name="requestId"]').value;
+        const delegateUserId = form.querySelector(
+          '[name="delegateUserId"]'
+        ).value;
+        const delegateUserName = teamMemberMap.get(delegateUserId);
+
+        // CORREÇÃO: Busca a solicitação no banco de dados para garantir que os dados (como o título) estejam corretos.
+        if (!requestId || !delegateUserId) return;
+
+        showLoading();
+        try {
+          const requestRef = doc(db, "requests", requestId);
+          const requestSnap = await getDoc(requestRef);
+          if (!requestSnap.exists())
+            throw new Error("Solicitação não encontrada.");
+
+          const requestData = requestSnap.data();
+
+          // Atualiza o usuário mencionado, que efetivamente "delega" a tarefa
+          await updateDoc(requestRef, {
+            mentionedUserId: delegateUserId,
+            mentionedUserName: delegateUserName,
+          });
+
+          // Envia uma notificação para o novo usuário
+          await addDoc(notificationsCollection, {
+            userId: delegateUserId,
+            text: `A solicitação "${requestData.title}" foi encaminhada para você por ${currentUser.displayName}.`,
+            link: "#/requests",
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+
+          alert(
+            `Solicitação encaminhada para ${delegateUserName} com sucesso!`
+          );
+          document.getElementById("delegate-request-modal").style.display =
+            "none";
+        } catch (error) {
+          console.error("Erro ao delegar solicitação:", error);
+          alert("Falha ao delegar a solicitação.");
+        } finally {
+          hideLoading();
+        }
+      }
+    });
+
+    // MUDANÇA: Lógica para "Entrar com outra conta"
+    switchAccountLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      signOut(auth); // Desloga o usuário atual para mostrar a tela de login padrão
+    });
+
+    // --- LÓGICA PRINCIPAL DE AUTENTICAÇÃO E EVENTOS ---
+
+    onAuthStateChanged(auth, async (user) => {
+      // Esta função é chamada sempre que o estado de login do usuário muda.
+      // CORREÇÃO: Adiciona a verificação de e-mail diretamente no listener principal.
+      if (user && !user.emailVerified) {
+        // 1. Usuário existe mas não verificou o e-mail
+        // Se o usuário existe mas o e-mail não foi verificado, mostra a tela de verificação.
+        // Isso acontece logo após o registro.
+        updateUIForAuthState(false); // Mostra a tela de login
+        hideAllAuthBoxes();
+        showVerificationScreen(user.email);
+      } else if (user && user.emailVerified) {
+        // 2. Usuário logado e verificado
+        // CORREÇÃO: Se o usuário está logado e verificado, mostra a tela "Continuar como".
+        await updateUserInFirestore(user);
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        // Combina os dados do Auth com os dados do Firestore (como o 'role')
+        currentUser = {
+          ...user,
+          ...(userDocSnap.exists() ? userDocSnap.data() : {}),
+        };
+        showContinueAsScreen(currentUser);
       } else {
-        // 'text'
-        substepsContainer.appendChild(createSubstepInputRow());
-        addSubstepBtn.style.display = "inline-block";
-      }
-    }
-  });
-  // Gerenciador de 'change' para checkboxes e upload de arquivos
-  document.addEventListener("change", async (e) => {
-    // Checkbox de uma sub-tarefa na página de detalhes
-    if (e.target.matches('#task-detail-view input[type="checkbox"]')) {
-      const checkbox = e.target;
-      const stepIndex = parseInt(checkbox.dataset.stepIndex, 10);
-      const subtaskIndex = parseInt(checkbox.dataset.subtaskIndex, 10);
-      const taskId = window.location.hash.substring("#/service/".length);
+        // 3. Nenhum usuário logado
+        // --- O USUÁRIO ESTÁ DESLOGADO OU ACABOU DE DESLOGAR ---
+        currentUser = null;
 
-      const service = services.find((s) => s.id === taskId); // CORREÇÃO: A variável já estava correta, mas o problema estava em outro lugar.
-      if (service && !isNaN(stepIndex) && !isNaN(subtaskIndex)) {
-        // Atualiza o estado localmente
-        service.steps[stepIndex].subtasks[subtaskIndex].completed =
-          checkbox.checked;
-
-        // MUDANÇA: Verifica se o serviço foi concluído para adicionar a data
-        const progress = calculateOverallProgress(service);
-        const updateData = { steps: service.steps };
-
-        // Se o serviço atingiu 100% e ainda não tem uma data de conclusão, adiciona-a.
-        if (progress.percentage === 100 && !service.completedAt) {
-          updateData.completedAt = serverTimestamp();
-        } else if (progress.percentage < 100 && service.completedAt) {
-          // Se for reaberto, remove a data de conclusão
-          updateData.completedAt = null;
+        // Se houver um listener de serviços ativo, remove-o para evitar erros
+        if (unsubscribeFromServices) {
+          unsubscribeFromServices();
+          window.removeEventListener("hashchange", handleRouteChange); // MUDANÇA: Remove o listener
+          unsubscribeFromServices = null;
+        }
+        // MUDANÇA: Desliga o listener de solicitações também
+        if (unsubscribeFromRequests) {
+          unsubscribeFromRequests();
+          unsubscribeFromRequests = null;
+        }
+        // MUDANÇA: Desliga o listener de comentários também
+        if (unsubscribeFromComments) {
+          unsubscribeFromComments();
+          unsubscribeFromComments = null;
+        }
+        // MUDANÇA: Desliga o listener de notificações
+        if (unsubscribeFromNotifications) {
+          unsubscribeFromNotifications();
+          unsubscribeFromNotifications = null;
         }
 
-        // Salva a alteração no Firestore
-        const serviceRef = doc(db, "services", taskId);
-        await updateDoc(serviceRef, updateData);
+        // Limpa os dados locais da aplicação
+        services = [];
+        teamMembers = [];
+        teamMemberMap.clear();
+
+        // CORREÇÃO: Centraliza a lógica de UI em uma função
+        updateUIForAuthState(false);
+        hideAllAuthBoxes();
+        loginBox.classList.remove("hidden");
       }
-    }
+    });
 
-    // MUDANÇA: Upload de nova foto de perfil
-    if (e.target.id === "profile-picture-input") {
-      const file = e.target.files[0];
-      if (!file || !currentUser) return;
+    // MUDANÇA: Nova função para inicializar a UI após o login
+    async function initializeAppUI(user) {
+      // MUDANÇA: Força a barra lateral a começar recolhida para a experiência inicial.
+      document.body.classList.add("sidebar-collapsed");
+      sidebarToggleBtn.setAttribute("title", "Expandir menu");
+      sidebarToggleBtn.querySelector("svg").style.transform = "rotate(180deg)";
+      localStorage.setItem("sidebarState", "collapsed"); // Atualiza o estado salvo
 
-      const preview = document.getElementById("profile-picture-preview");
-      const originalSrc = preview.src;
-      preview.src = URL.createObjectURL(file); // Mostra preview local
-      showLoading();
+      // MUDANÇA: Atualiza a UI para o estado "logado"
+      updateUIForAuthState(true);
+      sidebar.classList.remove("hidden"); // CORREÇÃO: Garante que a sidebar seja exibida.
 
-      try {
-        const storageRef = ref(storage, `users/${currentUser.uid}/profile.jpg`);
-        await uploadBytes(storageRef, file);
-        const newPhotoURL = await getDownloadURL(storageRef);
+      userNameEl.textContent = user.displayName || user.email;
+      userPhotoEl.src = user.photoURL || "./assets/default-avatar.png";
+      userProfile.classList.remove("hidden"); // CORREÇÃO: Exibe a seção do perfil do usuário.
 
-        // Atualiza no Auth e no Firestore
-        await updateProfile(currentUser, { photoURL: newPhotoURL });
-        await updateUserInFirestore(currentUser);
+      // Carrega dados essenciais
+      await loadTeamMembers();
+      await loadPredefinedCategories();
+      // Começa a ouvir por atualizações nos serviços do usuário em tempo real
+      listenForServices(user);
 
-        // Atualiza a UI
-        userPhotoEl.src = newPhotoURL;
-        preview.src = newPhotoURL;
-        alert("Foto de perfil atualizada!");
-      } catch (error) {
-        console.error("Erro ao fazer upload da foto:", error);
-        alert("Falha ao atualizar a foto de perfil.");
-        preview.src = originalSrc; // Reverte em caso de erro
-      } finally {
-        hideLoading();
-      }
-    }
+      // MUDANÇA: Renderiza a sidebar
+      renderSidebar();
 
-    // MUDANÇA: Upload de arquivo na página de detalhes
-    if (e.target.id === "file-upload-input") {
-      const file = e.target.files[0];
-      if (!file) return;
+      // Começa a ouvir as solicitações para atualizar o selo do dashboard
+      listenForRequests();
 
-      // CORREÇÃO: Captura o ID do serviço a partir do hash da URL corretamente.
-      const taskId = window.location.hash.split("/")[2];
-      showLoading();
-      await uploadAndLinkFile(taskId, file);
+      // Começa a ouvir por notificações
+      listenForNotifications(user.uid);
+
+      // Verifica a URL para mostrar a view correta
+      handleRouteChange();
+      window.addEventListener("hashchange", handleRouteChange);
       hideLoading();
     }
 
-    // MUDANÇA: Checkbox de uma ETAPA na lista principal de serviços
-    if (e.target.matches('#service-container input[type="checkbox"]')) {
-      e.preventDefault(); // Impede a mudança visual imediata
-      const checkbox = e.target;
-      const serviceId = checkbox.closest(".service-card").dataset.id;
-      const stepIndex = parseInt(checkbox.dataset.stepIndex, 10);
-
-      const service = services.find((s) => s.id === serviceId);
-      showLoading();
-      if (service && !isNaN(stepIndex)) {
-        // Marca/desmarca TODAS as sub-tarefas daquela etapa
-        const allCompleted = checkbox.checked;
-        service.steps[stepIndex].subtasks.forEach((st) => {
-          st.completed = allCompleted;
-        });
-
-        // Salva a alteração no Firestore
-        const serviceRef = doc(db, "services", serviceId);
-        await updateDoc(serviceRef, {
-          steps: service.steps,
-        });
-        hideLoading();
-      }
-    }
-
-    // MUDANÇA: Lógica para alterar o cargo de um usuário (movido para o evento 'change')
-    if (e.target.classList.contains("user-role-selector")) {
-      const select = e.target;
-      const newRole = select.value;
-      const userId = select.closest(".user-list-item").dataset.userId;
-
-      if (!userId || userId === currentUser.uid) return;
+    emailLoginForm.addEventListener("submit", async (e) => {
+      // Movido para initializeEventListeners
+      e.preventDefault();
+      const email = emailLoginForm["login-email"].value;
+      const password = emailLoginForm["login-password"].value;
 
       showLoading();
       try {
-        const userRef = doc(db, "users", userId);
-        await updateDoc(userRef, { role: newRole });
-        alert("Cargo do usuário atualizado com sucesso!");
-        // Atualiza o estado local para consistência imediata da UI
-        const userToUpdate = allUsersData.find((u) => u.id === userId);
-        if (userToUpdate) userToUpdate.role = newRole;
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        // MUDANÇA: Verifica se o e-mail foi verificado antes de prosseguir
+        // CORREÇÃO: Se o e-mail não for verificado, o próprio onAuthStateChanged vai lidar com isso.
+        // Apenas deslogamos o usuário para forçar a verificação.
+        if (userCredential.user && !userCredential.user.emailVerified) {
+          loginErrorEl.innerHTML = `Seu e-mail ainda não foi verificado. Por favor, verifique sua caixa de entrada. <a href="#" id="resend-verification-link-login">Reenviar e-mail</a>.`;
+          loginErrorEl.classList.remove("hidden");
+          // Adiciona listener para o link de reenvio
+          document
+            .getElementById("resend-verification-link-login")
+            .addEventListener("click", async (e) => {
+              e.preventDefault();
+              await sendEmailVerification(userCredential.user);
+              alert("E-mail de verificação reenviado!");
+            });
+          await signOut(auth); // Desloga o usuário para forçar a verificação
+        }
+        // Se o login for bem-sucedido e o e-mail verificado, o onAuthStateChanged cuidará do resto.
       } catch (error) {
-        console.error("Erro ao atualizar cargo:", error);
-        alert("Falha ao atualizar o cargo do usuário.");
-        // Reverte a mudança na UI em caso de erro
-        const userToUpdate = allUsersData.find((u) => u.id === userId);
-        if (userToUpdate) select.value = userToUpdate.role;
+        console.error("Erro no login:", error);
+        loginErrorEl.textContent = "E-mail ou senha inválidos.";
+        loginErrorEl.classList.remove("hidden");
       } finally {
         hideLoading();
       }
-    }
-  });
+    });
 
-  // MUDANÇA: Gerenciador de 'submit' para formulários dinâmicos
-  document.addEventListener("submit", async (e) => {
-    // Formulário de Comentários
-    if (e.target.id === "comment-form") {
-      e.preventDefault();
-      const input = e.target.querySelector("#comment-input");
-      const text = input.value.trim();
-      if (!text) return;
-
-      const taskId = window.location.hash.substring("#/service/".length);
-      const commentData = {
-        text: text,
-        authorId: currentUser.uid,
-        authorName: currentUser.displayName || currentUser.email,
-        authorPhotoURL: currentUser.photoURL,
-        createdAt: serverTimestamp(),
-      };
-
-      showLoading();
+    googleLoginBtn.addEventListener("click", async () => {
+      // Movido para initializeEventListeners
+      const provider = new GoogleAuthProvider();
       try {
-        const commentsColRef = collection(db, "services", taskId, "comments");
-        await addDoc(commentsColRef, commentData);
-        input.value = ""; // Limpa o campo
+        showLoading();
+        await signInWithPopup(auth, provider);
+        // O onAuthStateChanged cuidará de atualizar a UI.
+        // O hideLoading() será chamado dentro do onAuthStateChanged após a UI ser montada.
       } catch (error) {
-        console.error("Erro ao adicionar comentário:", error);
-        alert("Falha ao enviar o comentário.");
-      } finally {
-        hideLoading();
+        hideLoading(); // Esconde o carregamento em caso de erro
+        console.error("Erro no login com Google:", error);
+        // MUDANÇA: Mensagem de erro mais específica
+        if (error.code === "auth/operation-not-allowed") {
+          loginErrorEl.textContent =
+            "Login com Google não está habilitado no Firebase. Verifique as configurações.";
+        } else if (error.code === "auth/unauthorized-domain") {
+          loginErrorEl.textContent =
+            "Este domínio não está autorizado para login. Use um servidor local (Live Server).";
+        } else if (error.code === "auth/popup-closed-by-user") {
+          loginErrorEl.textContent =
+            "A janela de login foi fechada antes da conclusão.";
+        } else {
+          loginErrorEl.textContent = "Falha ao autenticar com o Google.";
+        }
+        loginErrorEl.classList.remove("hidden");
       }
-    }
+    });
 
-    // MUDANÇA: Formulário para gerar vídeo
-    const videoForm = e.target.closest(".video-generation-form");
-    if (videoForm) {
+    registerForm.addEventListener("submit", async (e) => {
+      // Movido para initializeEventListeners
       e.preventDefault();
-      const serviceId = videoForm.closest(".feature-service-item").dataset
-        .serviceId;
-      const text = videoForm.querySelector("textarea").value;
-      const avatarId = videoForm.querySelector('input[type="text"]').value;
-
-      if (text && avatarId) {
-        handleVideoGeneration({
-          serviceId,
-          text,
-          avatarId,
-        });
-      }
-    }
-
-    // Formulário de Adicionar Link de Arquivo
-    if (e.target.id === "add-file-form") {
-      e.preventDefault();
-      const nameInput = e.target.querySelector("#file-name-input");
-      const urlInput = e.target.querySelector("#file-url-input");
-      const fileName = nameInput.value.trim();
-      const url = urlInput.value.trim();
-      if (!url || !fileName) return;
-
-      const taskId = window.location.hash.substring("#/service/".length);
-
-      const fileData = { name: fileName, url: url, isLocal: false };
-      showLoading();
-      await addFileToService(taskId, fileData);
-      hideLoading();
-      nameInput.value = "";
-      urlInput.value = "";
-    }
-
-    // Formulário de Perfil
-    if (e.target.id === "profile-form") {
-      e.preventDefault();
-      const newName = document.getElementById("profile-name").value;
+      const name = registerForm["register-name"].value;
+      const email = registerForm["register-email"].value;
+      const password = registerForm["register-password"].value;
+      registerErrorEl.classList.add("hidden");
 
       // MUDANÇA: Validação do tamanho do nome
-      if (newName.length > 30) {
-        alert("O nome de exibição não pode ter mais de 30 caracteres.");
+      if (name.length > 30) {
+        registerErrorEl.textContent =
+          "O nome de usuário não pode ter mais de 30 caracteres.";
+        registerErrorEl.classList.remove("hidden");
+        hideLoading();
         return;
       }
 
-      const successMessage = document.getElementById("profile-success");
-
       showLoading();
       try {
-        await updateProfile(currentUser, { displayName: newName });
-        await updateUserInFirestore(currentUser); // Salva no Firestore
-        userNameEl.textContent = newName; // Atualiza o header
-        successMessage.classList.remove("hidden");
-        setTimeout(() => successMessage.classList.add("hidden"), 3000);
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        // Atualiza o perfil do novo usuário com o nome fornecido
+        await updateProfile(userCredential.user, { displayName: name });
+        // MUDANÇA: Envia o e-mail de verificação
+        await sendEmailVerification(userCredential.user); // O onAuthStateChanged vai detectar o usuário não verificado e mostrar a tela correta.
+        // Não é mais necessário chamar showVerificationScreen manualmente.
       } catch (error) {
-        console.error("Erro ao atualizar perfil:", error);
-        alert("Falha ao salvar as alterações.");
+        console.error("Erro no registro:", error);
+        registerErrorEl.textContent =
+          "Erro ao criar conta. Verifique os dados ou tente outro e-mail.";
+        registerErrorEl.classList.remove("hidden");
       } finally {
         hideLoading();
       }
-    }
+    });
 
-    // MUDANÇA: Formulário para delegar solicitação (movido do evento 'click')
-    if (e.target.id === "delegate-request-form") {
-      e.preventDefault();
-      const form = e.target;
-      const requestId = form.querySelector('[name="requestId"]').value;
-      const delegateUserId = form.querySelector(
-        '[name="delegateUserId"]'
-      ).value;
-      const delegateUserName = teamMemberMap.get(delegateUserId);
-
-      // CORREÇÃO: Busca a solicitação no banco de dados para garantir que os dados (como o título) estejam corretos.
-      if (!requestId || !delegateUserId) return;
-
-      showLoading();
-      try {
-        const requestRef = doc(db, "requests", requestId);
-        const requestSnap = await getDoc(requestRef);
-        if (!requestSnap.exists())
-          throw new Error("Solicitação não encontrada.");
-
-        const requestData = requestSnap.data();
-
-        // Atualiza o usuário mencionado, que efetivamente "delega" a tarefa
-        await updateDoc(requestRef, {
-          mentionedUserId: delegateUserId,
-          mentionedUserName: delegateUserName,
-        });
-
-        // Envia uma notificação para o novo usuário
-        await addDoc(notificationsCollection, {
-          userId: delegateUserId,
-          text: `A solicitação "${requestData.title}" foi encaminhada para você por ${currentUser.displayName}.`,
-          link: "#/requests",
-          read: false,
-          createdAt: serverTimestamp(),
-        });
-
-        alert(`Solicitação encaminhada para ${delegateUserName} com sucesso!`);
-        document.getElementById("delegate-request-modal").style.display =
-          "none";
-      } catch (error) {
-        console.error("Erro ao delegar solicitação:", error);
-        alert("Falha ao delegar a solicitação.");
-      } finally {
-        hideLoading();
-      }
-    }
-  });
-
-  // MUDANÇA: Lógica para "Entrar com outra conta"
-  switchAccountLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    signOut(auth); // Desloga o usuário atual para mostrar a tela de login padrão
-  });
-
-  // --- LÓGICA PRINCIPAL DE AUTENTICAÇÃO E EVENTOS ---
-
-  onAuthStateChanged(auth, async (user) => {
-    // Esta função é chamada sempre que o estado de login do usuário muda.
-    // CORREÇÃO: Adiciona a verificação de e-mail diretamente no listener principal.
-    if (user && !user.emailVerified) {
-      // Se o usuário existe mas o e-mail não foi verificado, mostra a tela de verificação.
-      // Isso acontece logo após o registro.
-      // MUDANÇA: Garante que todas as outras caixas de autenticação estejam ocultas.
+    toggleToRegister.addEventListener("click", () => {
+      // Movido para initializeEventListeners
+      loginErrorEl.classList.add("hidden");
       loginBox.classList.add("hidden");
-      registerBox.classList.add("hidden");
-      continueAsBox.classList.add("hidden");
-      showVerificationScreen(user.email);
-    } else if (user && user.emailVerified) {
-      // MUDANÇA: Se o usuário está logado e verificado, mostra a tela "Continuar como"
-      // em vez de logar diretamente.
-      await updateUserInFirestore(user);
-      const userDocRef = doc(db, "users", user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      if (userDocSnap.exists()) {
-        currentUser = { ...user, ...userDocSnap.data() };
-      } else {
-        currentUser = user; // Fallback
-      }
-      showContinueAsScreen(currentUser);
-      // MUDANÇA: Adiciona listener para o botão "Continuar"
-      document.getElementById("continue-as-btn").onclick = () =>
-        initializeAppUI(currentUser);
-    } else {
-      // --- O USUÁRIO ESTÁ DESLOGADO ---
-      currentUser = null;
-      console.log("Nenhum usuário logado.");
+      registerBox.classList.remove("hidden");
+    });
 
-      // Se houver um listener de serviços ativo, remove-o para evitar erros
-      if (unsubscribeFromServices) {
-        unsubscribeFromServices();
-        window.removeEventListener("hashchange", handleRouteChange); // MUDANÇA: Remove o listener
-        unsubscribeFromServices = null;
+    resendVerificationBtn.addEventListener("click", async () => {
+      // Movido para initializeEventListeners
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+        alert("E-mail de verificação reenviado!");
       }
-      // MUDANÇA: Desliga o listener de solicitações também
-      if (unsubscribeFromRequests) {
-        unsubscribeFromRequests();
-        unsubscribeFromRequests = null;
-      }
-      // MUDANÇA: Desliga o listener de comentários também
-      if (unsubscribeFromComments) {
-        unsubscribeFromComments();
-        unsubscribeFromComments = null;
-      }
-      // MUDANÇA: Desliga o listener de notificações
-      if (unsubscribeFromNotifications) {
-        unsubscribeFromNotifications();
-        unsubscribeFromNotifications = null;
-      }
-
-      // Limpa os dados locais da aplicação
-      services = [];
-      teamMembers = [];
-      teamMemberMap.clear();
-
-      // Atualiza a UI para o estado "deslogado", mostrando a tela de login
-      loginContainer.classList.remove("hidden");
-      mainLayoutContainer.classList.add("hidden"); // MUDANÇA: Esconde o layout principal
-      appHeader.classList.remove("hidden"); // MUDANÇA: Mantém o header visível
-      sidebarToggleBtn.classList.add("hidden"); // MUDANÇA: Esconde o botão da sidebar
-      sidebar.classList.add("hidden"); // MUDANÇA: Esconde a sidebar
-      document.querySelector("footer").style.display = "block"; // MUDANÇA: Mantém o footer visível
-
-      // MUDANÇA: Esconde os controles específicos do usuário no header
-      document.getElementById("home-btn").style.display = "none";
-      document.getElementById("notification-container").style.display = "none";
-      document.getElementById("user-profile").style.display = "none";
-      document.getElementById("mobile-menu-toggle").style.display = "none";
-      document.querySelector(".app-content").style.display = "none"; // CORREÇÃO: Esconde o main content
-
-      // CORREÇÃO: Garante que a caixa de login principal seja exibida.
+    });
+    backToLoginLink.addEventListener("click", (e) => {
+      // Movido para initializeEventListeners
+      e.preventDefault();
+      verifyEmailBox.classList.add("hidden");
       loginBox.classList.remove("hidden");
+      signOut(auth); // Garante que o usuário seja deslogado
+    });
+
+    mobileMenuToggle.addEventListener("click", () => {
+      // Movido para initializeEventListeners
+      headerMenuItems.classList.toggle("open");
+    });
+    toggleToLogin.addEventListener("click", () => {
+      // Movido para initializeEventListeners
       registerBox.classList.add("hidden");
-      continueAsBox.classList.add("hidden"); // Garante que a tela "Continuar como" esteja oculta
-      userProfile.classList.add("hidden");
-      serviceContainer.classList.add("hidden");
-      taskDetailView.classList.add("hidden");
-      profileView.classList.add("hidden");
-      dashboardView.classList.add("hidden");
-      requestsView.classList.add("hidden");
-      categoryManagementView.classList.add("hidden");
-      notificationContainer.classList.add("hidden");
+      loginBox.classList.remove("hidden");
+    });
 
-      // Garante que o layout volte ao normal
-      document.body.classList.remove("detail-view-active");
-    }
-  });
+    forgotPasswordLink.addEventListener("click", async (e) => {
+      // Movido para initializeEventListeners
+      e.preventDefault();
+      const email = emailLoginForm["login-email"].value;
+      loginErrorEl.classList.add("hidden");
 
-  // MUDANÇA: Nova função para inicializar a UI após o login confirmado
-  async function initializeAppUI(user) {
-    // --- O USUÁRIO ESTÁ LOGADO ---
-    console.log("Usuário logado:", user.uid);
+      if (!email) {
+        alert(
+          "Por favor, digite seu e-mail no campo correspondente antes de solicitar a redefinição de senha."
+        );
+        return;
+      }
 
-    // Carrega a lista de membros da equipe para usar na aplicação
-    await loadTeamMembers();
+      showLoading();
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert(
+          `Um e-mail para redefinição de senha foi enviado para ${email}. Verifique sua caixa de entrada e spam.`
+        );
+      } catch (error) {
+        console.error("Erro ao enviar e-mail de redefinição:", error);
+        loginErrorEl.textContent =
+          "Não foi possível enviar o e-mail. Verifique se o e-mail está correto e tente novamente.";
+        if (error.code === "auth/user-not-found") {
+          loginErrorEl.textContent =
+            "Nenhum usuário encontrado com este e-mail.";
+        }
+        loginErrorEl.classList.remove("hidden");
+      } finally {
+        hideLoading(); // Garante que o carregamento seja escondido, com sucesso ou erro.
+      }
+    });
 
-    // Carrega as categorias pré-definidas
-    await loadPredefinedCategories();
-
-    // MUDANÇA: Força a barra lateral a começar recolhida para a experiência inicial.
-    document.body.classList.add("sidebar-collapsed");
-    sidebarToggleBtn.setAttribute("title", "Expandir menu");
-    sidebarToggleBtn.querySelector("svg").style.transform = "rotate(180deg)";
-    localStorage.setItem("sidebarState", "collapsed"); // Atualiza o estado salvo
-
-    // MUDANÇA: Atualiza a UI para o estado "logado"
-    sidebarToggleBtn.classList.remove("hidden"); // MUDANÇA: Mostra o botão da sidebar
-    userNameEl.textContent = user.displayName || user.email;
-    userPhotoEl.src = user.photoURL || "./assets/default-avatar.png";
-    mainLayoutContainer.classList.remove("hidden"); // MUDANÇA: Mostra o layout principal
-
-    sidebar.classList.remove("hidden"); // MUDANÇA: Mostra a sidebar
-    loginContainer.classList.add("hidden");
-    appHeader.classList.remove("hidden");
-    // MUDANÇA: Mostra os controles do usuário ao logar
-    document.getElementById("home-btn").style.display = "inline-flex";
-    document.getElementById("notification-container").style.display = "block";
-    userProfile.style.display = "flex"; // CORREÇÃO: Garante que o perfil seja exibido
-    // O botão de menu mobile é controlado por CSS, então não precisa de 'display: block' aqui.
-
-    document.querySelector("footer").style.display = "block";
-    document.querySelector(".app-content").style.display = "block"; // CORREÇÃO: Mostra o main content
-
-    userProfile.classList.remove("hidden");
-    dashboardView.classList.remove("hidden");
-
-    // Começa a ouvir por atualizações nos serviços do usuário em tempo real
-    listenForServices(user);
-
-    // MUDANÇA: Renderiza a sidebar
-    renderSidebar();
-
-    // Começa a ouvir as solicitações para atualizar o selo do dashboard
-    listenForRequests();
-
-    // Começa a ouvir por notificações
-    listenForNotifications(user.uid);
-
-    // CORREÇÃO: Move o listener do botão de logout para dentro da inicialização da UI.
-    // Isso garante que o evento seja sempre atrelado ao botão quando a UI é montada.
-    const logoutBtn = document.getElementById("logout-btn");
-    logoutBtn.addEventListener("click", () => signOut(auth));
-
-    // Verifica a URL para mostrar a view correta
-    handleRouteChange();
-    window.addEventListener("hashchange", handleRouteChange);
+    logoutBtn.addEventListener("click", () => signOut(auth)); // Movido para initializeEventListeners
   }
-  // Evento de login com E-mail e Senha
-  // MUDANÇA: Nova função para exibir a tela "Continuar como"
-  function showContinueAsScreen(user) {
-    // Esconde todas as outras caixas de autenticação
-    loginBox.classList.add("hidden");
-    registerBox.classList.add("hidden");
-    verifyEmailBox.classList.add("hidden");
 
-    // Popula os dados do usuário
+  // --- Funções Auxiliares de UI ---
+  // CORREÇÃO: Nova função para centralizar o controle da UI com base no estado de autenticação
+  // MUDANÇA: Restaura a função para mostrar a tela de confirmação de perfil
+  function showContinueAsScreen(user) {
+    updateUIForAuthState(false); // Garante que a UI principal esteja oculta
+    hideAllAuthBoxes(); // Esconde outras caixas de login
+
+    // Popula os dados do usuário na tela de confirmação
     document.getElementById("continue-as-name").textContent =
       user.displayName || user.email;
     document.getElementById("continue-as-photo").src =
       user.photoURL || "./assets/default-avatar.png";
 
-    // Esconde a UI principal e mostra o container de login
-    appHeader.classList.add("hidden");
-    document.querySelector(".app-content").style.display = "none";
-    loginContainer.classList.remove("hidden");
-
     // Mostra a caixa "Continuar como"
     continueAsBox.classList.remove("hidden");
   }
-  emailLoginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = emailLoginForm["login-email"].value;
-    const password = emailLoginForm["login-password"].value;
-
-    showLoading();
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      // MUDANÇA: Verifica se o e-mail foi verificado antes de prosseguir
-      // CORREÇÃO: Se o e-mail não for verificado, o próprio onAuthStateChanged vai lidar com isso.
-      // Apenas deslogamos o usuário para forçar a verificação.
-      if (userCredential.user && !userCredential.user.emailVerified) {
-        loginErrorEl.innerHTML = `Seu e-mail ainda não foi verificado. Por favor, verifique sua caixa de entrada. <a href="#" id="resend-verification-link-login">Reenviar e-mail</a>.`;
-        loginErrorEl.classList.remove("hidden");
-        // Adiciona listener para o link de reenvio
-        document
-          .getElementById("resend-verification-link-login")
-          .addEventListener("click", async (e) => {
-            e.preventDefault();
-            await sendEmailVerification(userCredential.user);
-            alert("E-mail de verificação reenviado!");
-          });
-        await signOut(auth); // Desloga o usuário para forçar a verificação
-      }
-      // Se o login for bem-sucedido e o e-mail verificado, o onAuthStateChanged cuidará do resto.
-    } catch (error) {
-      console.error("Erro no login:", error);
-      loginErrorEl.textContent = "E-mail ou senha inválidos.";
-      loginErrorEl.classList.remove("hidden");
-    } finally {
-      hideLoading();
+  function updateUIForAuthState(isLoggedIn) {
+    if (isLoggedIn) {
+      loginContainer.classList.add("hidden");
+      mainLayoutContainer.classList.remove("hidden");
+      appHeader.classList.remove("hidden");
+      document.querySelector("footer").classList.remove("hidden");
+    } else {
+      loginContainer.classList.remove("hidden");
+      mainLayoutContainer.classList.add("hidden");
+      appHeader.classList.add("hidden");
+      document.querySelector("footer").classList.add("hidden");
     }
-  });
-
-  // Evento de login com Google
-  googleLoginBtn.addEventListener("click", async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      // showLoading(); // CORREÇÃO: Removido para evitar que a tela de carregamento persista.
-      await signInWithPopup(auth, provider);
-      // O onAuthStateChanged cuidará de atualizar a UI.
-      // O hideLoading() será chamado dentro do onAuthStateChanged após a UI ser montada.
-    } catch (error) {
-      hideLoading(); // Esconde o carregamento em caso de erro
-      console.error("Erro no login com Google:", error);
-      // MUDANÇA: Mensagem de erro mais específica
-      if (error.code === "auth/operation-not-allowed") {
-        loginErrorEl.textContent =
-          "Login com Google não está habilitado no Firebase. Verifique as configurações.";
-      } else if (error.code === "auth/unauthorized-domain") {
-        loginErrorEl.textContent =
-          "Este domínio não está autorizado para login. Use um servidor local (Live Server).";
-      } else if (error.code === "auth/popup-closed-by-user") {
-        loginErrorEl.textContent =
-          "A janela de login foi fechada antes da conclusão.";
-      } else {
-        loginErrorEl.textContent = "Falha ao autenticar com o Google.";
-      }
-      loginErrorEl.classList.remove("hidden");
-    }
-  });
-
-  // Evento de registro com E-mail e Senha
-  registerForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const name = registerForm["register-name"].value;
-    const email = registerForm["register-email"].value;
-    const password = registerForm["register-password"].value;
-    registerErrorEl.classList.add("hidden");
-
-    // MUDANÇA: Validação do tamanho do nome
-    if (name.length > 30) {
-      registerErrorEl.textContent =
-        "O nome de usuário não pode ter mais de 30 caracteres.";
-      registerErrorEl.classList.remove("hidden");
-      hideLoading();
-      return;
-    }
-
-    showLoading();
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      // Atualiza o perfil do novo usuário com o nome fornecido
-      await updateProfile(userCredential.user, { displayName: name });
-      // MUDANÇA: Envia o e-mail de verificação
-      await sendEmailVerification(userCredential.user); // O onAuthStateChanged vai detectar o usuário não verificado e mostrar a tela correta.
-      // Não é mais necessário chamar showVerificationScreen manualmente.
-    } catch (error) {
-      console.error("Erro no registro:", error);
-      registerErrorEl.textContent =
-        "Erro ao criar conta. Verifique os dados ou tente outro e-mail.";
-      registerErrorEl.classList.remove("hidden");
-    } finally {
-      hideLoading();
-    }
-  });
-
-  // Eventos para alternar entre as telas de login e registro
-  toggleToRegister.addEventListener("click", () => {
-    loginErrorEl.classList.add("hidden");
-    loginBox.classList.add("hidden");
-    registerBox.classList.remove("hidden");
-  });
-
-  // CORREÇÃO: Adiciona listener para o botão de reenviar e-mail na tela de verificação
-  resendVerificationBtn.addEventListener("click", async () => {
-    if (auth.currentUser) {
-      await sendEmailVerification(auth.currentUser);
-      alert("E-mail de verificação reenviado!");
-    }
-  });
-  // MUDANÇA: Evento para o botão de menu mobile
-  backToLoginLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    verifyEmailBox.classList.add("hidden");
-    loginBox.classList.remove("hidden");
-    signOut(auth); // Garante que o usuário seja deslogado
-  });
-
-  // MUDANÇA: Evento para o botão de menu mobile
-  mobileMenuToggle.addEventListener("click", () => {
-    headerMenuItems.classList.toggle("open");
-  });
-  toggleToLogin.addEventListener("click", () => {
-    registerBox.classList.add("hidden");
-    loginBox.classList.remove("hidden");
-  });
-
-  // Evento para o link "Esqueci minha senha"
-  forgotPasswordLink.addEventListener("click", async (e) => {
-    e.preventDefault();
-    const email = emailLoginForm["login-email"].value;
-    loginErrorEl.classList.add("hidden");
-
-    if (!email) {
-      alert(
-        "Por favor, digite seu e-mail no campo correspondente antes de solicitar a redefinição de senha."
-      );
-      return;
-    }
-
-    showLoading();
-    try {
-      await sendPasswordResetEmail(auth, email);
-      alert(
-        `Um e-mail para redefinição de senha foi enviado para ${email}. Verifique sua caixa de entrada e spam.`
-      );
-    } catch (error) {
-      console.error("Erro ao enviar e-mail de redefinição:", error);
-      loginErrorEl.textContent =
-        "Não foi possível enviar o e-mail. Verifique se o e-mail está correto e tente novamente.";
-      if (error.code === "auth/user-not-found") {
-        loginErrorEl.textContent = "Nenhum usuário encontrado com este e-mail.";
-      }
-      loginErrorEl.classList.remove("hidden");
-    } finally {
-      hideLoading(); // Garante que o carregamento seja escondido, com sucesso ou erro.
-    }
-  });
-  // --- MUDANÇA: LÓGICA DOS MODAIS ---
-
-  // MUDANÇA: Nova função para mostrar a tela de verificação de e-mail
+  }
   function showVerificationScreen(email) {
-    // CORREÇÃO: Garante que todos os containers de autenticação e a UI principal estejam ocultos.
-    loginBox.classList.add("hidden");
-    registerBox.classList.add("hidden");
-    continueAsBox.classList.add("hidden");
-    document.getElementById("app-header").classList.add("hidden");
-    document.querySelector("footer").style.display = "none";
-    document.querySelector(".app-content").style.display = "none";
-    document.body.classList.remove("detail-view-active");
-
-    // Agora, exibe apenas o container de login com a caixa de verificação.
     document.getElementById("verify-email-address").textContent = email;
     verifyEmailBox.classList.remove("hidden");
-    loginContainer.classList.remove("hidden"); // Mostra o container de autenticação
   }
 
   // MUDANÇA: Nova função para popular as sugestões de categoria
@@ -4734,6 +4700,13 @@ document.addEventListener("DOMContentLoaded", () => {
     select.innerHTML = `<option value="">Selecione uma categoria...</option>${optionsHtml}`;
   }
 
+  // CORREÇÃO: Função para esconder todas as caixas de autenticação
+  function hideAllAuthBoxes() {
+    loginBox.classList.add("hidden");
+    registerBox.classList.add("hidden");
+    verifyEmailBox.classList.add("hidden");
+    continueAsBox.classList.add("hidden");
+  }
   // MUDANÇA: Nova função para inicializar a ordenação dos cartões de serviço
   function initializeServiceCardSorting() {
     const containers = document.querySelectorAll(".service-card-grid");
@@ -5323,4 +5296,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Falha no upload do arquivo.");
     }
   }
+
+  // --- CORREÇÃO: Inicializa todos os listeners de eventos uma única vez ---
+  initializeEventListeners();
 });

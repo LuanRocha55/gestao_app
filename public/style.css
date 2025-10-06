@@ -831,7 +831,7 @@ btask-detail {
 }
 
 /* MUDANÇA: Adiciona um espaçamento para a barra de progresso na página de detalhes */
-#task-detail-view .progress-info {
+#service-detail-view .progress-info {
   margin-top: 20px;
 }
 
@@ -1282,7 +1282,7 @@ body.detail-view-active .header-content {
 }
 
 /* MUDANÇA: Aplica o mesmo layout para a view de detalhes e de perfil */
-#task-detail-view,
+#service-detail-view,
 #profile-view,
 #user-management-view,
 #category-management-view {
@@ -1373,6 +1373,17 @@ body.dark-theme body.sidebar-collapsed #sidebar-toggle-btn {
   margin-bottom: 5px;
   transition: background-color 0.2s ease, color 0.2s ease;
   position: relative;
+}
+
+/* MUDANÇA: Estilo para os títulos de categoria na sidebar */
+.sidebar-category-title {
+  padding: 15px 15px 5px 15px;
+  font-size: 0.75em;
+  font-weight: 700;
+  color: var(--text-color);
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 #sidebar-nav li a:hover {
@@ -1522,7 +1533,8 @@ body.sidebar-collapsed #dashboard-view #sidebar-promo-button-container {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  min-height: 100%; /* CORREÇÃO: Usa min-height para garantir que ocupe pelo menos a altura total */
+  overflow: hidden; /* CORREÇÃO: Impede que o conteúdo interno crie uma barra de rolagem */
 }
 
 .detail-header {
@@ -1569,6 +1581,15 @@ body.sidebar-collapsed #dashboard-view #sidebar-promo-button-container {
   box-shadow: 0 4px 12px var(--shadow-color); /* CORREÇÃO: Padroniza a sombra */
 }
 
+/* MUDANÇA: Estilo para os botões de redirecionamento na página de detalhes */
+.feature-redirect-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center; /* MUDANÇA: Centraliza os botões */
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--progress-bar-bg);
+}
 /* MUDANÇA: Estilos para o footer fixo do modal */
 .modal-footer {
   position: sticky;
@@ -1623,7 +1644,7 @@ body.sidebar-collapsed #dashboard-view #sidebar-promo-button-container {
 }
 
 /* MUDANÇA: Ajusta o padding da view de detalhes para acomodar o footer */
-#task-detail-view {
+#service-detail-view {
   padding-bottom: 80px; /* Altura aproximada do footer + padding */
 }
 
@@ -2217,7 +2238,7 @@ body.dark-theme .request-card[data-status="rejected"] {
 
   /* MUDANÇA: Reduz o padding das views de detalhe/gerenciamento no mobile */
   #service-container,
-  #task-detail-view,
+  #service-detail-view,
   #profile-view,
   #user-management-view,
   #category-management-view,
@@ -2862,7 +2883,15 @@ body.dark-theme .summary-item.has-overdue .summary-value {
   align-items: center;
   padding: 20px;
   cursor: pointer;
+  padding: 20px;  
   transition: background-color 0.2s;
+}
+
+.feature-service-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-align: right;
 }
 
 .feature-service-info:hover {

@@ -208,16 +208,98 @@
                 </div>
             </div>
 
-            <!-- As outras seções da aplicação continuam aqui -->
-            <section id="task-detail-view" class="hidden"> ... </section>
-            <section id="requests-view" class="hidden"> ... </section>
-            <section id="profile-view" class="hidden"> ... </section>
-            <section id="production-status-view" class="hidden"> ... </section>
-            <section id="statistics-view" class="hidden"> ... </section>
-            <section id="user-management-view" class="hidden"> ... </section>
-            <section id="category-management-view" class="hidden"> ... </section>
-            <section id="writing-view" class="hidden"> ... </section>
-            <section id="video-view" class="hidden"> ... </section>
+            <!-- CORREÇÃO: Restaura a estrutura completa da página de detalhes -->
+            <section id="service-detail-view" class="hidden">
+                <div class="detail-header">
+                    <h2 id="detail-service-name"></h2>
+                    <div class="detail-header-actions">
+                        <!-- Botões de ação (Editar, Voltar) serão inseridos aqui -->
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Informações Gerais</h3>
+                    <div id="detail-general-info-content">
+                        <!-- Conteúdo das informações gerais será inserido aqui -->
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Etapas e Sub-etapas</h3>
+                    <ul id="detailed-steps-list" class="steps-list-detailed">
+                        <!-- A lista de etapas será inserida aqui -->
+                    </ul>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Arquivos Anexados</h3>
+                    <ul id="file-list" class="file-list">
+                        <!-- A lista de arquivos será inserida aqui -->
+                    </ul>
+                    <div class="file-upload-actions">
+                        <form id="add-file-form" class="form-inline">
+                            <input type="text" id="file-name-input" placeholder="Nome do link" required>
+                            <input type="url" id="file-url-input" placeholder="https://..." required>
+                            <button type="submit" class="btn-primary">Adicionar Link</button>
+                        </form>
+                        <div class="upload-button-wrapper">
+                            <span class="upload-separator">ou</span>
+                            <label for="file-upload-input" class="btn-secondary">Carregar Arquivo</label>
+                            <input type="file" id="file-upload-input" class="hidden">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Comentários</h3>
+                    <ul id="comments-list" class="comments-list">
+                        <!-- Comentários serão inseridos aqui -->
+                    </ul>
+                    <form id="comment-form">
+                        <input type="text" id="comment-input" placeholder="Adicione um comentário..." required>
+                        <button type="submit" class="btn-primary">Enviar</button>
+                    </form>
+                </div>
+
+                <!-- Container para o footer fixo da edição inline -->
+                <div id="detail-sticky-footer-container"></div>
+            </section>
+            <section id="requests-view" class="hidden"></section>
+            <section id="profile-view" class="hidden"></section>
+            <section id="production-status-view" class="hidden"></section>
+            <section id="statistics-view" class="hidden"></section>
+            <section id="user-management-view" class="hidden"></section>
+            <section id="category-management-view" class="hidden"></section>
+            <!-- CORREÇÃO: Adiciona a estrutura base para a página de escrita -->
+            <section id="writing-view" class="hidden">
+                <div class="detail-header">
+                    <h2>Escrita Colaborativa com IA</h2>
+                    <a href="#/" class="btn-secondary">Voltar</a>
+                </div>
+                <div class="feature-page-description">
+                    <p>Use esta seção para criar e editar o conteúdo de seus eBooks diretamente no Google Docs. A integração permite que você visualize o conteúdo formatado como um eBook a qualquer momento.</p>
+                </div>
+                <!-- MUDANÇA: Adiciona a barra de pesquisa -->
+                <div class="search-bar-wrapper">
+                    <input type="search" id="writing-search-input" placeholder="Pesquisar por nome do serviço...">
+                </div>
+                <ul class="feature-service-list"></ul>
+            </section>
+            <!-- CORREÇÃO: Adiciona a estrutura base para a página de vídeo -->
+            <section id="video-view" class="hidden">
+                <div class="detail-header">
+                    <h2>Geração de Vídeo com Avatares de IA</h2>
+                    <a href="#/" class="btn-secondary">Voltar</a>
+                </div>
+                <div class="feature-page-description">
+                    <p>Crie vídeos rapidamente usando avatares realistas da HeyGen. Selecione um serviço, insira o roteiro e o ID do avatar para iniciar a geração. O vídeo aparecerá aqui quando estiver pronto.</p>
+                </div>
+                <!-- MUDANÇA: Adiciona a barra de pesquisa -->
+                <div class="search-bar-wrapper">
+                    <input type="search" id="video-search-input" placeholder="Pesquisar por nome do serviço...">
+                </div>
+                <ul class="feature-service-list"></ul>
+            </section>
         </main>
     </div>
 
