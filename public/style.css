@@ -1283,20 +1283,17 @@ body.detail-view-active .header-content {
 
 /* MUDANÇA: Aplica o mesmo layout para a view de detalhes e de perfil */
 #service-detail-view,
-#profile-view,
-#user-management-view,
-#category-management-view {
-  padding: 40px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
 /* MUDANÇA: Padroniza as views de lista */
 #service-container,
 #production-status-view,
 #requests-view,
 #dashboard-view,
-#statistics-view {
+#statistics-view,
+#profile-view,
+#user-management-view,
+#category-management-view,
+#writing-view,
+#video-view {
   padding: 40px;
   max-width: 1400px;
   margin: 0 auto;
@@ -1514,17 +1511,91 @@ body.sidebar-collapsed #dashboard-view #sidebar-promo-button-container {
 
 .feature-item p {
   font-size: 0.95em; /* REVISÃO: Ajusta o tamanho da fonte para melhor leitura dentro do card */
-  /* MUDANÇA: Garante contraste máximo para a descrição */
-  color: #212529;
+  /* CORREÇÃO: Usa variável para funcionar no tema escuro */
+  color: var(--text-color);
   max-width: none; /* Remove a restrição de largura do parágrafo pai */
   /* MUDANÇA: Melhora o espaçamento e a legibilidade da descrição */
   line-height: 1.6;
   opacity: 0.9;
 }
 
+/* --- MUDANÇA: Estilos para os cards de destaque compactos na home --- */
+.highlight-card {
+  padding: 15px; /* Reduz o padding para um visual mais compacto */
+}
+
+.highlight-card h3 {
+  font-size: 1.1em; /* Reduz o tamanho do título */
+  margin-bottom: 10px;
+}
+
+.highlight-card h3 a {
+  text-decoration: none; /* Remove o sublinhado do link do título */
+  color: inherit; /* Faz o link herdar a cor do h3 */
+}
+
+.highlight-card p {
+  font-size: 0.85em; /* Reduz o tamanho da fonte da descrição */
+  line-height: 1.5;
+}
+
 /* MUDANÇA: Estilo para o botão de promoção da sidebar */
 #sidebar-promo-button-container {
   margin-top: 25px;
+}
+
+/* --- MUDANÇA: Estilos para os destaques do Dashboard --- */
+.dashboard-highlights {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin: 25px auto;
+  text-align: left;
+  width: 100%;
+}
+
+.highlight-section {
+  flex: 1;
+  min-width: 300px;
+  background-color: var(--card-bg);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+/* --- MUDANÇA: Estilos para o cabeçalho da seção de destaque --- */
+.highlight-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--progress-bar-bg);
+  padding-bottom: 10px;
+}
+
+.highlight-section h2 {
+  color: var(--accent-color);
+  font-size: 1.2em;
+  margin: 0; /* Remove margens que foram movidas para o header */
+}
+
+.see-all-link {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.highlight-grid {
+  display: grid;
+  /* Cria colunas responsivas que se ajustam ao espaço */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.highlight-grid .service-card {
+  padding: 15px; /* Um pouco menor para caber melhor */
 }
 
 /* --- MUDANÇA: Estilos para o novo Dashboard --- */
@@ -1550,19 +1621,7 @@ body.sidebar-collapsed #dashboard-view #sidebar-promo-button-container {
   color: var(--accent-color);
   font-size: 2em;
   /* MUDANÇA: Adiciona flexbox para alinhar o botão de copiar */
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-/* MUDANÇA: Estilo para o botão de copiar nome do serviço */
-.btn-copy-service-name {
-  opacity: 0.5;
-}
-
-.requests-header h2 {
-  font-size: 1.5em; /* MUDANÇA: Reduz o título em telas menores */
-  margin-bottom: 15px;
-  text-align: center;
+  display: flex; 
 }
 
 .detail-header-actions {
@@ -2427,6 +2486,12 @@ body.dark-theme .request-card[data-status="rejected"] {
     display: none;
   }
 
+  /* MUDANÇA: Esconde a coluna de data de conclusão em telas pequenas */
+  table th[data-sort="completedAt"],
+  table td[data-label="Conclusão"] {
+    display: none;
+  }
+
   /* Transforma a tabela, linhas e corpo em blocos */
   table,
   table tbody,
@@ -2839,14 +2904,6 @@ body.dark-theme .summary-item.has-overdue .summary-value {
   opacity: 0.6;
   text-align: center;
   padding: 20px;
-}
-
-/* --- MUDANÇA: Estilos para as novas páginas de features (Escrita e Vídeo) --- */
-#writing-view,
-#video-view {
-  padding: 40px;
-  max-width: 1000px;
-  margin: 0 auto;
 }
 
 .feature-page-description {

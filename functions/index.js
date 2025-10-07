@@ -1,6 +1,6 @@
 // CORREÇÃO: Substitui o código de exemplo pelas funções necessárias.
 const functions = require("firebase-functions");
-const axios = require("axios");
+const axios = require("axios"); // MUDANÇA: Adiciona o admin do Firebase
 const { getFirestore } = require("firebase-admin/firestore");
 const { google } = require("googleapis");
 const { initializeApp } = require("firebase-admin/app");
@@ -174,3 +174,101 @@ exports.createGoogleDocForService = functions.https.onCall(
     }
   }
 );
+
+// MUDANÇA: Nova função agendada para verificar serviços atrasados.
+// Esta função será executada todos os dias às 9:00 da manhã.
+exports.checkOverdueServices = functions.pubsub
+  .schedule("every day 09:00")
+  .timeZone("America/Sao_Paulo") // Define o fuso horário
+  .onRun(async (context) => {
+    const db = getFirestore();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Zera a hora para comparar apenas a data
+
+    // 1. Busca todos os serviços que ainda não foram notificados como atrasados.
+    const servicesRef = db.collection("services");
+    const snapshot = await servicesRef
+      .where("overdueNotified", "!=", true)
+      .get();
+
+    if (snapshot.empty) {
+      console.log("Nenhum serviço para verificar.");
+      return null;
+    }
+
+    const batch = db.batch();
+    const emailsToSend = [];
+
+    // 2. Itera sobre os serviços e filtra os que estão realmente atrasados.
+    for (const doc of snapshot.docs) {
+      const service = doc.data();
+      const serviceId = doc.id;
+
+      // Pula se não tiver data de entrega ou responsável
+      if (!service.dueDate || !service.responsible) {
+        continue;
+      }
+
+      const dueDate = new Date(service.dueDate);
+      const isOverdue = dueDate < today;
+
+      // Calcula o progresso para não notificar serviços já concluídos
+      const allSubtasks = (service.steps || []).flatMap((s) => s.subtasks || []);
+      const completedSubtasks = allSubtasks.filter((st) => st.completed).length;
+      const progress =
+        allSubtasks.length > 0
+          ? (completedSubtasks / allSubtasks.length) * 100
+          : 0;
+
+      if (isOverdue && progress < 100) {
+        // 3. O serviço está atrasado. Prepara a notificação.
+        console.log(`Serviço "${service.name}" (${serviceId}) está atrasado.`);
+
+        // Marca o serviço para ser atualizado, evitando novas notificações
+        batch.update(doc.ref, { overdueNotified: true });
+
+        // Adiciona o e-mail à fila de envio
+        emailsToSend.push({
+          serviceName: service.name,
+          serviceId: serviceId,
+          responsibleId: service.responsible,
+        });
+      }
+    }
+
+    // 4. Busca os e-mails dos usuários responsáveis
+    if (emailsToSend.length > 0) {
+      for (const item of emailsToSend) {
+        const userDoc = await db.collection("users").doc(item.responsibleId).get();
+        if (userDoc.exists() && userDoc.data().email) {
+          const userData = userDoc.data();
+          // 5. Adiciona um documento na coleção 'mail' para disparar o e-mail
+          const mailRef = db.collection("mail").doc();
+          batch.set(mailRef, {
+            to: userData.email,
+            message: {
+              subject: `[ALERTA] O serviço "${item.serviceName}" está atrasado!`,
+              html: `
+                <h1>Alerta de Prazo Expirado</h1>
+                <p>Olá, ${userData.displayName || "usuário"}!</p>
+                <p>O serviço <strong>"${
+                  item.serviceName
+                }"</strong>, que está sob sua responsabilidade, ultrapassou a data de entrega e ainda não foi concluído.</p>
+                <p>Por favor, acesse o painel para atualizar o status.</p>
+                <a href="https://uniateneu-nead-gestao.web.app/#/service/${
+                  item.serviceId
+                }">Ver Serviço</a>
+              `, // Você pode usar uma função para criar um HTML mais bonito aqui
+            },
+          });
+        }
+      }
+    }
+
+    // 6. Executa todas as atualizações e envios de e-mail em um único lote
+    await batch.commit();
+    console.log(
+      `Verificação concluída. ${emailsToSend.length} notificações de atraso enviadas.`
+    );
+    return null;
+  });

@@ -148,6 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "priority",
     "dueDate",
     "progress",
+    "completedAt",
   ];
 
   // MUDANÇA: Opções pré-definidas para o select de pendências.
@@ -1579,6 +1580,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // MUDANÇA: Função para renderizar a página de Status da Produção
   function renderProductionStatusPage() {
+    // MUDANÇA: Pega os parâmetros de filtro da URL
+    const urlParams = new URLSearchParams(window.location.hash.split('?')[1]);
+    const initialPriorityFilter = urlParams.get('filterPriority') || 'all';
+    const initialDueDateFilter = urlParams.get('filterDueDate') || 'all';
+    const initialResponsibleFilter = urlParams.get('filterResponsible') || 'all';
+    const initialCategoryFilter = urlParams.get('filterCategory') || 'all';
+    const initialStatusFilter = urlParams.get('filterStatus') || 'all';
+
     // MUDANÇA: Função para salvar a ordem das colunas no localStorage
 
     // CORREÇÃO: Função para atualizar apenas o corpo da tabela, evitando recarregar a página inteira.
@@ -1711,9 +1720,10 @@ document.addEventListener("DOMContentLoaded", () => {
           // Trata datas nulas ou inválidas como "infinitas" para que fiquem no final
           valA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
           valB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-        } else {
-          valA = a.name.toLowerCase();
-          valB = b.name.toLowerCase();
+        } else if (col === "completedAt") {
+          // MUDANÇA: Adiciona ordenação para a data de conclusão
+          valA = a.completedAt ? a.completedAt.toMillis() : Infinity;
+          valB = b.completedAt ? b.completedAt.toMillis() : Infinity;
         }
 
         if (valA < valB) return -1 * dir;
@@ -1778,6 +1788,12 @@ document.addEventListener("DOMContentLoaded", () => {
               progress.percentage
             )}%</span></td>`,
           };
+          // MUDANÇA: Adiciona os dados para a nova coluna de data de conclusão
+          cellData.completedAt = `<td data-label="Conclusão">${
+            service.completedAt
+              ? service.completedAt.toDate().toLocaleDateString("pt-BR")
+              : "N/A"
+          }</td>`;
 
           // Monta a linha na ordem correta
           const rowCells = productionStatusColumnOrder
@@ -1832,11 +1848,11 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="table-filters">
                 <div class="form-group">
                     <label for="status-filter-category">Filtrar por Categoria</label>
-                    <select id="status-filter-category">${categoryOptions}</select>
+                    <select id="status-filter-category" data-initial-value="${initialCategoryFilter}">${categoryOptions}</select>
                 </div>
                 <div class="form-group">
                     <label for="status-filter-status">Filtrar por Status</label>
-                    <select id="status-filter-status">
+                    <select id="status-filter-status" data-initial-value="${initialStatusFilter}">
                         <option value="all">Todos</option>
                         <option value="in-progress">Em Produção</option>
                         <option value="ready">Pronto</option>
@@ -1845,11 +1861,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <!-- MUDANÇA: Novos filtros adicionados -->
                 <div class="form-group">
                     <label for="status-filter-responsible">Filtrar por Responsável</label>
-                    <select id="status-filter-responsible">${responsibleOptions}</select>
+                    <select id="status-filter-responsible" data-initial-value="${initialResponsibleFilter}">${responsibleOptions}</select>
                 </div>
                 <div class="form-group">
                     <label for="status-filter-priority">Filtrar por Prioridade</label>
-                    <select id="status-filter-priority">
+                    <select id="status-filter-priority" data-initial-value="${initialPriorityFilter}">
                         <option value="all">Todas</option>
                         <option value="Alta">Alta</option>
                         <option value="Média">Média</option>
@@ -1858,7 +1874,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="form-group">
                     <label for="status-filter-due-date">Filtrar por Prazo</label>
-                    <select id="status-filter-due-date">
+                    <select id="status-filter-due-date" data-initial-value="${initialDueDateFilter}">
                         <option value="all">Qualquer Prazo</option>
                         <option value="overdue">Atrasado</option>
                         <option value="due-today">Vence Hoje</option>
@@ -1882,6 +1898,12 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
     `;
 
+    // MUDANÇA: Define o valor inicial dos filtros com base nos parâmetros da URL
+    productionStatusView.querySelectorAll('.table-filters select').forEach(select => {
+        if (select.dataset.initialValue) {
+            select.value = select.dataset.initialValue;
+        }
+    });
     // CORREÇÃO: Adiciona um único listener ao container dos filtros para chamar a atualização da tabela.
     productionStatusView
       .querySelector(".detail-section")
@@ -2176,6 +2198,13 @@ document.addEventListener("DOMContentLoaded", () => {
           "Nenhum serviço para exibir neste período."
         );
         document.getElementById("statistics-summary").innerHTML =
+          createChartPlaceholder("Nenhum dado para resumir.");
+        // MUDANÇA: Limpa o placeholder do novo gráfico também
+        document
+          .getElementById("avg-time-chart-card")
+          .querySelector(
+            ".chart-container"
+          ).innerHTML = createChartPlaceholder("Nenhum serviço concluído para exibir neste período.");
           createChartPlaceholder("Nenhum dado para resumir.");
         return;
       }
@@ -2559,6 +2588,67 @@ document.addEventListener("DOMContentLoaded", () => {
           },
         }
       );
+
+      // MUDANÇA: Lógica para o novo gráfico de Tempo Médio de Conclusão
+      const avgTimeChartContainer = document.querySelector(
+        "#avg-time-chart-card .chart-container"
+      );
+      const completedServicesWithTime = filteredServices.filter(
+        (s) => s.createdAt?.toDate && s.completedAt?.toDate
+      );
+
+      if (completedServicesWithTime.length > 0) {
+        const completionTimeByCategory = completedServicesWithTime.reduce(
+          (acc, service) => {
+            const category = service.category || "Sem Categoria";
+            const duration =
+              service.completedAt.toDate().getTime() -
+              service.createdAt.toDate().getTime();
+
+            if (!acc[category]) {
+              acc[category] = { totalDuration: 0, count: 0 };
+            }
+            acc[category].totalDuration += duration;
+            acc[category].count++;
+            return acc;
+          },
+          {}
+        );
+
+        const avgTimeLabels = Object.keys(completionTimeByCategory);
+        const avgTimeData = avgTimeLabels.map((category) => {
+          const data = completionTimeByCategory[category];
+          const avgDurationInMillis = data.totalDuration / data.count;
+          // Converte de milissegundos para dias
+          return (avgDurationInMillis / (1000 * 60 * 60 * 24)).toFixed(1);
+        });
+
+        avgTimeChartContainer.innerHTML = '<canvas id="avg-time-chart"></canvas>';
+        createChart(
+          "avg-time-chart",
+          "bar",
+          {
+            labels: avgTimeLabels,
+            datasets: [
+              {
+                label: "Tempo Médio (dias)",
+                data: avgTimeData,
+                backgroundColor: generateChartColors(avgTimeLabels.length),
+                borderRadius: 6,
+              },
+            ],
+          },
+          {
+            plugins: {
+              legend: { display: false },
+            },
+          }
+        );
+      } else {
+        avgTimeChartContainer.innerHTML = createChartPlaceholder(
+          "Nenhum serviço concluído neste período para calcular a média."
+        );
+      }
     }, 0);
   }
   function createChart(canvasId, type, data, options = {}) {
@@ -2915,7 +3005,85 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.hash = "#/services";
       }
     } else if (isDashboard) {
-      // Nenhuma ação necessária, o HTML é estático
+      // MUDANÇA: Personaliza a mensagem de boas-vindas
+      const welcomeTitle = document.getElementById("dashboard-welcome-title");
+      if (welcomeTitle && currentUser && currentUser.displayName) {
+        const firstName = currentUser.displayName.split(" ")[0];
+        welcomeTitle.textContent = `Bem-vindo, ${firstName}!`;
+      }
+
+      // MUDANÇA: Lógica para popular os destaques do dashboard
+      const upcomingContainer = document.getElementById(
+        "upcoming-due-dates-container"
+      );
+      const priorityContainer = document.getElementById(
+        "high-priority-container"
+      );
+
+      if (upcomingContainer && priorityContainer) {
+        // Filtra serviços ativos e com data de entrega futura
+        const upcomingServices = services
+          .filter(
+            (s) =>
+              s.dueDate &&
+              new Date(s.dueDate) >= new Date() &&
+              calculateOverallProgress(s).percentage < 100
+          )
+          .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+          .slice(0, 2);
+
+        // Filtra serviços ativos com prioridade Alta ou Média
+        const priorityOrder = { Alta: 1, Média: 2, Baixa: 3 };
+        const priorityServices = services
+          .filter((s) => calculateOverallProgress(s).percentage < 100)
+          .sort(
+            (a, b) =>
+              (priorityOrder[a.priority] || 3) -
+              (priorityOrder[b.priority] || 3)
+          )
+          .slice(0, 2);
+
+        const createHighlightCard = (service, type) => {
+          const dueDateStatus = getDueDateStatus(service.dueDate);
+          const responsibleName =
+            teamMemberMap.get(service.responsible) || "Não atribuído";
+
+          // CORREÇÃO: Define o ícone com base no tipo de card ('upcoming' ou 'priority')
+          const iconPath = type === 'upcoming'
+            ? "M19,19H5V8H19M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M16.53,11.06L15.47,10L10.5,14.97L8.47,12.94L7.41,14L10.5,17.09L16.53,11.06Z" // Ícone de calendário
+            : "M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"; // Ícone de alerta
+
+          const description = `
+            Responsável: ${responsibleName}<br>
+            ${
+              dueDateStatus.text
+                ? `Prazo: <span class="${dueDateStatus.className}">${dueDateStatus.text}</span>`
+                : "Sem prazo definido"
+            }
+          `;
+
+          return `
+            <div class="feature-item highlight-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="${iconPath}" />
+                    </svg>
+                </div>
+                <h3><a href="#/service/${service.id}">${service.name}</a></h3>
+                <p>${description}</p>
+            </div>
+          `;
+        };
+
+        upcomingContainer.innerHTML =
+          upcomingServices.length > 0
+            ? upcomingServices.map(service => createHighlightCard(service, 'upcoming')).join("")
+            : "<p>Nenhum serviço com entrega próxima.</p>";
+        priorityContainer.innerHTML =
+          priorityServices.length > 0
+            ? priorityServices.map(service => createHighlightCard(service, 'priority')).join("")
+            : "<p>Nenhum serviço urgente no momento.</p>";
+      }
     } else if (isProfile) {
       renderProfilePage();
     } else if (isRequests) {

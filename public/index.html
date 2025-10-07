@@ -155,7 +155,7 @@
             <section id="dashboard-view" class="hidden">
                 <!-- MUDANÇA: Conteúdo da apresentação expandido -->
                 <div class="presentation-container">
-                    <h1>Bem-vindo ao Painel de Gestão Integrada</h1>
+                    <h1 id="dashboard-welcome-title">Bem-vindo ao Painel de Gestão Integrada</h1>
                     <p>Esta é a sua central de comando para otimizar a produção de conteúdo e gerenciar projetos de
                         forma inteligente e colaborativa.</p>
                     <div class="presentation-features">
@@ -164,40 +164,59 @@
                                     <path
                                         d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z" />
                                 </svg></div>
-                            <h3>Gerenciamento Completo</h3>
-                            <p>Acompanhe o ciclo de vida de cada serviço, desde a criação até a conclusão, com um
-                                sistema de etapas e sub-etapas detalhado.</p>
+                            <h3>Fluxo de Trabalho Integrado</h3>
+                            <p>Gerencie serviços, acompanhe o status da produção em tempo real e centralize todas as solicitações da equipe em um único lugar.</p>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M12,1L9,9L1,12L9,15L12,23L15,15L23,12L15,9L12,1Z" />
+                                </svg></div>
+                            <h3>Criação de Conteúdo com IA</h3>
+                            <p>Acelere a produção com ferramentas inteligentes, incluindo escrita colaborativa em Docs e geração de vídeos com avatares de IA.</p>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z" />
+                                </svg></div>
+                            <h3>Análise e Tomada de Decisão</h3>
+                            <p>Acesse estatísticas e gráficos dinâmicos sobre o desempenho da equipe, produtividade e pontualidade para tomar decisões baseadas em dados.</p>
                         </div>
                         <div class="feature-item">
                             <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                     <path
                                         d="M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z" />
                                 </svg></div>
-                            <h3>Visão em Tempo Real</h3>
-                            <p>Monitore o status da produção de todos os materiais em uma tabela interativa e
-                                exportável, com filtros avançados para encontrar exatamente o que você precisa.</p>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                    <path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z" />
-                                </svg></div>
-                            <h3>Decisões Baseadas em Dados</h3>
-                            <p>Acesse estatísticas e gráficos dinâmicos sobre o desempenho da equipe, produtividade por
-                                categoria e pontualidade nas entregas.</p>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                    <path d="M12,1L9,9L1,12L9,15L12,23L15,15L23,12L15,9L12,1Z" />
-                                </svg></div>
-                            <h3>Colaboração e IA</h3>
-                            <p>Utilize a integração com o Google Docs para escrita colaborativa de eBooks e gere vídeos
-                                com avatares de IA a partir de texto, agilizando a criação de conteúdo.</p>
+                            <h3>Gestão Centralizada</h3>
+                            <p>Tenha uma visão completa de todos os projetos, gerencie permissões de usuários e personalize categorias para adaptar o painel ao seu time.</p>
                         </div>
                     </div>
-                    <p>Explore o menu lateral para começar a transformar sua gestão.</p>
                     <!-- MUDANÇA: Botão para expandir a sidebar, visível apenas quando ela está recolhida -->
                     <div id="sidebar-promo-button-container" class="hidden">
                         <button id="sidebar-promo-btn" class="btn-primary">Explorar Funcionalidades</button>
+                    </div>
+                    <br>
+                    <p>Explore o menu lateral para começar a transformar sua gestão.</p>
+                    <!-- MUDANÇA: Adiciona a nova seção de destaques do dashboard -->
+                    <h3 class="category-title">Serviços Recentes em Destaque</h3>
+                    <div class="dashboard-highlights">
+                        <div class="highlight-section">
+                            <div class="highlight-section-header">
+                                <h2>Próximas Entregas</h2>
+                                <a href="#/production-status?filterDueDate=due-week" class="see-all-link">Ver todos &rarr;</a>
+                            </div>
+                            <div id="upcoming-due-dates-container" class="highlight-grid">
+                                <!-- Mini-boxes de próximas entregas serão inseridos aqui -->
+                            </div>
+                        </div>
+                        <div class="highlight-section">
+                            <div class="highlight-section-header">
+                                <h2>Maiores Urgências</h2>
+                                <a href="#/production-status?filterPriority=Alta" class="see-all-link">Ver todos &rarr;</a>
+                            </div>
+                            <div id="high-priority-container" class="highlight-grid">
+                                <!-- Mini-boxes de maiores urgências serão inseridos aqui -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -277,7 +296,8 @@
                     <a href="#/" class="btn-secondary">Voltar</a>
                 </div>
                 <div class="feature-page-description">
-                    <p>Use esta seção para criar e editar o conteúdo de seus eBooks diretamente no Google Docs. A integração permite que você visualize o conteúdo formatado como um eBook a qualquer momento.</p>
+                    <p>Use esta seção para criar e editar o conteúdo de seus eBooks diretamente no Google Docs. A
+                        integração permite que você visualize o conteúdo formatado como um eBook a qualquer momento.</p>
                 </div>
                 <!-- MUDANÇA: Adiciona a barra de pesquisa -->
                 <div class="search-bar-wrapper">
@@ -292,7 +312,9 @@
                     <a href="#/" class="btn-secondary">Voltar</a>
                 </div>
                 <div class="feature-page-description">
-                    <p>Crie vídeos rapidamente usando avatares realistas da HeyGen. Selecione um serviço, insira o roteiro e o ID do avatar para iniciar a geração. O vídeo aparecerá aqui quando estiver pronto.</p>
+                    <p>Crie vídeos rapidamente usando avatares realistas da HeyGen. Selecione um serviço, insira o
+                        roteiro e o ID do avatar para iniciar a geração. O vídeo aparecerá aqui quando estiver pronto.
+                    </p>
                 </div>
                 <!-- MUDANÇA: Adiciona a barra de pesquisa -->
                 <div class="search-bar-wrapper">
