@@ -3787,7 +3787,7 @@ document.addEventListener("DOMContentLoaded", () => {
         {
           title: "FLUXO DE TRABALHO",
           links: [
-            { href: "#/production-status", text: "Status da Produção", icon: "M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z" },
+            { href: "#/production-status", text: "Status da Produção", icon: "M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z", tag: "Teste", tagTooltip: "Funcionalidade em fase de testes. Pode conter instabilidades." },
             { href: "#/requests", text: "Ver Solicitações", icon: "M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6,7.5L12,10.85L18,7.5L12,4.15M5,15.91L11,19.29V12.58L5,9.21V15.91Z", badge: pendingRequestsCount },
             { href: "#/services", text: "Gerenciar Serviços", icon: "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M8,12V14H16V12H8M8,16V18H13V16H8Z" },
           ]
@@ -3795,8 +3795,8 @@ document.addEventListener("DOMContentLoaded", () => {
         {
           title: "CRIAÇÃO E FERRAMENTAS",
           links: [
-            { href: "#/writing", text: "Escrita Colaborativa", icon: "M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z" },
-            { href: "#/video", text: "Geração de Vídeo IA", icon: "M4,3.5A1.5,1.5 0 0,1 5.5,2H18.5A1.5,1.5 0 0,1 20,3.5V16.5A1.5,1.5 0 0,1 18.5,18H14V20H16V22H8V20H10V18H5.5A1.5,1.5 0 0,1 4,16.5V3.5M18,4H6V16H18V4M10,6V14L15,10" },
+            { href: "#/writing", text: "Escrita Colaborativa", icon: "M20.71,7.04C21.1,6.65,21.1,6,20.71,5.63L18.37,3.29C18,2.9,17.35,2.9,16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z", tag: "Teste", tagTooltip: "Funcionalidade em fase de testes. Pode conter instabilidades." },
+            { href: "#/video", text: "Geração de Vídeo IA", icon: "M4,3.5A1.5,1.5 0 0,1 5.5,2H18.5A1.5,1.5 0 0,1 20,3.5V16.5A1.5,1.5 0 0,1 18.5,18H14V20H16V22H8V20H10V18H5.5A1.5,1.5 0 0,1 4,16.5V3.5M18,4H6V16H18V4M10,6V14L15,10", tag: "Teste", tagTooltip: "Funcionalidade em fase de testes. Pode conter instabilidades." },
           ]
         },
         {
@@ -3830,11 +3830,14 @@ document.addEventListener("DOMContentLoaded", () => {
         finalHtml += `<li class="sidebar-category-title">${category.title}</li>`;
         category.links.forEach(link => {
             const badgeHtml = link.badge > 0 ? `<span class="sidebar-badge">${link.badge}</span>` : "";
+            const tagTooltip = link.tagTooltip ? `data-tooltip="${link.tagTooltip}"` : "";
+            const tagHtml = link.tag ? `<span class="sidebar-tag" ${tagTooltip}>${link.tag}</span>` : "";
             finalHtml += `
                 <li>
                     <a href="${link.href}" class="${window.location.hash === link.href ? "active" : ""}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="${link.icon}" /></svg>
                         <span>${link.text}</span>
+                        ${tagHtml}
                         ${badgeHtml}
                     </a>
                 </li>

@@ -19,9 +19,9 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "rewrites": [
+    "rewrites": [ 
       {
-        "source": "**",
+        "source": "!{/.*\\..*,(/__)?/.*}",
         "destination": "/index.html"
       }
     ]

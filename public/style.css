@@ -1412,6 +1412,67 @@ body.dark-theme body.sidebar-collapsed #sidebar-toggle-btn {
   border-radius: 10px;
 }
 
+/* --- MUDANÇA: Estilo para o selo "Teste" na sidebar --- */
+.sidebar-tag {
+  margin-left: auto; /* Empurra o selo para a direita */
+  position: relative; /* Necessário para posicionar o tooltip */
+  margin-right: 10px; /* Espaço antes do selo de notificação */
+  background-color: var(--accent-color);
+  color: var(--card-bg);
+  font-size: 0.7em;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* --- MUDANÇA: Estilos para o tooltip personalizado --- */
+/* Caixa do tooltip */
+.sidebar-tag[data-tooltip]::after {
+  content: attr(data-tooltip); /* Pega o texto do atributo */
+  position: absolute;
+  /* MUDANÇA: Posiciona na lateral direita */
+  left: calc(100% + 10px); /* 100% da largura do selo + 10px de espaço */
+  top: 50%;
+  transform: translateY(-50%); /* Centraliza verticalmente */
+  background-color: #333;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 0.85em;
+  white-space: nowrap; /* Impede que o texto quebre a linha */
+  z-index: 10;
+  /* Esconde por padrão */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+}
+
+/* Seta do tooltip */
+.sidebar-tag[data-tooltip]::before {
+  content: '';
+  position: absolute;
+  /* MUDANÇA: Posiciona a seta na lateral */
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #333 transparent transparent; /* Aponta para a esquerda */
+  /* Esconde por padrão */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+}
+
+/* Mostra o tooltip no hover */
+.sidebar-tag[data-tooltip]:hover::after,
+.sidebar-tag[data-tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* MUDANÇA: Esconde os elementos da apresentação por padrão */
 #dashboard-view:not(.visible) .presentation-container > * {
   opacity: 0;
