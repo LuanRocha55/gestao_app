@@ -1,6 +1,7 @@
 // CORREÇÃO: Substitui o código de exemplo pelas funções necessárias.
 const functions = require("firebase-functions");
 const axios = require("axios"); // MUDANÇA: Adiciona o admin do Firebase
+const { onSchedule } = require("firebase-functions/v2/scheduler"); // MUDANÇA: Importa o scheduler v2
 const { getFirestore } = require("firebase-admin/firestore");
 const { google } = require("googleapis");
 const { initializeApp } = require("firebase-admin/app");
@@ -176,11 +177,10 @@ exports.createGoogleDocForService = functions.https.onCall(
 );
 
 // MUDANÇA: Nova função agendada para verificar serviços atrasados.
-// Esta função será executada todos os dias às 9:00 da manhã.
-exports.checkOverdueServices = functions.pubsub
-  .schedule("every day 09:00")
-  .timeZone("America/Sao_Paulo") // Define o fuso horário
-  .onRun(async (context) => {
+// CORREÇÃO: Atualiza para a sintaxe do Firebase Functions v2.
+exports.checkOverdueServices = onSchedule(
+  { schedule: "every day 09:00", timeZone: "America/Sao_Paulo" },
+  async (event) => {
     const db = getFirestore();
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Zera a hora para comparar apenas a data
@@ -271,4 +271,5 @@ exports.checkOverdueServices = functions.pubsub
       `Verificação concluída. ${emailsToSend.length} notificações de atraso enviadas.`
     );
     return null;
-  });
+  }
+);
