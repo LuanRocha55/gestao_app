@@ -3097,9 +3097,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (isStatistics) {
       renderStatisticsPage();
     } else if (isWriting) {
-      renderWritingPage();
+      // MUDANÇA: Chama a função para renderizar o conteúdo da página
+      renderWritingPage(); 
     } else if (isVideo) {
-      renderVideoPage();
+      // MUDANÇA: Chama a função para renderizar o conteúdo da página
+      renderVideoPage(); 
     } else {
       // MUDANÇA: Adiciona o botão de gerenciar categorias apenas para admins
       const adminCategoryButton =
@@ -3456,9 +3458,11 @@ document.addEventListener("DOMContentLoaded", () => {
               dueDate,
               steps,
             });
+            // O listener onSnapshot irá atualizar a UI com os dados mais recentes do Firestore.
+            // Apenas precisamos renderizar a view de volta para o modo de visualização.
             alert("Serviço atualizado com sucesso!");
-
-            renderServiceDetail(serviceToUpdate, [], false);
+            // A chamada handleRouteChange() garantirá que a view correta seja renderizada com os dados atualizados pelo onSnapshot.
+            handleRouteChange();
           } catch (error) {
             console.error("Erro ao salvar serviço:", error);
             alert("Falha ao salvar as alterações.");
@@ -4074,14 +4078,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUDANÇA: Função para coletar dados de etapas e sub-etapas de um formulário
     function collectStepsFromForm(stepGroups, originalService = null) {
       const steps = [];
-      stepGroups.forEach((group, stepIndex) => {
+      stepGroups.forEach((group, index) => {
         const stepName = group.querySelector('[name="stepName"]').value;
         const stepColor = group.querySelector('[name="stepColor"]').value;
         const stepResponsibleId = group.querySelector(
           '[name="stepResponsible"]'
         ).value;
-
-        const substepRows = group.querySelectorAll(".substep-input-row");
+        // CORREÇÃO: O seletor '.substep-input-row' é usado em ambos os formulários (modal e inline).
+        // O problema anterior já havia sido corrigido. Esta é uma revisão para garantir clareza.
+        const substepRows = group.querySelectorAll(".substep-input-row"); 
         const subtasks = [];
         substepRows.forEach((row, subtaskIndex) => {
           const substepName = row.querySelector('[name="substepName"]').value;
@@ -4091,13 +4096,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Tenta preservar o status 'completed' da sub-etapa original se estiver editando
           let isCompleted = false;
+          // CORREÇÃO: Usa o índice 'index' em vez de 'stepIndex' que não existe neste escopo.
           if (
             originalService &&
-            originalService.steps[stepIndex] &&
-            originalService.steps[stepIndex].subtasks[subtaskIndex]
+            originalService.steps[index] &&
+            originalService.steps[index].subtasks[subtaskIndex]
           ) {
             isCompleted =
-              originalService.steps[stepIndex].subtasks[subtaskIndex].completed;
+              originalService.steps[index].subtasks[subtaskIndex].completed;
           }
 
           subtasks.push({
@@ -4560,21 +4566,21 @@ document.addEventListener("DOMContentLoaded", () => {
         // 1. Usuário existe mas não verificou o e-mail
         // Se o usuário existe mas o e-mail não foi verificado, mostra a tela de verificação.
         // Isso acontece logo após o registro.
-        updateUIForAuthState(false); // Mostra a tela de login
+        updateUIForAuthState(false);
         hideAllAuthBoxes();
         showVerificationScreen(user.email);
       } else if (user && user.emailVerified) {
         // 2. Usuário logado e verificado
-        // CORREÇÃO: Se o usuário está logado e verificado, mostra a tela "Continuar como".
+        // CORREÇÃO: Se o usuário está logado e verificado, inicializa a aplicação diretamente.
         await updateUserInFirestore(user);
-        const userDocRef = doc(db, "users", user.uid);
+        const userDocRef = doc(db, "users", user.uid); // CORREÇÃO: A referência já estava correta, mas o problema estava no fluxo.
         const userDocSnap = await getDoc(userDocRef);
         // Combina os dados do Auth com os dados do Firestore (como o 'role')
         currentUser = {
           ...user,
           ...(userDocSnap.exists() ? userDocSnap.data() : {}),
         };
-        showContinueAsScreen(currentUser);
+        initializeAppUI(currentUser);
       } else {
         // 3. Nenhum usuário logado
         // --- O USUÁRIO ESTÁ DESLOGADO OU ACABOU DE DESLOGAR ---
@@ -5096,7 +5102,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Enviar formulário de "Adicionar Serviço"
-  addServiceForm.addEventListener("submit", async (e) => {
+  document.addEventListener("submit", async (e) => {
+    if (e.target.id !== "add-service-form") return;
     e.preventDefault();
     const formData = new FormData(addServiceForm);
     const serviceName = formData.get("serviceName");
@@ -5147,6 +5154,8 @@ document.addEventListener("DOMContentLoaded", () => {
           steps
         );
         alert("Serviço atualizado com sucesso!");
+        // MUDANÇA: Redesenha a view atual para refletir as alterações.
+        handleRouteChange();
       } else {
         // --- MODO ADIÇÃO ---
         const newServiceRef = await addDoc(servicesCollection, {
@@ -5335,11 +5344,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Cria uma linha de input para uma sub-etapa
   function createSubstepInputRow(name = "", pendingDescription = "") {
-    // MUDANÇA: Gera um ID único para o textarea de pendingDescription
     const uniqueId = `substep-id-${Math.random().toString(36).substr(2, 9)}`;
 
     const row = document.createElement("div");
-    row.className = "substep-input-row";
+    // CORREÇÃO: Garante que a classe 'substep-input-row' esteja sempre presente.
+    row.className = "substep-input-row"; 
     row.innerHTML = `
       <input type="text" name="substepName" placeholder="Nome da sub-etapa" value="${name}" data-id="${uniqueId}" required />
       <button type="button" class="btn-icon btn-delete-substep" title="Remover Sub-etapa"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>

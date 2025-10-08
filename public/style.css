@@ -1910,15 +1910,22 @@ body.dark-theme .pending-description-text {
 .file-list {
   list-style: none;
   margin-bottom: 20px;
+  /* MUDANÇA: Transforma a lista em um container flex para alinhar os itens em linha */
+  display: flex;
+  flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha se não houver espaço */
+  gap: 15px; /* Espaçamento entre os arquivos */
 }
 
 .file-item {
-  padding: 10px;
+  /* MUDANÇA: Adiciona um fundo e borda para destacar cada arquivo como um "chip" */
+  background-color: var(--bg-color);
+  border: 1px solid var(--progress-bar-bg);
+  padding: 8px 12px; /* Ajusta o padding para um visual mais compacto */
   display: flex;
-  justify-content: space-between;
   align-items: center;
   border-radius: 5px;
   transition: background-color 0.2s ease;
+  gap: 8px; /* Espaço entre o nome do arquivo e o botão de deletar */
 }
 
 .file-item .btn-delete-file {
@@ -2083,9 +2090,12 @@ body.dark-theme .pending-description-text {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid var(--progress-bar-bg);
+  /* MUDANÇA: Altera a direção do flex para linha e alinha os itens */
   display: flex;
-  flex-direction: column; /* MUDANÇA: Empilha os itens verticalmente */
-  gap: 15px; /* MUDANÇA: Adiciona espaço vertical entre os itens */
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap; /* Permite que os itens quebrem a linha em telas menores */
 }
 
 .upload-separator {
